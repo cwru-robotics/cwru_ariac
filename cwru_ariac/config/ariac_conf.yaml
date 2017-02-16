@@ -1,0 +1,26 @@
+arm:
+  type: ur10
+  initial_joint_states:
+    linear_arm_actuator_joint: 0
+sensors:
+  logical_camera_1:
+    type: logical_camera
+    pose:
+      xyz: [0, 0.5, 5]
+      rpy: [0, 'pi/2', 0]
+      
+  break_beam_1:
+    type: break_beam
+    pose:
+      xyz: [1.6, 2.25, 0.95]
+      rpy: [0, 0, 'pi']
+  proximity_sensor_1:
+    type: proximity_sensor
+    pose:
+      xyz: [0.8, 4.4, 1]
+      rpy: [0, 0, 0]
+  laser_profiler_1:
+    type: laser_profiler
+    pose:
+      xyz: [1.21816, 4, 1.24]
+      rpy: ['-pi', 'pi/2', 'pi/2']

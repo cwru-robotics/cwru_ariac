@@ -1,0 +1,25 @@
+int8 type                               # type of this query, specified below
+cwru_ariac/RobotState robotState        # robot state after finish execute current command or current robot state
+cwru_ariac/Part sourcePart              # part to pick or place
+cwru_ariac/Part targetPart              # fake part message that contains pose and location for move
+float64 maxPlanningTime                 # new max planning time, oracle should finish within this time frame
+
+# type list
+int8 NONE					    = 0     # unused
+int8 PICK				        = 10    # a collision free plan to pick a part from sourcePart, considering part moving speed, return planning time, executing time and plan id
+int8 PLACE				        = 11    # a collision free plan to place a part (hold by gripper) to targetPart, return planning time, executing time and plan id
+int8 MOVE		                = 12    # a collision free plan to pick up and place a part from sourcePart to targetPart, return planning time, executing time and plan id
+int8 SET_MAX_PLANNING_TIME      = 13    # this will be move to param server in the future
+---
+bool success                            # if success, errorCode will be ignored
+int8 errorCode                          # reason of fault, specified below
+int32 planID                            # id of this query, can be used for robot move action server to lookup for specific plan and execute, not used currently
+float64 planningTime                    # elapsed time for doing this planning
+float64 executingTime                   # time estimated for robot move action server to execute this plan
+
+# ERROR CODE
+int8 NO_ERROR			= 0             # default
+int8 UNKNOWN_ERROR		= 100           # all other errors
+int8 INVALID_QUERY		= 101           # type not in list or Part message have error
+int8 TIMEOUT	        = 102           # reach time limit, return with no or partial result
+int8 UNREACHABLE		= 103           # out of robot reachable range, considering part moving speed

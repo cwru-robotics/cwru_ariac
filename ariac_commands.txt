@@ -1,0 +1,35 @@
+Have gazebo7 installed in your machine.
+
+Clone ariac
+git clone https://bitbucket.org/osrf/ariac.git
+
+Run the world only: 
+rosrun osrf_gear gear.py
+
+Run world with preconfiguration: 
+rosrun osrf_gear gear.py -o /tmp -f `rospack find osrf_gear`/config/sample.yaml
+
+Run world with your own config: 
+rosrun osrf_gear gear.py -o /tmp -f `rospack find cwru_ariac`/config/ariac_conf.yaml
+								↑ make this your config, see https://bitbucket.org/osrf/ariac/wiki/configuration_spec
+
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf2.yaml `rospack find gear_example`/config/sample_gear_conf.yaml -o /tmp
+all parts
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf1.yaml `rospack find gear_example`/config/sample_gear_conf.yaml -o /tmp
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf2.yaml `rospack find gear_example`/config/sample_gear_conf.yaml -o /tmp
+Run this:
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf1.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf2.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+
+rosrun cwru_ariac gear_example_node
+
+rosrun cwru_ariac pose_tunner
+
+roslaunch ur10_moveit_config moveit_rviz.launch config:=true
+
+rosrun rviz rviz -d `rospack find osrf_gear`/rviz/ariarviz
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/sample.yaml
+

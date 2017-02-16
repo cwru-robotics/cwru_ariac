@@ -1,0 +1,33 @@
+int8 type								# type of action
+int32 planID							# plan id for search exist plan from oracle, to avoid duplicate plan work
+cwru_ariac/Part sourcePart				# part to pick or place
+cwru_ariac/Part targetPart				# fake part message that contains pose and location for move
+float64[] jointsValue					# new joint value to be published
+float64 timeout						 	# time limit for perform any move action, <=0 means no limit
+
+# type list
+int8 NONE						= 0	 	# unused
+int8 PICK						= 10	# input: planID, sourcePart (from), timeout; output: success, errorCode, basePose (after finished this movement), gripperPose (after finished this movement), jointsState (after finished this movement)
+int8 PLACE						= 11	# input: planID, sourcePart (to), timeout; output: success, errorCode, basePose (after finished this movement), gripperPose (after finished this movement), jointsState (after finished this movement)
+int8 MOVE						= 12	# input: planID, sourcePart (from), targetPart (to), timeout; output: success, errorCode, basePose (after finished this movement), gripperPose (after finished this movement), jointsState (after finished this movement)
+int8 TO_HOME					= 13	# input: timeout; output: success, errorCode, basePose (after finished this movement), gripperPose (after finished this movement), jointsState (after finished this movement)
+int8 SET_JOINT_VALUE			= 15	# input: jointsValue, timeout; output: success, errorCode, basePose (after finished this movement), gripperPose (after finished this movement), jointsState (after finished this movement)
+int8 GET_ROBOT_STATE			= 16	# input: (none); output: success, robotState (current time)
+int8 GRASP						= 17	# input: (none); output: success, errorCode
+int8 RELEASE					= 18	# input: (none); output: success, errorCode
+int8 IS_ATTACHED				= 19	# input: (none); output: success (true means attached)
+int8 WAIT_FOR_ATTACHED			= 20	# input: timeout; output: success, errorCode
+---
+bool success							# success or bool result, if success, errorCode will be ignored
+int8 errorCode							# reason of fault, specified below
+cwru_ariac/RobotState robotState        # robot state after finish execute current command or current robot state
+
+# ERROR CODE
+int8 NO_ERROR			= 0				# default
+int8 UNKNOWN_ERROR		= 100			# all other errors
+int8 WRONG_PARAMETER	= 101			# type not in list or Part message have error
+int8 TIMEOUT			= 102			
+int8 UNREACHABLE		= 103
+int8 GRIPPER_FAULT		= 104			# when gripper not working well
+int8 COLLISION			= 105			# when robot hit anything and need a replanning
+int8 PART_DROPPED		= 106			# part dropped in the middle, return immediately with current basePose, gripperPose and jointsState, a replanning will be performed

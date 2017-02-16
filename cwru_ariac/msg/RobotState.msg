@@ -1,0 +1,3 @@
+geometry_msgs/PoseStamped basePose		# pose of robot base, equal to current base pose when GET_BASE_POSE, or the base pose when finished executing in other case
+geometry_msgs/PoseStamped gripperPose	# pose of end effector, equal to current end effector pose when GET_GRIPPER_POSE, or the end effector pose when finished executing in other case
+float64[] jointsState					# joints value of robot, equal to current base pose when GET_JOINT_VALUE, or the joints state when finished executing in other case
