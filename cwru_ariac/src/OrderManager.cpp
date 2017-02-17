@@ -86,6 +86,18 @@ bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
     return false;
 }
 Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
+    Part part;
+    if (agvName == AGVs[0].name)
+        part.location = Part::AGV1;
+    else if(agvName == AGVs[1].name)
+        part.location = Part::AGV2;
+    else
+        part.location = Part::AGV;
+    part.pose.pose = object.pose;
+    part.pose.header.stamp = ros::Time::now();
+    part.traceable = false;
+    part.name = object.type;
+    return part;
 
 }
 double OrderManager::scoreFunction(double TC, double TT) {
