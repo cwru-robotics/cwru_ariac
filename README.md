@@ -17,3 +17,12 @@ System setup see [here](https://github.com/cwru-robotics/cwru_scripts/blob/maste
 ## gear_example
 
 Official exmaple from OSRF
+
+##how to start up simulation:
+empty (no robot, no parts, no camera):
+`rosrun osrf_gear gear.py`
+NIST example:
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/sample.yaml
+
+with our config:
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find osrf_gear`/config/robot_and_sensors.yaml
