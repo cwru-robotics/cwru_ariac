@@ -63,6 +63,8 @@ void jointStatesCb(const sensor_msgs::JointState& js_msg) {
     
 }
 
+//obsolete...
+/*
 void set_ur_jnt_names() {
   g_ur_jnt_names.push_back("shoulder_pan_joint");
   g_ur_jnt_names.push_back("shoulder_lift_joint");
@@ -81,7 +83,7 @@ void set_ur_jnt_names_7dof() {
   g_ur_jnt_names_7dof.push_back("wrist_2_joint");
   g_ur_jnt_names_7dof.push_back("wrist_3_joint");
 }
-
+*/
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "ur10_kinematics_test_main");
@@ -90,14 +92,11 @@ int main(int argc, char **argv) {
     UR10FwdSolver fwd_solver;
     UR10IkSolver ik_solver;
     
-    set_ur_jnt_names();
-    set_ur_jnt_names_7dof();
+    fwd_solver.get_joint_names_6dof(g_ur_jnt_names);
+    fwd_solver.get_joint_names_7dof(g_ur_jnt_names_7dof);
+    //set_ur_jnt_names();
+    //set_ur_jnt_names_7dof();
     
-    //ROS_INFO("DH_a_params[1] = %f",DH_a_params[1]);
-    //manual check: enter RPY values and q-angles to try to match gazebo to fwd_kin
-    double euler_R = 01.2192;
-    double euler_P = 0.9412;
-    double euler_Y = 0.4226;
     Eigen::VectorXd q_in,q_7dof_bin8_approach,q_6dof_bin8_approach;
     Eigen::Matrix4d A61;
     q_in.resize(NJNTS);
@@ -105,11 +104,12 @@ int main(int argc, char **argv) {
     
 
     //q_in << 0,0,0,0,0,0;
-    q_in << 0.1, -0.2, 0.3, 0.4, 0.5, 0.6;
-    g_q_vec = q_in;
+    //q_in << 0.1, -0.2, 0.3, 0.4, 0.5, 0.6;
+    //g_q_vec = q_in;
     
     q_7dof_bin8_approach.resize(7);
     q_7dof_bin8_approach<<1.5, 0.4, -0.8, 2.15, 4.0, -1.57, 0.50;
+    //q_7dof_bin8_approach<<1.85, -0.535, -0.47, 3.14, 3.33, -1.57, 0.50;
     q_6dof_bin8_approach = fwd_solver.map726dof(q_7dof_bin8_approach);
 
    // Eigen::Affine3d affine_vacuum;
@@ -121,13 +121,25 @@ int main(int argc, char **argv) {
         std::cout << A_fwd_DH.linear() << std::endl;
         std::cout << "A origin: " << A_fwd_DH.translation().transpose() << std::endl;
         Eigen::Matrix3d R_flange = A_fwd_DH.linear();
-        Eigen::Matrix4d A_wrist;
+
         Eigen::Quaterniond quat(R_flange);
-        std::cout<<"quat: "<<quat.x()<<", "<<quat.y()<<", "<<quat.z()<<", "<<quat.w()<<endl;    
+        std::cout<<"quat: "<<quat.x()<<", "<<quat.y()<<", "<<quat.z()<<", "<<quat.w()<<endl; 
+        
+        std::vector<Eigen::VectorXd> q6dof_solns;
+        
+        int nsolns = ik_solver.ik_solve(A_fwd_DH,q6dof_solns);
+        nsolns = q6dof_solns.size();
+        std::cout << "number of IK solutions: " << nsolns << std::endl;    
+        //select the solution that is closest to some reference--try q_6dof_bin8_approach
+        Eigen::VectorXd q_fit;
+        q_fit = fwd_solver.closest_soln(q_6dof_bin8_approach,q6dof_solns);
+        cout<<"best fit soln: "<<q_fit.transpose()<<endl;
+        
+        
 
         return 0;  //DEBUG
-
-    
+        Eigen::Matrix4d A_wrist;
+    //***********************************************************
     ros::Subscriber joint_state_sub = nh.subscribe("/joint_states", 1, jointStatesCb);
     cout << "warming up callbacks..." << endl;
     while (g_arm_joint_indices.size()<1) {

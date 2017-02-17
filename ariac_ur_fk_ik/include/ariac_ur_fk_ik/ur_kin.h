@@ -114,6 +114,8 @@ const double g_agv1_hover_pose[] = {1.0, 2.1, -0.3, 1.4, 4.0, -1.57, 0.0};
 const double g_tool_offset= 0.008; // vacuum gripper is displaced 8mm from flange (tool0) frame
 Eigen::Quaterniond g_q_tool(0,1,0,0); //quaterion(w,x,y,z))
 
+
+    
 class UR10FwdSolver {
     
 public:
@@ -129,18 +131,21 @@ public:
     Eigen::Affine3d get_affine_tool_wrt_flange() { return A_tool_wrt_flange_;}
     void set_affine_tool_wrt_flange(Eigen::Affine3d A_tool_wrt_flange) { 
         A_tool_wrt_flange_=A_tool_wrt_flange;
-    }   
     
+    }    
+    Eigen::MatrixXd g_A_vacuum_wrt_tool0_; 
    //convert 6dof UR10 joints (in DH order) and provided rail displacement to consistent 7dof vector for ARIAC control 
    Eigen::VectorXd map627dof(double q_linear, Eigen::VectorXd q6dof);
    //convert 7dof vector to 6dof joint angles of UR10, in order expected by FK/IK fncs
    Eigen::VectorXd map726dof(Eigen::VectorXd q7dof);
     //std::vector<double> map27dof(double q_linear, Eigen::VectorXd q6dof);
+   void get_joint_names_6dof(vector<string> &jnt_names);
+   void get_joint_names_7dof(vector<string> &jnt_names); 
+    Eigen::VectorXd closest_soln(Eigen::VectorXd q_ref,vector<Eigen::VectorXd> q_ik_solns);
 
-    
 private:
     Eigen::Affine3d A_tool_wrt_flange_,affine_vacuum_wrt_tool0_;
-    Eigen::MatrixXd A_vacuum_wrt_tool0_;
+
     Eigen::Matrix4d fwd_kin_solve_(const Eigen::VectorXd& q_vec);
     Eigen::Matrix4d A_mats[6], A_mat_products[6], A_tool; // note: tool A must also handle diff DH vs URDF frame-7 xform
     Eigen::MatrixXd Jacobian;    

@@ -76,6 +76,27 @@ Eigen::Matrix4d compute_A_of_DH(int i, double q_DH) {
     return A;
 }
 
+void UR10FwdSolver::get_joint_names_6dof(vector<string> &jnt_names){
+  jnt_names.clear();
+  jnt_names.push_back("shoulder_pan_joint");
+  jnt_names.push_back("shoulder_lift_joint");
+  jnt_names.push_back("elbow_joint");
+  jnt_names.push_back("wrist_1_joint");
+  jnt_names.push_back("wrist_2_joint");
+  jnt_names.push_back("wrist_3_joint");
+}
+
+void UR10FwdSolver::get_joint_names_7dof(vector<string> &jnt_names){
+    jnt_names.clear();
+  jnt_names.push_back("elbow_joint");
+  jnt_names.push_back("linear_arm_actuator_joint");  
+  jnt_names.push_back("shoulder_lift_joint");
+  jnt_names.push_back("shoulder_pan_joint");
+  jnt_names.push_back("wrist_1_joint");
+  jnt_names.push_back("wrist_2_joint");
+  jnt_names.push_back("wrist_3_joint");    
+} 
+
 //convert from DH angles to UR angles:
 void UR10FwdSolver::q_DH_to_q_UR(Eigen::VectorXd q_soln_DH, Eigen::VectorXd &q_soln_UR){
     for (int i=0;i<6;i++) {
@@ -119,6 +140,31 @@ bool UR10FwdSolver::fit_q_to_range(double q_min, double q_max, double &q) {
     else
         return true;
 }
+
+//provide a reference, q_ref, and a vector of q vectors, q_ik_solns;
+// return the soln that is closest to q_ref
+ Eigen::VectorXd UR10FwdSolver::closest_soln(Eigen::VectorXd q_ref,vector<Eigen::VectorXd> q_ik_solns) {
+      int nsolns = q_ik_solns.size();
+      Eigen::VectorXd q_test,q_best;
+      fit_joints_to_range(q_ref);
+      q_best = q_ik_solns[0];
+      fit_joints_to_range(q_best);
+      cout<<"trial soln: "<<q_best.transpose()<<endl;
+      double q_err_min = (q_ref-q_best).norm();
+      double q_err;
+      for (int i=1;i<nsolns;i++) {
+          q_test = q_ik_solns[i];
+          fit_joints_to_range(q_test);
+          cout<<"trial soln: "<<q_test.transpose()<<endl;
+          q_err = (q_ref-q_test).norm();
+          if (q_err<q_err_min) {
+              q_best = q_test;
+              q_err_min = q_err;
+          }
+      }
+      
+      return q_best;
+ }
 
 //convert 6dof UR10 joints and provided rail displacement to consistent 7dof vector for control
  Eigen::VectorXd UR10FwdSolver::map627dof(double q_linear, Eigen::VectorXd q6dof){
@@ -207,10 +253,10 @@ UR10FwdSolver::UR10FwdSolver() { //(const hand_s& hs, const atlas_frame& base_fr
     affine_hand.linear() = R_vacuum;
     affine_hand.translation() = O_vacuum;  
     //convert the above affine to a 4x4
-    A_vacuum_wrt_tool0_ = Eigen::MatrixXd::Zero(4, 4);
-    A_vacuum_wrt_tool0_.block<3, 3>(0, 0) = R_vacuum;
-    A_vacuum_wrt_tool0_.block<3, 1>(0, 3) = O_vacuum;
-    A_vacuum_wrt_tool0_(3, 3) = 1.0;    
+    g_A_vacuum_wrt_tool0_ = Eigen::MatrixXd::Zero(4, 4);//A_vacuum_wrt_tool0_
+    g_A_vacuum_wrt_tool0_.block<3, 3>(0, 0) = R_vacuum;
+    g_A_vacuum_wrt_tool0_.block<3, 1>(0, 3) = O_vacuum;
+    g_A_vacuum_wrt_tool0_(3, 3) = 1.0;    
 }
 
 /*  IN CASE WANT JACOBIAN LATER...finish this
@@ -254,6 +300,9 @@ Eigen::Affine3d UR10FwdSolver::fwd_kin_solve(const Eigen::VectorXd& q_vec_UR) {
     q_vec_DH.resize(6);
     q_UR_to_q_DH(q_vec_UR,q_vec_DH);
     M = fwd_kin_solve_(q_vec_DH);
+    //add transforms to get to vacuum-gripper frame:
+    //M = M*A_tool_wrt_flange_*g_A_vacuum_wrt_tool0_;
+    M = M*g_A_vacuum_wrt_tool0_;
     Eigen::Affine3d A(M);
     return A;
 }
@@ -308,12 +357,19 @@ int UR10IkSolver::ik_solve(Eigen::Affine3d const& desired_hand_pose,  vector<Eig
     Eigen::Vector3d p_des = desired_hand_pose.translation();
     Eigen::Matrix3d R_des = desired_hand_pose.linear();
     Eigen::Vector3d b6_des = R_des.col(2); // direction of desired z-vector
-    Eigen::Matrix4d T60; //target pose, expressed as a 4x4
+    Eigen::Matrix4d T60,T_hand; //target pose, expressed as a 4x4
     //convert affine to 4x4:
-    T60 = Eigen::MatrixXd::Zero(4, 4);
-    T60.block<3, 3>(0, 0) = R_des;
-    T60.block<3, 1>(0, 3) = p_des;
-    T60(3, 3) = 1.0;
+    T_hand = Eigen::MatrixXd::Zero(4, 4);
+    T_hand.block<3, 3>(0, 0) = R_des;
+    T_hand.block<3, 1>(0, 3) = p_des;
+    T_hand(3, 3) = 1.0;    
+    
+    T60 = T_hand*g_A_vacuum_wrt_tool0_.inverse(); // T_hand = T60*A_vacuum_wrt_tool0_;
+    
+    //T60 = Eigen::MatrixXd::Zero(4, 4);
+    //T60.block<3, 3>(0, 0) = R_des;
+    //T60.block<3, 1>(0, 3) = p_des;
+    //T60(3, 3) = 1.0;
 
     //w_des is origin O5; wrist is not spherical, but z5 and z6 intersect  
     double L6 = DH_d_params[5];
