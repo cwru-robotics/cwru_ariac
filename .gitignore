@@ -1,3 +1,30 @@
+build
+install
+devel
+
+#repos
+.git
+
+#clion
+.idea
+
+#cmake
+cmake-build-debug
+gtest
+CMakeFiles
+catkin_generated
+catkin
+cmake
+
+#vim
+*/.#*
+.#*
+
+#temp files
+*~
+.*~
+default_warehouse_mongo_db
+
 # Compiled Object files
 *.slo
 *.lo

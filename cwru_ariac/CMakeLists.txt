@@ -36,14 +36,15 @@ cs_add_executable(pose_tuner src/pose_tuner.cpp)
 cs_add_executable(camera_tester src/camera_tester.cpp)
 cs_add_executable(pick_and_place_demo src/pick_and_place_demo.cpp)
 cs_add_executable(factory_planner src/factory_planner.cpp)
-cs_add_executable(oracle_tester src/oracle_tester.cpp)
+#cs_add_executable(oracle_tester src/oracle_tester.cpp)
+cs_add_executable(qualifier_1a src/qualifier_1a.cpp)
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
 target_link_libraries(pose_tuner AriacLib)
 target_link_libraries(camera_tester AriacLib)
 target_link_libraries(pick_and_place_demo AriacLib)
 target_link_libraries(factory_planner AriacLib)
-target_link_libraries(oracle_tester AriacLib)
+target_link_libraries(qualifier_1a AriacLib)
 
 cs_install()
 cs_export()

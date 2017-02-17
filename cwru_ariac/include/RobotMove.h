@@ -15,15 +15,15 @@ public:
     bool pick(Part part, double timeout);
     bool place(Part destination, double timeout);
     bool move(Part part, Part destination, double timeout);
-    void sendJointsValue(vector<double> joints, double timeout);
-    vector<double> getJointsState();
+    void setJointValues(vector<double> joints, double timeout);
     void grab();
     void release();
     bool isGripperAttached();
     bool waitForGripperAttach(double timeout);
+    bool isDropped();
     void setMaxPlanningTime(double maxPlanningTime) {this->maxPlanningTime = maxPlanningTime;}
     bool getRobotState(RobotState& robotState);
-
+    vector<double> getJointsState();
 private:
     ros::NodeHandle nh_;
     ros::ServiceClient oracle;
@@ -31,7 +31,6 @@ private:
     double maxPlanningTime;
     OracleQueryRequest request;
     OracleQueryResponse response;
-
     geometry_msgs::Pose homePose;
     RobotState currentRobotState;
 };
