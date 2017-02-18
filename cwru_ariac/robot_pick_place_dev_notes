@@ -1,0 +1,49 @@
+RobotMove notes:
+
+action server:  
+case RobotMoveGoal::MOVE
+
+
+ac: 
+  populate a goal message with:
+  goal->type = RobotMoveGoal::MOVE
+  goal->sourcePart.name.c_str()
+  goal->sourcePart.pose
+  goal->targetPart.pose
+  goal->timeout
+  goal->sourcePart.location //codes for pickup location type: bin or conveyor 
+  goal->targetPart.location //codes for destination location type: e.g.  Part::AGV1
+   
+  sendGoal(RobotMoveGoal goal) {
+//            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2), &RobotMove::activeCb, boost::bind(&RobotMove::feedbackCb, this, _1));
+            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2));
+
+
+example:  
+start ariac, qual1a with:
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+
+start the pick/place action server:
+rosrun robot_move_as robot_move_as
+
+-----------
+
+rostopic echo /ariac/logical_camera_1: gives parts in camera frame;
+
+gear_part_6:
+rosrun tf tf_echo world gear_part_6_frame
+ - Translation: [-0.369, -0.597, 0.726]
+- Rotation: in Quaternion [0.022, -0.001, 0.032, 0.999]
+
+destination: AGV1: frame is centered on rail, w/ origin at height 0.750, which is comparable to bin,
+  and lower than robot base_link
+rosrun tf tf_echo world agv1_load_point_frame
+- Translation: [0.300, 3.300, 0.750]
+- Rotation: in Quaternion [0.000, 0.000, 1.000, 0.000]
+
+rosrun tf tf_echo world base_link
+- Translation: [0.300, 0.000, 1.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+
+

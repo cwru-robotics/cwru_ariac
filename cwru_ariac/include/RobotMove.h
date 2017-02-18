@@ -14,6 +14,9 @@ public:
 
     RobotMove(ros::NodeHandle& nodeHandle);
     bool toHome(double timeout = 0);
+    bool toCruisePose(double timeout = 0);
+    bool toAgv1HoverPose(double timeout = 0);
+    bool toPredefinedPose(int8_t goal_code);
     bool pick(Part part, double timeout = 0);
     bool place(Part destination, double timeout = 0);
     bool move(Part part, Part destination, double timeout = 0);

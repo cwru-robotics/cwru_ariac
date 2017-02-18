@@ -20,6 +20,43 @@ bool RobotMove::toHome(double timeout) {
     return finished_before_timeout && success;
 }
 
+bool RobotMove::toCruisePose(double timeout) {
+    ROS_INFO("requesting move to cruise pose");
+    goal.timeout = timeout;
+    goal.type = RobotMoveGoal::TO_CRUISE_POSE;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;    
+}
+
+bool RobotMove::toAgv1HoverPose(double timeout) {
+    ROS_INFO("requesting move to agv1 hover pose");
+    goal.timeout = timeout;
+    goal.type = RobotMoveGoal::TO_AGV1_HOVER_POSE;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;    
+}
+
+bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
+    ROS_INFO("requesting move to  pose code %d",predefined_pose_code);
+    
+    goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
+    goal.predfinedPoseCode = predefined_pose_code;
+    sendGoal(goal);
+    double timeout= 5.0; //hard-coded timeout; FIX THIS
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;        
+}
+
+
+
 bool RobotMove::pick(Part part, double timeout) {
     RobotMoveGoal goal;
     goal.type = RobotMoveGoal::PICK;

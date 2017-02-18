@@ -186,18 +186,53 @@ CHOOSE IK SOLN CLOSEST TO THESE VALUES
 qual1a: parts are piston rods on bin7 and gears on bin6
 qual1b: parts are gears on bin8 and piston rods on bin7
 
-NOM_PICKUP_JSPACE_POSE:
+NOM_BIN6_PICKUP_POSE:
 rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
 ['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
 [{time_from_start: {secs: 1}, positions: [1.85, -0.535, -0.47, 3.14, 3.33, -1.57, 0.50]} ]}" -1
 
+NOM_BIN7_PICKUP_POSE:
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [1.85, 0.230, -0.47, 3.14, 3.33, -1.57, 0.50]} ]}" -1
+
+NOM_BIN8_APPROACH_POSE:
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [1.5, 0.4, -0.8, 2.15, 4.0, -1.57, 0.50]} ]}" -1
+
+rosrun tf tf_echo base_link vacuum_gripper_link
+At time 3151.282
+- Translation: [-0.674, 0.731, 0.097]
+- Rotation: in Quaternion [0.003, 0.003, 0.040, 0.999]
+            in RPY (radian) [0.007, 0.005, 0.079]
+            in RPY (degree) [0.402, 0.272, 4.539]
+
+rosrun tf tf_echo base_link tool0
+- Translation: [-0.674, 0.731, 0.106]
+- Rotation: in Quaternion [0.999, 0.040, -0.003, -0.004]
+
+
+ rosrun ariac_ur_fk_ik ariac_ur10_fk_ik_test_main
+
+ A origin: -0.674187  0.73117 0.106877
+ quat: 0.999197, 0.0395932, -0.00352426, -0.00510973
+
+rosrun tf tf_echo tool0 vacuum_gripper_link
+- Translation: [0.000, 0.000, 0.008]
+- Rotation: in Quaternion [1.000, -0.000, -0.000, -0.000]
+
+
+
+
+
 rosrun tf tf_echo base_link gear_part_3_frame
 - Translation: [-0.805, 0.069, -0.274]
 
-RETRACT_POSE:  lifts shoulder to clear before rotating base joint
+BIN8_RETRACT_CRUISE_POSE:  lifts shoulder to clear before rotating base joint
 rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
 ['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
-[{time_from_start: {secs: 1}, positions: [1.85, -0.535, -2.0, 3.14, 3.33, -1.57, 0.50]} ]}" -1
+[{time_from_start: {secs: 1}, positions: [1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50]} ]}" -1
 
 CRUISE_POSE:  rotate base joint to prepare for track motion
 rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
@@ -207,5 +242,56 @@ rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
 AGV_HOVER_POSE:
 rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
 ['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
-[{time_from_start: {secs: 1}, positions: [1.85, 2.1, -0.47, 1.57, 3.33, -1.57, 0.50]} ]}" -1
+[{time_from_start: {secs: 1}, positions: [1.0, 2.1, -0.3, 1.4, 4.0, -1.57, 0.0]} ]}" -1
+
+-------------2/18 tests w/ robot motion server----------
+sent cmd: 1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
+got states: 1.5701178969577612, 1.850065404044325, -2.0003022317100108, 0.4000071981532596, 3.3295175982825698, -1.570006250001296, 0.499999361045421
+hah!  had joint names in wrong order;
+
+example gear part (gear10):
+rostopic echo /ariac/logical_camera_1: gives parts in camera frame;
+
+gear_part_6:
+rosrun tf tf_echo world gear_part_6_frame
+ - Translation: [-0.369, -0.597, 0.726]
+- Rotation: in Quaternion [0.022, -0.001, 0.032, 0.999]
+
+destination: AGV1: frame is centered on rail, w/ origin at height 0.750, which is comparable to bin,
+  and lower than robot base_link
+rosrun tf tf_echo world agv1_load_point_frame
+- Translation: [0.300, 3.300, 0.750]
+- Rotation: in Quaternion [0.000, 0.000, 1.000, 0.000]
+
+rosrun tf tf_echo world base_link
+- Translation: [0.300, 0.000, 1.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+
+
+
+successful test:
+  rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+
+start the pick/place action server:
+  rosrun robot_move_as robot_move_as
+
+run an example client:
+  rosrun cwru_ariac robot_move_as_tester
+
+this tester exercises some of Shipei's action-server functions;
+in action server (RobotMoveActionServer.h, robot_move_as.cpp, RobotMove.action)
+  added funcs for hard-coded move poses
+
+node: robot_move_as_tester.cpp (wsn) uses library:
+   RobotMove.cpp/RobotMove.h
+
+successfully commanded robot to go to two pre-defined poses
+add more poses in action server w/ existing pose codes
+
+
+
+
+
+
+
 
