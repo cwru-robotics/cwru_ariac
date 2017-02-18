@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Dense>
@@ -35,6 +36,10 @@ private:
     cwru_ariac::RobotMoveGoal goal_;
     cwru_ariac::RobotMoveFeedback feedback_;
     cwru_ariac::RobotMoveResult result_;
+    bool isPreempt;
+    bool goalComplete;
+    RobotState robotState;
+    unordered_map<int8_t, string> placeFinder;
 public:
     RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic);
     void executeCB(const cwru_ariac::RobotMoveGoalConstPtr &goal);

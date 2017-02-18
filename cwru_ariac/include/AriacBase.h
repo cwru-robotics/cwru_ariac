@@ -21,6 +21,9 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
 
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/LaserScan.h>
 #include <trajectory_msgs/JointTrajectory.h>

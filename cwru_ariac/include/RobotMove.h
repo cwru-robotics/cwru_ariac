@@ -10,28 +10,35 @@
 
 class RobotMove {
 public:
+    double time_tolerance;
+
     RobotMove(ros::NodeHandle& nodeHandle);
-    bool planToHome();
-    bool pick(Part part, double timeout);
-    bool place(Part destination, double timeout);
-    bool move(Part part, Part destination, double timeout);
-    void setJointValues(vector<double> joints, double timeout);
-    void grab();
-    void release();
+    bool toHome(double timeout = 0);
+    bool pick(Part part, double timeout = 0);
+    bool place(Part destination, double timeout = 0);
+    bool move(Part part, Part destination, double timeout = 0);
+    bool setJointValues(vector<double> joints, double timeout = 0);
+    bool grab();
+    bool release();
     bool isGripperAttached();
-    bool waitForGripperAttach(double timeout);
-    bool isDropped();
-    void setMaxPlanningTime(double maxPlanningTime) {this->maxPlanningTime = maxPlanningTime;}
+    bool waitForGripperAttach(double timeout = 0);
     bool getRobotState(RobotState& robotState);
     vector<double> getJointsState();
+    int8_t getErrorCode() { return errorCode; }
+    void doneCb(const actionlib::SimpleClientGoalState& state, const RobotMoveResultConstPtr& result);
+    void activeCb();
+    void feedbackCb(const RobotMoveFeedbackConstPtr& feedback);
+    void sendGoal(RobotMoveGoal goal) {
+//            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2), &RobotMove::activeCb, boost::bind(&RobotMove::feedbackCb, this, _1));
+            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2));
+    }
+    void showJointState(vector<string> joint_names, vector<double> joint_values);
 private:
     ros::NodeHandle nh_;
-    ros::ServiceClient oracle;
-    ros::ServiceClient robot;
-    double maxPlanningTime;
-    OracleQueryRequest request;
-    OracleQueryResponse response;
-    geometry_msgs::Pose homePose;
+    actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
+    RobotMoveGoal goal;
+    int8_t errorCode;
+    bool success;
     RobotState currentRobotState;
 };
 

@@ -4,36 +4,152 @@
 
 #include "RobotMove.h"
 
-RobotMove::RobotMove(ros::NodeHandle &nodeHandle): nh_(nodeHandle) {
-    //robot = nh_.serviceClient<cwru_ariac::RobotMoveAction>("/cwru_ariac/robot_move");
+RobotMove::RobotMove(ros::NodeHandle &nodeHandle): nh_(nodeHandle), ac("/robot_move", true) {
+    ROS_INFO("Waiting for action server to start.");
+    ac.waitForServer(); //will wait for infinite time
+    time_tolerance = 1.0;
 }
-bool RobotMove::planToHome() {
+bool RobotMove::toHome(double timeout) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::TO_HOME;
+    goal.timeout = timeout;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
+}
 
-}
 bool RobotMove::pick(Part part, double timeout) {
-
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::PICK;
+    goal.timeout = timeout;
+    goal.sourcePart = part;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
+
 bool RobotMove::place(Part destination, double timeout) {
-
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::PLACE;
+    goal.timeout = timeout;
+    goal.targetPart = destination;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
+
 bool RobotMove::move(Part part, Part destination, double timeout) {
-    return true;
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::MOVE;
+    goal.timeout = timeout;
+    goal.sourcePart = part;
+    goal.targetPart = destination;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
-void RobotMove::setJointValues(vector<double> joints, double timeout) {
 
+bool RobotMove::setJointValues(vector<double> joints, double timeout) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::PLACE;
+    goal.timeout = timeout;
+    goal.jointsValue = joints;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
-void RobotMove::grab() {
 
+bool RobotMove::grab() {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::GRASP;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
-void RobotMove::release() {
 
+bool RobotMove::release() {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::RELEASE;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
+
 bool RobotMove::isGripperAttached() {
-
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::IS_ATTACHED;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
 }
+
 bool RobotMove::waitForGripperAttach(double timeout) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::WAIT_FOR_ATTACHED;
+    goal.timeout = timeout;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    return finished_before_timeout && success;
+}
+
+bool RobotMove::getRobotState(RobotState &robotState) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::GET_ROBOT_STATE;
+    sendGoal(goal);
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
+    if (!finished_before_timeout)
+        errorCode = RobotMoveResult::TIMEOUT;
+    robotState = currentRobotState;
+    return finished_before_timeout && success;
+}
+vector<double> RobotMove::getJointsState() {
+    RobotState robotState;
+    bool success = getRobotState(robotState);
+    return robotState.jointStates;
+}
+
+void RobotMove::activeCb() {
 
 }
-bool RobotMove::getRobotState(RobotState &robotState) {
-    return true;
+
+void RobotMove::showJointState(vector<string> joint_names, vector<double> joint_values) {
+    ROS_INFO("Current joints state: {");
+    for (int i = 0; i < joint_names.size(); i++) {
+        cout << "    [" << i + 1 << "] " << joint_names[i] << ":\t\t\t" <<	joint_values[i] << ",\n";
+    }
+    cout << "}" << endl;
+}
+
+void RobotMove::doneCb(const actionlib::SimpleClientGoalState &state, const RobotMoveResultConstPtr &result) {
+    success = result->success;
+    errorCode = result->errorCode;
+    currentRobotState = result->robotState;
+    ROS_INFO("Action finished in state [%s]: %s with error code: %d",
+             state.toString().c_str(), success?"success":"failed", errorCode);
+    ROS_INFO("Gripper position is: %f, %f, %f\n",
+             currentRobotState.gripperPose.pose.position.x, currentRobotState.gripperPose.pose.position.y,
+             currentRobotState.gripperPose.pose.position.z);
+    showJointState(currentRobotState.jointNames, currentRobotState.jointStates);
+}
+
+void RobotMove::feedbackCb(const RobotMoveFeedbackConstPtr &feedback) {
+    currentRobotState = feedback->robotState;
 }
