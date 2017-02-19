@@ -44,27 +44,154 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     robotState.jointStates = {0, 1, 2, 3, 4, 5, 6};
     joint_trajectory_publisher_ = nh.advertise<trajectory_msgs::JointTrajectory>(
             "/ariac/arm/command", 10);
+        Eigen::VectorXd q_agv1_hover_pose_,q_agv1_cruise_pose_;  
+    //name and fill key jspace poses
+    q_agv1_hover_pose_.resize(7);
+    q_agv1_cruise_pose_.resize(7);          
+    q_agv2_hover_pose_.resize(7);
+    q_agv2_cruise_pose_.resize(7);      
+
+    q_bin1_hover_pose_.resize(7);
+    q_bin2_hover_pose_.resize(7);
+    q_bin3_hover_pose_.resize(7);
+    q_bin4_hover_pose_.resize(7);
+    q_bin5_hover_pose_.resize(7);
+    q_bin6_hover_pose_.resize(7);
+    q_bin7_hover_pose_.resize(7);
+    q_bin8_hover_pose_.resize(7);
+    
+    q_des_7dof_.resize(7);
+    q_cruise_pose_.resize(7);
+    bin_cruise_jspace_pose_.resize(7);
+    agv_hover_pose_.resize(7);
+    bin_hover_jspace_pose_.resize(7);
+ 
+    q_agv1_hover_pose_<<1.0, 2.1, -0.3, 1.4, 4.0, -1.57, 0.0;
+    q_agv1_cruise_pose_<<1.85, 2.1, -2.0, 1.57, 3.33, -1.57, 0.50;
+    
+    //cruise poses: pick bin and agv; re-use agv1 or agv2 cruise poses and substitute rail pose
+    
     q_cruise_pose_.resize(7);
     q_cruise_pose_<<1.85, -0.535, -2.0, 1.57, 3.33, -1.57, 0.50; //need to set rail q[1] to current rail pose
     q_agv1_hover_pose_.resize(7);
-    q_agv1_hover_pose_<<1.0, 2.1, -0.3, 1.4, 4.0, -1.57, 0.0;
+
     q_bin8_retract_pose_.resize(7);
     q_bin8_retract_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
+    
+    q_bin8_hover_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;
     q_bin8_cruise_pose_.resize(7);
     q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;    
     
 }
 
-double RobotMoveActionServer::rail_prepose(int8_t location) {
+//for each of the 10 key poses, extract the rail position
+bool RobotMoveActionServer::rail_prepose(int8_t location, double &q_rail) {
     switch (location) {
         case Part::AGV1:
-            return 2.1;
+            q_rail= 2.1;
         break;
+        case Part::AGV2:
+            q_rail=  -2.1;
+        break;   
+        case Part::BIN1:
+            q_rail=  q_bin1_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;         
+        case Part::BIN2:
+            q_rail=  q_bin2_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN3:
+            q_rail=  q_bin3_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN4:
+           q_rail=  q_bin4_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN5:
+            q_rail=  q_bin5_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN6:
+            q_rail=  q_bin6_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN7:
+            q_rail=  q_bin7_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;  
+        case Part::BIN8:
+            q_rail=  q_bin8_hover_pose_[1]; //extract rail position for bin1 key pose
+        break;          
         default:
-            return 0; 
+            ROS_WARN("unrecognized location code");
+            return false; 
+    }
+    return true; // if here, got valid bin code and filled in q_rail
+}
+
+bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &qvec) {
+    switch(bin) {
+         case Part::BIN1:
+            qvec= q_bin1_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::BIN2:
+            qvec= q_bin2_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::BIN3:
+            qvec= q_bin3_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::BIN4:
+            qvec= q_bin4_hover_pose_;
+            return true; //valid code
+            break;            
+        case Part::BIN5:
+            qvec= q_bin5_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::BIN6:
+            qvec= q_bin6_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::BIN7:
+            qvec= q_bin7_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::AGV1:
+            qvec= q_agv1_hover_pose_;
+            return true; //valid code
+            break;
+        case Part::AGV2:
+            qvec= q_agv2_hover_pose_;
+            return true; //valid code
+            break;
+          
+        default:
+            ROS_WARN("bin code not recognized");
+            return false;
     }
 }
+
+bool RobotMoveActionServer::bin_cruise_jspace_pose(int8_t bin, int8_t agv, Eigen::VectorXd &q_vec) {
+    double q_rail;
+    switch(agv) {
+        case Part::AGV1:
+                    q_vec = q_agv1_cruise_pose_;
+                    break;
+        case Part::AGV2:
+                    q_vec = q_agv2_cruise_pose_;
+                    break; 
+        default:
+            ROS_WARN("unknown AGV code");
+            return false;
+    }
+    //now, adjust the rail position to correspond to named bin:
+    if (!rail_prepose(bin,q_rail)) {
+        ROS_WARN("unknown BIN code");
+        return false;
+    }      
+     q_vec[1] = q_rail;
+     return true;      
+}
+
 
 trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints) {
     // Create a message to send.
@@ -87,10 +214,16 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
     return msg;    
 }
 
+void RobotMoveActionServer::move_to_jspace_pose(Eigen::VectorXd q_vec) {
+     traj_ = jspace_pose_to_traj(q_vec);
+     joint_trajectory_publisher_.publish(traj_);
+}
+
 void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &goal) {
     ROS_INFO("Received goal type: %d", goal->type);
     double start_time = ros::Time::now().toSec();
     double dt;
+    
     switch (goal->type) {
         case RobotMoveGoal::NONE:
             ROS_INFO("NONE");
@@ -152,13 +285,66 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 as.setAborted(result_);
             }
             break;
-        case RobotMoveGoal::MOVE:
+        case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
             ROS_INFO("MOVE");
-            ROS_INFO("The part is %s, should be move from %s to %s, with source pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
+            ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
             ROS_INFO_STREAM(goal->sourcePart.pose);
             ROS_INFO("target pose:");
             ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", goal->timeout);
+            //anticipate failure, unless proven otherwise:
+            result_.success = false;
+            
+            result_.errorCode = RobotMoveResult::WRONG_PARAMETER;    
+            if (!bin_hover_jspace_pose(goal->sourcePart.location, agv_hover_pose_)) {
+                 ROS_WARN("bin_hover_jspace_pose() failed");
+                    as.setAborted(result_);                
+            }
+            if (!bin_hover_jspace_pose(goal->sourcePart.location, bin_hover_jspace_pose_)) {
+                    ROS_WARN("bin_hover_jspace_pose() failed");
+                    as.setAborted(result_);
+            }           
+            
+            //cruise pose, adjacent to bin:
+            if (!bin_cruise_jspace_pose(goal->sourcePart.location, goal->targetPart.location, bin_cruise_jspace_pose_)) {
+                    ROS_WARN("bin_cruise_jspace_pose() failed");
+                    as.setAborted(result_);
+            }
+            //cruise pose, adjacent to chosen agv:
+            //xxx
+            if (!bin_cruise_jspace_pose(goal->sourcePart.location, goal->targetPart.location, bin_cruise_jspace_pose_)) {
+                    ROS_WARN("bin_cruise_jspace_pose() failed");
+                    as.setAborted(result_);
+            } 
+            
+            
+            move_to_jspace_pose(bin_cruise_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
+            //at this point, have already confired bin ID is good
+            ros::Duration(2.0).sleep(); //TUNE ME!!
+            //now move to bin hover pose:
+         
+            move_to_jspace_pose(q_des_7dof_); //move to hover pose
+            
+            //compute IK for grasp pose
+            //given part pose w/rt world, compute gripper offset and transform to robot base frame
+            //grasp_pose_wrt_base_link = get_grasp_pose(part_ID,part_pose_wrt_world);
+            
+            //compute the IK for this pickup pose; 
+            //provide desired gripper pose w/rt base_link, and choose soln closest to some reference jspace pose, e.g. hover pose
+            //note: may need to go to approach pose first; default motion is in joint space
+            //if (!get_pickup_IK(cart_grasp_pose_wrt_base_link,approx_jspace_pose,&q_vec_soln);
+            
+            //engage gripper
+            //return to hover pose
+            
+            //goto cruise pose:
+            move_to_jspace_pose(bin_cruise_jspace_pose_);
+            ros::Duration(2.0).sleep(); // TUNE ME!!!
+            
+            //move to agv hover pose:
+            
+            
+            
             ros::Duration(0.5).sleep();
             feedback_.robotState = robotState;
             as.publishFeedback(feedback_);

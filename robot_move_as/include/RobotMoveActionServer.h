@@ -47,7 +47,8 @@ private:
     control_msgs::FollowJointTrajectoryGoal traj_goal_;
     trajectory_msgs::JointTrajectory traj_;
     trajectory_msgs::JointTrajectory jspace_pose_to_traj(Eigen::VectorXd joints);
-    Eigen::VectorXd q_des_7dof_,q_cruise_pose_;
+    void move_to_jspace_pose(Eigen::VectorXd q_vec);
+    Eigen::VectorXd q_des_7dof_,q_cruise_pose_,bin_cruise_jspace_pose_,agv_hover_pose_,bin_hover_jspace_pose_;
     Eigen::VectorXd q_agv1_hover_pose_,q_agv1_cruise_pose_;  
     Eigen::VectorXd q_agv2_hover_pose_,q_agv2_cruise_pose_;      
     Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;    
@@ -60,7 +61,15 @@ private:
     Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;      
     //double rail_stops[];
     //unordered_map<int8_t, int> placeIndex;
-    double rail_prepose(int8_t location);
+
+    //fncs to get key joint-space poses:
+    //each bin gets a corresponding rail pose; return "true" if valid bin code
+    bool rail_prepose(int8_t location, double &q_rail);
+    //each bin has a corresponding "hover" pose; set q_vec and return true if valid bin code
+    bool bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q_vec);
+    //cruise pose depends on bin code and whether to point towards agv1 or agv2
+    // provide bin code and agv code; get back q_vec to prepare for cruise to agv
+    bool bin_cruise_jspace_pose(int8_t bin, int8_t agv, Eigen::VectorXd &q_vec);
 public:
     RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic);
     void executeCB(const cwru_ariac::RobotMoveGoalConstPtr &goal);
