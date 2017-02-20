@@ -278,6 +278,8 @@ start the pick/place action server:
 run an example client:
   rosrun cwru_ariac robot_move_as_tester
 
+(if desired, rosrun rviz rviz -d `rospack find osrf_gear`/rviz/aarviz)
+
 this tester exercises some of Shipei's action-server functions;
 in action server (RobotMoveActionServer.h, robot_move_as.cpp, RobotMove.action)
   added funcs for hard-coded move poses
@@ -288,10 +290,129 @@ node: robot_move_as_tester.cpp (wsn) uses library:
 successfully commanded robot to go to two pre-defined poses
 add more poses in action server w/ existing pose codes
 
+----2/18: find key poses-------
+shoulder_pan_joint: 
+
+1.57 faces agv1  
+3.14 faces bins
+4.71 faces agv2  (same as -1.57, but rotation is DOWN)
+6.28 faces conveyor
+choose limits 0-6.28 for base joint;
+
+elbow joint:
+0.0 is fully extended
+1.0 for AGV hover pose
+1.85 for cruise pose and for bin6 pick pose (far reach)
+2.9 is hear self collision
+choose limits 0->2.9
+
+shoulder lift joint (J2):
+0.3 reaches down about as far as practical
+0 is horizontal
+-0.47 is pick-up from a near bin
+-2 is cruise pose
+try range -3 to 0.3
+
+wrist1/wrist2: choose soln near (3.33, -1.57)
+toolflange is don't care
+
+wrist_1_joint:
++1.57 is pretty useless--antiparallel to forearm
+3.14 is typical: J5 axis perp to forearm;
+4.71 is wrist straight out; should not need q_wrist1 greater than this
+
+
+
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [1.85, -0.535, -2.0, 1.57, 3.33, -1.57, 0.50]} ]}" -1
+
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [0, -0.535, 0.3, 3.14, 3.33, -1.57, 0.50]} ]}" -1
+
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [2.354, -0.540, -0.849, 3.051, 3.207, -1.571, 1.480]} ]}" -1
+
+start from NOM_BIN6_PICKUP_POSE: (corrected w/ IK):
+iterate on dx/dy to eval reachability; 
+negative dx reaches further outwards;
+
+
+rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
+['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
+[{time_from_start: {secs: 1}, positions: [1.292, 2.100, -0.714, 1.570, 4.134, -1.571, -0.000]} ]}" -1
+
+rosrun tf tf_echo base_link vacuum_gripper_link
+- Translation: [-0.770, -0.163, -0.258]
+- Rotation: in Quaternion [-0.000, -0.000, -0.000, 1.000]
+
+EMPIRICAL TESTS:
+for bin6, should shift rail position 0.2m closer to agv1 to account for base and wrist offsets
+was able to reach to closest edge of bin:
+- Translation: [-0.370, 0.037, -0.258]
+
+example of what LOOKS like touching:
+rosrun tf tf_echo base_link vacuum_gripper_link
+- Translation: [-0.370, -0.163, -0.256]
+- Rotation: in Quaternion [-0.000, 0.001, 0.000, 1.000]
+
+ rosrun tf tf_echo base_link gear_part_1_frame
+- Translation: [-0.399, -0.173, -0.275]
+- Rotation: in Quaternion [0.003, 0.002, -0.769, 0.639]
+
+z offset is 0.019 (???)...but behaves like touching
+
+looks like it is OK to center base at bins; but shifting 0.2m towards agv1 would be better
 
 
 
 
+xxxxx
+
+gear closest to conveyor on bin6:
+rosrun tf tf_echo world gear_part_14_frame
+- Translation: [-0.093, -0.558, 0.727]
+- Rotation: in Quaternion [0.016, -0.011, -0.062, 0.998]
+
+base_link centered on bin6:
+rosrun tf tf_echo world base_link
+- Translation: [0.300, -0.535, 1.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+
+note: vacuum gripper frame over bin 6, but towards a far corner:
+rosrun tf tf_echo base_link vacuum_gripper_link
+- Translation: [-0.770, -0.163, -0.258]
+- Rotation: in Quaternion [-0.001, -0.000, 0.509, 0.860]
+(but I need to invert the orientation for my IK frame)
+
+to reach this part, need vaccum gripper at:
+O_vacuum = [-0.393, -0.023, -0.273] (add a few mm to vertical offset for part half thickness)
+
+fix limited joint limits; e.g., want soln:
+q_in:  3.14 -0.47  1.85  3.33 -1.57   0.5
+but get soln:
+trial soln:    3.1401 -0.470379   1.84974  -2.95015   -1.5708   1.56931
+need to increase limits of wrist1 joint by 2PI?
+
+2/18: modified rails positions summary:
+Rail positions summary:
+agv1: 2.1
+agv2: -2.1
+bins 8/4: 1.2
+bins 7/3: 0.430
+bins 6/2: -0.335
+bins 5/1: -1.130
+
+2/18 tests:
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun robot_move_as robot_move_as 
+rosrun cwru_ariac robot_move_as_tester
+
+successfully moves to 4 poses: agv1_cruise, agv1_hover, bin6_cruise, bin6_hover
+
+need to bring in IK to compute grasp poses
 
 
 

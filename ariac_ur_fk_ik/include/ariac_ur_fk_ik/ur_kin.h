@@ -81,17 +81,17 @@ const double DH_q_offset6 = M_PI; //0.0;
 
 const double deg2rad = M_PI/180.0;
 //actually, can rotate more than this--but simplify
-const double DH_q_max1 = deg2rad*180;
-const double DH_q_max2 = 0; //deg2rad*180; //NOT PHYSICAL LIMIT; IMPOSE TO FORCE ELBOW ELEVATED
-const double DH_q_max3 = deg2rad*180;
-const double DH_q_max4 = deg2rad*180;
-const double DH_q_max5 = deg2rad*180;
+const double DH_q_max1 = deg2rad*360; //deg2rad*180;
+const double DH_q_max2 = 0.3; //rad of max practical downward reach  //deg2rad*180; //NOT PHYSICAL LIMIT; IMPOSE TO FORCE ELBOW ELEVATED
+const double DH_q_max3 = 2.9; // beyond 2.9 rad, flange self collides w/ link1; deg2rad*180;
+const double DH_q_max4 = deg2rad*360; //deg2rad*180;//5+M_PI; // TRIM THIS DOWN FOR ARIAC
+const double DH_q_max5 = deg2rad*180; //
 const double DH_q_max6 = deg2rad*180; 
 
-const double DH_q_min1 = -deg2rad*180;
-const double DH_q_min2 = -deg2rad*180;
-const double DH_q_min3 = -deg2rad*180; 
-const double DH_q_min4 = -deg2rad*180;
+const double DH_q_min1 = 0; //-deg2rad*180;
+const double DH_q_min2 = -3; //rad of max desired shoulder lift--which is beyond vertical//-deg2rad*180;
+const double DH_q_min3 = 0; //0 is fully extended; avoid bending over backwards; -deg2rad*180; 
+const double DH_q_min4 = 0; //-deg2rad*180;//1+M_PI; //1+M_PI; //
 const double DH_q_min5 = -deg2rad*180;
 const double DH_q_min6 = -deg2rad*180; 
 
@@ -142,7 +142,7 @@ public:
    void get_joint_names_6dof(vector<string> &jnt_names);
    void get_joint_names_7dof(vector<string> &jnt_names); 
     Eigen::VectorXd closest_soln(Eigen::VectorXd q_ref,vector<Eigen::VectorXd> q_ik_solns);
-
+    int prune_solns_by_jnt_limits(vector<Eigen::VectorXd> &q_ik_solns);
 private:
     Eigen::Affine3d A_tool_wrt_flange_,affine_vacuum_wrt_tool0_;
 

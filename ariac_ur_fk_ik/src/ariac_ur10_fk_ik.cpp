@@ -141,21 +141,47 @@ bool UR10FwdSolver::fit_q_to_range(double q_min, double q_max, double &q) {
         return true;
 }
 
+
+int UR10FwdSolver::prune_solns_by_jnt_limits(vector<Eigen::VectorXd> &q_ik_solns)  {
+      vector<Eigen::VectorXd> untrimmed_solns;
+      untrimmed_solns = q_ik_solns;
+      q_ik_solns.clear();
+      int nsolns = untrimmed_solns.size();   
+      ROS_INFO("there are %d untrimmed solns",nsolns);
+      Eigen::VectorXd q_test;      
+      for (int i=0;i<nsolns;i++) {
+          q_test= untrimmed_solns[i];
+          cout<<"q_soln: "<<q_test.transpose()<<endl;
+          if (fit_joints_to_range(q_test)) {
+              q_ik_solns.push_back(q_test);
+          }
+      }
+      nsolns = q_ik_solns.size();
+      ROS_INFO("and there are %d trimmed solns",nsolns);
+      return nsolns;
+}    
+      
 //provide a reference, q_ref, and a vector of q vectors, q_ik_solns;
 // return the soln that is closest to q_ref
  Eigen::VectorXd UR10FwdSolver::closest_soln(Eigen::VectorXd q_ref,vector<Eigen::VectorXd> q_ik_solns) {
       int nsolns = q_ik_solns.size();
+
+      //bool UR10FwdSolver::fit_joints_to_range(Eigen::VectorXd &qvec)
       Eigen::VectorXd q_test,q_best;
       fit_joints_to_range(q_ref);
       q_best = q_ik_solns[0];
+
       fit_joints_to_range(q_best);
       cout<<"trial soln: "<<q_best.transpose()<<endl;
+      cout<<"reference pose: "<<q_ref.transpose()<<endl;
+      q_ref[5] = q_best[5]; //ignore flange rotation
       double q_err_min = (q_ref-q_best).norm();
       double q_err;
       for (int i=1;i<nsolns;i++) {
           q_test = q_ik_solns[i];
           fit_joints_to_range(q_test);
           cout<<"trial soln: "<<q_test.transpose()<<endl;
+          q_ref[5] = q_best[5]; //ignore flange rotation
           q_err = (q_ref-q_test).norm();
           if (q_err<q_err_min) {
               q_best = q_test;

@@ -34,7 +34,10 @@ cs_add_library(ariac_ur10_fk_ik src/ariac_ur10_fk_ik.cpp)
 # cs_add_executable(example src/example.cpp)
 
 cs_add_executable(ariac_ur10_fk_ik_test_main src/ariac_ur10_fk_ik_test_main.cpp)
+cs_add_executable(ariac_interactive_ur10_fk_ik_test_main src/ariac_interactive_ur10_fk_ik_test_main.cpp)
+
 target_link_libraries(ariac_ur10_fk_ik_test_main ariac_ur10_fk_ik)
+target_link_libraries(ariac_interactive_ur10_fk_ik_test_main ariac_ur10_fk_ik)
 
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package

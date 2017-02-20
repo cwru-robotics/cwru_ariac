@@ -34,9 +34,10 @@ void set_part_vals(Part &pick_part,Part &place_part) {
     pick_pose.pose.position.z = 0.726;    
     
     place_pose = pick_pose; //use same frame and orientation; change position
-    place_pose.pose.position.x = 0.300; //AGV1 frame: Translation: [0.300, 3.300, 0.750]
-    place_pose.pose.position.y = 3.300;
-    place_pose.pose.position.z = 0.750;    
+    place_pose.header.frame_id="agv1_load_point_frame";
+    place_pose.pose.position.x = 0;//0.300; //AGV1 frame: Translation: [0.300, 3.300, 0.750]
+    place_pose.pose.position.y = 0; //3.300;
+    place_pose.pose.position.z = 0; //0.750;    
     
     pick_part.name="gear_part";
     pick_part.location= Part::BIN6;
@@ -62,6 +63,11 @@ int main(int argc, char **argv) {
     goal.timeout = 10.0;
     
     robotMove.sendGoal(goal);
+    while (!robotMove.action_server_returned()) 
+    {  
+        ROS_INFO("waiting for result");
+        ros::Duration(1).sleep();
+    }
  
     //robotMove.grab();
     //robotMove.release();

@@ -47,13 +47,21 @@
 <build_depend>sensor_msgs</build_depend>
 <build_depend>trajectory_msgs</build_depend>
 <build_depend>cwru_ariac</build_depend>
-  <run_depend>roscpp</run_depend>
+<build_depend>tf</build_depend>
+<build_depend>xform_utils</build_depend>
+<build_depend>ariac_ur_fk_ik</build_depend>
+<build_depend>osrf_gear</build_depend>
+<run_depend>roscpp</run_depend>
 <run_depend>std_msgs</run_depend>
 <run_depend>geometry_msgs</run_depend>
 <run_depend>actionlib</run_depend>
 <run_depend>sensor_msgs</run_depend>
 <run_depend>trajectory_msgs</run_depend>
 <run_depend>cwru_ariac</run_depend>
+<run_depend>tf</run_depend>
+<run_depend>xform_utils</run_depend>
+<run_depend>ariac_ur_fk_ik</run_depend>
+<run_depend>osrf_gear</run_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- You can specify that this package is a metapackage here: -->

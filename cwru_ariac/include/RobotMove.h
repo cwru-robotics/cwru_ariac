@@ -32,17 +32,20 @@ public:
     void activeCb();
     void feedbackCb(const RobotMoveFeedbackConstPtr& feedback);
     void sendGoal(RobotMoveGoal goal) {
-//            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2), &RobotMove::activeCb, boost::bind(&RobotMove::feedbackCb, this, _1));
+           // ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2), &RobotMove::activeCb, boost::bind(&RobotMove::feedbackCb, this, _1));
+           action_server_returned_=false;
             ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2));
     }
     void showJointState(vector<string> joint_names, vector<double> joint_values);
+    bool action_server_returned() { return action_server_returned_; }
 private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
     RobotMoveGoal goal;
     int8_t errorCode;
-    bool success;
+    bool goal_success_;
     RobotState currentRobotState;
+    bool action_server_returned_;
 };
 
 

@@ -1,5 +1,6 @@
 //
 // Created by tianshipei on 12/4/16.
+//edited wsn 2/18/17
 //
 
 #include "RobotMove.h"
@@ -17,7 +18,7 @@ bool RobotMove::toHome(double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::toCruisePose(double timeout) {
@@ -28,7 +29,7 @@ bool RobotMove::toCruisePose(double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;    
+    return finished_before_timeout && goal_success_;    
 }
 
 bool RobotMove::toAgv1HoverPose(double timeout) {
@@ -39,7 +40,7 @@ bool RobotMove::toAgv1HoverPose(double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;    
+    return finished_before_timeout && goal_success_;    
 }
 
 bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
@@ -52,7 +53,7 @@ bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;        
+    return finished_before_timeout && goal_success_;        
 }
 
 
@@ -66,7 +67,7 @@ bool RobotMove::pick(Part part, double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::place(Part destination, double timeout) {
@@ -78,7 +79,7 @@ bool RobotMove::place(Part destination, double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::move(Part part, Part destination, double timeout) {
@@ -91,7 +92,7 @@ bool RobotMove::move(Part part, Part destination, double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::setJointValues(vector<double> joints, double timeout) {
@@ -103,7 +104,7 @@ bool RobotMove::setJointValues(vector<double> joints, double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::grab() {
@@ -113,7 +114,7 @@ bool RobotMove::grab() {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::release() {
@@ -123,7 +124,7 @@ bool RobotMove::release() {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::isGripperAttached() {
@@ -133,7 +134,7 @@ bool RobotMove::isGripperAttached() {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance + 1.0));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::waitForGripperAttach(double timeout) {
@@ -144,7 +145,7 @@ bool RobotMove::waitForGripperAttach(double timeout) {
     bool finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 
 bool RobotMove::getRobotState(RobotState &robotState) {
@@ -155,11 +156,11 @@ bool RobotMove::getRobotState(RobotState &robotState) {
     if (!finished_before_timeout)
         errorCode = RobotMoveResult::TIMEOUT;
     robotState = currentRobotState;
-    return finished_before_timeout && success;
+    return finished_before_timeout && goal_success_;
 }
 vector<double> RobotMove::getJointsState() {
     RobotState robotState;
-    bool success = getRobotState(robotState);
+    bool goal_success_ = getRobotState(robotState);
     return robotState.jointStates;
 }
 
@@ -176,11 +177,12 @@ void RobotMove::showJointState(vector<string> joint_names, vector<double> joint_
 }
 
 void RobotMove::doneCb(const actionlib::SimpleClientGoalState &state, const RobotMoveResultConstPtr &result) {
-    success = result->success;
+    action_server_returned_=true;
+    goal_success_ = result->success;
     errorCode = result->errorCode;
     currentRobotState = result->robotState;
     ROS_INFO("Action finished in state [%s]: %s with error code: %d",
-             state.toString().c_str(), success?"success":"failed", errorCode);
+             state.toString().c_str(), goal_success_?"success":"failed", errorCode);
     ROS_INFO("Gripper position is: %f, %f, %f\n",
              currentRobotState.gripperPose.pose.position.x, currentRobotState.gripperPose.pose.position.y,
              currentRobotState.gripperPose.pose.position.z);
