@@ -391,7 +391,7 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
         msg.points[0].positions[i] = joints[i];
     }
     // How long to take getting to the point (floating point seconds).
-    msg.points[0].time_from_start = ros::Duration(0.2);
+    msg.points[0].time_from_start = ros::Duration(2.0);
     ROS_INFO_STREAM("populated traj msg:\n" << msg);
     return msg;    
 }
