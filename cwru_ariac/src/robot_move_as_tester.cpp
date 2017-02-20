@@ -53,23 +53,19 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
     Part pick_part,place_part;
     RobotMove robotMove(nh);
-    RobotMoveGoal goal;
     set_part_vals(pick_part,place_part); //populate with test vals
     
     //populate a goal message for manipulation
-    goal.sourcePart=pick_part;
-    goal.targetPart=place_part;
-    goal.type = RobotMoveGoal::MOVE;
-    goal.timeout = 10.0;
-    
-    robotMove.sendGoal(goal);
-    while (!robotMove.action_server_returned()) 
+    robotMove.enableAsync();
+    robotMove.move(pick_part, place_part, 10.0);
+
+    while (!robotMove.actionFinished())
     {  
         ROS_INFO("waiting for result");
         ros::Duration(1).sleep();
     }
  
-    //robotMove.grab();
+    //robotMove.grasp();
     //robotMove.release();
 
     //robotMove.toCruisePose(0.0);

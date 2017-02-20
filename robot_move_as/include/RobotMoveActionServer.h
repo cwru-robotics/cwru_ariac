@@ -33,6 +33,8 @@
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
 
+#include <RobotPlanner.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
@@ -40,6 +42,7 @@ using namespace cwru_ariac;
 class RobotMoveActionServer {
 private:
     ros::NodeHandle nh;
+    RobotPlanner robotPlanner;
     actionlib::SimpleActionServer<cwru_ariac::RobotMoveAction> as;
     cwru_ariac::RobotMoveGoal goal_;
     cwru_ariac::RobotMoveFeedback feedback_;

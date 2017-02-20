@@ -10,9 +10,7 @@
 
 class RobotMove {
 public:
-    double time_tolerance;
-
-    RobotMove(ros::NodeHandle& nodeHandle);
+    RobotMove(ros::NodeHandle& nodeHandle, string topic = "/robot_move");
     bool toHome(double timeout = 0);
     bool toCruisePose(double timeout = 0);
     bool toAgv1HoverPose(double timeout = 0);
@@ -21,23 +19,20 @@ public:
     bool place(Part destination, double timeout = 0);
     bool move(Part part, Part destination, double timeout = 0);
     bool setJointValues(vector<double> joints, double timeout = 0);
-    bool grab();
-    bool release();
+    bool grasp(double timeout = 0);
+    bool release(double timeout = 0);
     bool isGripperAttached();
-    bool waitForGripperAttach(double timeout = 0);
     bool getRobotState(RobotState& robotState);
     vector<double> getJointsState();
-    int8_t getErrorCode() { return errorCode; }
-    void doneCb(const actionlib::SimpleClientGoalState& state, const RobotMoveResultConstPtr& result);
-    void activeCb();
-    void feedbackCb(const RobotMoveFeedbackConstPtr& feedback);
-    void sendGoal(RobotMoveGoal goal) {
-           // ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2), &RobotMove::activeCb, boost::bind(&RobotMove::feedbackCb, this, _1));
-           action_server_returned_=false;
-            ac.sendGoal(goal, boost::bind(&RobotMove::doneCb, this, _1, _2));
-    }
+    void sendGoal(RobotMoveGoal goal);
     void showJointState(vector<string> joint_names, vector<double> joint_values);
-    bool action_server_returned() { return action_server_returned_; }
+    void cancel();
+    int8_t getErrorCode() { return errorCode; }
+    bool getResult() { return goal_success_; }
+    bool actionFinished() { return action_server_returned_; }
+    void setTimeTolerance(double newTimeTolerance) { time_tolerance = newTimeTolerance; }
+    void enableAsync() { async_mode = true; }
+    void disableAsync() { async_mode = false; }
 private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
@@ -46,6 +41,12 @@ private:
     bool goal_success_;
     RobotState currentRobotState;
     bool action_server_returned_;
+    double time_tolerance;
+    bool async_mode;
+
+    void doneCb(const actionlib::SimpleClientGoalState& state, const RobotMoveResultConstPtr& result);
+    void activeCb();
+    void feedbackCb(const RobotMoveFeedbackConstPtr& feedback);
 };
 
 
