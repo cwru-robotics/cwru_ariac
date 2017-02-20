@@ -21,23 +21,32 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     if (!AGV2Client.exists()) {
         AGV2Client.waitForExistence();
     }
-    AGVs[0].name = "AGV1";
-    AGVs[0].state = AGV::READY;
-    AGVs[0].priority = 2.0;
-    AGVs[0].basePose.pose.position.x = 0.12;
-    AGVs[0].basePose.pose.position.y = 3.46;
-    AGVs[0].basePose.pose.position.z = 0.75;
-    AGVs[0].bound = agvBoundBox[0];
+    AGV agv1, agv2;
+    agv1.name = "AGV1";
+    agv1.state = AGV::READY;
+    agv1.priority = 2.0;
+    agv1.basePose.pose.position.x = 0.12;
+    agv1.basePose.pose.position.y = 3.46;
+    agv1.basePose.pose.position.z = 0.75;
+    agv1.bound = agvBoundBox[0];
 
-    AGVs[1].name = "AGV2";
-    AGVs[1].state = AGV::READY;
-    AGVs[1].priority = 1.0;
-    AGVs[1].bound = agvBoundBox[1];
+    agv2.name = "AGV2";
+    agv2.state = AGV::READY;
+    agv2.priority = 1.0;
+    agv2.bound = agvBoundBox[1];
+
+    AGVs.push_back(agv1);
+    AGVs.push_back(agv2);
+
+    worldFrame = "/world";
+    AGV1Frame = "/kit_tray_frame";
+
 }
 
 void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &order_msg) {
-    if (orders.find(order_msg->order_id) == orders.end()) {
-        orders.insert(pair<string, osrf_gear::Order>(order_msg->order_id, *order_msg));
+    if (orderFinder.find(order_msg->order_id) == orderFinder.end()) {
+        orderFinder.insert(pair<string, osrf_gear::Order>(order_msg->order_id, *order_msg));
+        orders.push_back(*order_msg);
         ROS_INFO_STREAM("Received order:\n" << *order_msg);
     }
 }
@@ -87,18 +96,37 @@ bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
 }
 Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     Part part;
-    if (agvName == AGVs[0].name)
+    geometry_msgs::PoseStamped inPose;
+    geometry_msgs::PoseStamped outPose;
+    bool tferr = true;
+    inPose.pose = object.pose;
+    if (agvName == AGVs[0].name) {
         part.location = Part::AGV1;
-    else if(agvName == AGVs[1].name)
+        inPose.header.frame_id = AGV1Frame;
+    }
+    else if(agvName == AGVs[1].name) {
         part.location = Part::AGV2;
-    else
+    }
+    else {
         part.location = Part::AGV;
-    part.pose.pose = object.pose;
-    part.pose.header.stamp = ros::Time::now();
+    }
+    while (tferr && ros::ok()) {
+        tferr = false;
+        try {
+            inPose.header.stamp = ros::Time::now();
+            tf_listener.transformPose(worldFrame, inPose, outPose);
+        } catch (tf::TransformException &exception) {
+//                return;
+            ROS_ERROR("%s", exception.what());
+            tferr = true;
+            ros::Duration(0.05).sleep();
+            ros::spinOnce();
+        }
+    }
+    part.pose = outPose;
     part.traceable = false;
     part.name = object.type;
     return part;
-
 }
 double OrderManager::scoreFunction(double TC, double TT) {
     //double TC = 1;

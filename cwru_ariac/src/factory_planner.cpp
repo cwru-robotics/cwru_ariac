@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
                     RobotState robotState;
                     while (!robot.getRobotState(robotState));
                     for(auto order: orderManager.orders) {
-                        for(auto kit: order.second.kits) {
+                        for(auto kit: order.kits) {
                             for (auto object: kit.objects) {
                                 string required = object.type;
                                 PartList conveyorParts = findPart(camera.onConveyor, required);

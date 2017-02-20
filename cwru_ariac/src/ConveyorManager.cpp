@@ -4,17 +4,21 @@
 
 #include "ConveyorManager.h"
 
-ConveyorManager::ConveyorManager(ros::NodeHandle nodeHandle, CameraEstimator &estimator, RobotPlanner &planner): nh_(nodeHandle), estimator_(&estimator), planner_(&planner) {
+ConveyorManager::ConveyorManager(ros::NodeHandle nodeHandle, RobotPlanner &planner, RobotMove &robot): nh_(nodeHandle),
+                                                                                                       planner_(&planner),
+                                                                                                       robot_(&robot){
 }
 
-Part ConveyorManager::getClosestPart() {
-    return *min_element(estimator_->onConveyor.begin(), estimator_->onConveyor.end(), [this](Part a, Part b){
-        return euclideanDistance((planner_->getCurrentGripperPose().position), (a.pose.pose.position))
-               < euclideanDistance((planner_->getCurrentGripperPose().position), (b.pose.pose.position)); });
+Part ConveyorManager::getClosestPart(PartList searchRange) {
+    RobotState state;
+    robot_->getRobotState(state);
+    return *min_element(searchRange.begin(), searchRange.end(), [this, state](Part a, Part b){
+        return euclideanDistance((state.gripperPose.pose.position), (a.pose.pose.position))
+               < euclideanDistance((state.gripperPose.pose.position), (b.pose.pose.position)); });
 }
 
-Part ConveyorManager::getClosestPartBest() {
-    return *min_element(estimator_->onConveyor.begin(), estimator_->onConveyor.end(), [this](Part a, Part b) {
+Part ConveyorManager::getClosestPartBest(PartList searchRange) {
+    return *min_element(searchRange.begin(), searchRange.end(), [this](Part a, Part b) {
         double aTime = 0, bTime = 0;
         if (planner_->planPart(a))
             aTime = planner_->getLastExecutingTime();
@@ -23,22 +27,22 @@ Part ConveyorManager::getClosestPartBest() {
         return aTime < bTime; });
 }
 
-PartList ConveyorManager::getClosestPartList() {
-    PartList parts = estimator_->onConveyor;
-    sort(parts.begin(), parts.end(), [this](Part a, Part b){
-        return euclideanDistance((planner_->getCurrentGripperPose().position), (a.pose.pose.position))
-               < euclideanDistance((planner_->getCurrentGripperPose().position), (b.pose.pose.position)); });
-    return parts;
+PartList ConveyorManager::getClosestPartList(PartList searchRange) {
+    RobotState state;
+    robot_->getRobotState(state);
+    sort(searchRange.begin(), searchRange.end(), [this, state](Part a, Part b){
+        return euclideanDistance((state.gripperPose.pose.position), (a.pose.pose.position))
+               < euclideanDistance((state.gripperPose.pose.position), (b.pose.pose.position)); });
+    return searchRange;
 }
 
-PartList ConveyorManager::getClosePartListBest() {
-    PartList parts = estimator_->onConveyor;
-    sort(parts.begin(), parts.end(), [this](Part a, Part b) {
+PartList ConveyorManager::getClosePartListBest(PartList searchRange) {
+    sort(searchRange.begin(), searchRange.end(), [this](Part a, Part b) {
         double aTime = 0, bTime = 0;
         if (planner_->planPart(a))
             aTime = planner_->getLastExecutingTime();
         if (planner_->planPart(b))
             bTime = planner_->getLastExecutingTime();
         return aTime < bTime; });
-    return parts;
+    return searchRange;
 }

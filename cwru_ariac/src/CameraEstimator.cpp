@@ -5,9 +5,9 @@
 #include <cwru_ariac/Part.h>
 #include "CameraEstimator.h"
 
-CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string cameraTopic) :
+CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string topic) :
         nh_(nodeHandle), onAGV(totalAGVs), onBin(totalBins) {
-    cameraSubscriber = nh_.subscribe(cameraTopic, 1,
+    cameraSubscriber = nh_.subscribe(topic, 1,
                                      &CameraEstimator::cameraCallback, this);
     distanceTolerance = 0.02;
     untraceableTolerance = 0.1;
@@ -15,7 +15,7 @@ CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string cameraTopic)
     updateCount = 0;
     checkedCount = 0;
     worldFrame = "/world";
-    cameraFrame = cameraTopic.substr(cameraTopic.find_last_of("/")) + "_frame";
+    cameraFrame = topic.substr(topic.find_last_of("/")) + "_frame";
     //tf_listener.waitForTransform(cameraFrame, worldFrame, ros::Time(0), ros::Duration(2.0));
 }
 
@@ -50,11 +50,11 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
                 inPose.header.stamp = ros::Time::now();
                 tf_listener.transformPose(worldFrame, inPose, outPose);
             } catch (tf::TransformException &exception) {
-                return;
-//                ROS_ERROR("%s", exception.what());
-//                tferr = true;
-//                ros::Duration(0.05).sleep();
-//                ros::spinOnce();
+//                return;
+                ROS_ERROR("%s", exception.what());
+                tferr = true;
+                ros::Duration(0.05).sleep();
+                ros::spinOnce();
             }
         }
         nextPart.pose = outPose;

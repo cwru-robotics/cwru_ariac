@@ -2,7 +2,7 @@
 // Created by shipei on 11/1/16.
 //
 
-#include <ConveyorManager.h>
+#include <CameraEstimator.h>
 
 int main(int argc, char** argv) {
     int index;
@@ -14,8 +14,6 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "camera_tester");
     ros::NodeHandle nh;
     CameraEstimator camera(nh, "/ariac/logical_camera");
-    RobotPlanner robot(nh);
-    ConveyorManager conveyor(nh, camera, robot);
     while (ros::ok()) {
         camera.waitForUpdate();
         auto part = findPart(camera.inView, index);

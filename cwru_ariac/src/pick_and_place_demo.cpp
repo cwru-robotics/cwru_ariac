@@ -30,7 +30,7 @@ int main(int argc, char** argv)
         robotArm.sendJointsValue(my_pose);
 
         robotArm.grab();
-        robotArm.waitForGripperAttach(0);
+        robotArm.waitForGripperAttach(1.0);
 
         my_pose[0] = 0.988514;
         my_pose[1] = 1.962313;
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
         robotArm.sendJointsValue(my_pose);
         ros::Duration(1.0).sleep();
 
-        comp.submitOrder(comp.AGVs[0].name, comp.orders[comp.orders.begin()->first].kits[0]);
+        comp.submitOrder(comp.AGVs[0].name, comp.orders[0].kits[0]);
         ros::Duration(21.0).sleep();
     }
 

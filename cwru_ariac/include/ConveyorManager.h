@@ -6,22 +6,22 @@
 #define CWRU_ARIAC_CONVEYORMANAGER_H
 
 #include <AriacBase.h>
-#include <CameraEstimator.h>
+#include <RobotMove.h>
 #include <RobotPlanner.h>
 
 class ConveyorManager {
 public:
-    ConveyorManager(ros::NodeHandle nodeHandle, CameraEstimator &estimator, RobotPlanner &planner);
+    ConveyorManager(ros::NodeHandle nodeHandle, RobotPlanner &planner, RobotMove &robot);
 
-    Part getClosestPart();
-    PartList getClosestPartList();
-    Part getClosestPartBest();
-    PartList getClosePartListBest();
+    Part getClosestPart(PartList searchRange);
+    PartList getClosestPartList(PartList searchRange);
+    Part getClosestPartBest(PartList searchRange);
+    PartList getClosePartListBest(PartList searchRange);
 
 private:
     ros::NodeHandle nh_;
-    CameraEstimator *estimator_;
     RobotPlanner *planner_;
+    RobotMove *robot_;
 };
 
 

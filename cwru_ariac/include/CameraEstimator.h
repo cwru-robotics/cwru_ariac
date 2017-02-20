@@ -19,7 +19,7 @@ public:
     vector<PartList> onBin;
     string worldFrame;
     string cameraFrame;
-    CameraEstimator(ros::NodeHandle nodeHandle, string cameraTopic = "/ariac/logical_camera_1");
+    CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
     void waitForUpdate();
     int getMaxID() { return assignedID; }
 

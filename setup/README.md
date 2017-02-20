@@ -6,11 +6,13 @@
 
 If you just install Ubuntu 14.04 without ROS installed:
 
-`cd [directory where this file locates]`
+```
+cd [directory where this file locates]
 
-`chmod +x install_ros_ariac.sh setup_workspace.sh`
+chmod +x install_ros_ariac.sh setup_workspace.sh
 
-`./install_ros_ariac.sh`
+./install_ros_ariac.sh
+```
 
 Enter your password and wait...
 

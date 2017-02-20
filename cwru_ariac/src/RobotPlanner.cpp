@@ -41,20 +41,23 @@ void RobotPlanner::gripperStateCallback(const osrf_gear::VacuumGripperState::Con
 }
 
 osrf_gear::VacuumGripperState RobotPlanner::getGripperState() {
+    ros::spinOnce();
     return currentGripperState;
 }
 
 bool RobotPlanner::isGripperAttached() {
+    ros::spinOnce();
     return attached;
 }
 
 bool RobotPlanner::waitForGripperAttach(double timeout) {
-    ros::spinOnce();
     timeout = timeout <= 0? FLT_MAX:timeout;
+    ros::spinOnce();
     while((!attached) && timeout > 0 && ros::ok()) {
-        //ROS_INFO("Retry grasp");
+        ROS_INFO("Retry grasp");
         release();
         ros::Duration(0.2).sleep();
+        ros::spinOnce();
         grab();
         ros::Duration(0.8).sleep();
         ros::spinOnce();
