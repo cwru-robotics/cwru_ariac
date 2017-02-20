@@ -244,7 +244,7 @@ rostopic pub /ariac/arm/command trajectory_msgs/JointTrajectory "{joint_names: \
 ['elbow_joint', 'linear_arm_actuator_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'], points: \
 [{time_from_start: {secs: 1}, positions: [1.0, 2.1, -0.3, 1.4, 4.0, -1.57, 0.0]} ]}" -1
 
--------------2/18 tests w/ robot motion server----------
+-------------2/19 tests w/ robot motion server----------
 sent cmd: 1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
 got states: 1.5701178969577612, 1.850065404044325, -2.0003022317100108, 0.4000071981532596, 3.3295175982825698, -1.570006250001296, 0.499999361045421
 hah!  had joint names in wrong order;
@@ -412,7 +412,17 @@ rosrun cwru_ariac robot_move_as_tester
 
 successfully moves to 4 poses: agv1_cruise, agv1_hover, bin6_cruise, bin6_hover
 
-need to bring in IK to compute grasp poses
+need to bring in IK to compute grasp poses;
+
+-----end 2/19/17--------
+folded in part offsets, IK, gripper;
+with a fixed "order", can pick up gear and place it on AGV;
+needs lots of tuning
+
+run with:
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun robot_move_as robot_move_as 
+rosrun cwru_ariac robot_move_as_tester
 
 
 
