@@ -28,6 +28,7 @@ public:
     void showJointState(vector<string> joint_names, vector<double> joint_values);
     void cancel();
     int8_t getErrorCode() { return errorCode; }
+    string getErrorCodeString() { return errorCodeFinder[getErrorCode()]; }
     bool getResult() { return goal_success_; }
     bool actionFinished() { return action_server_returned_; }
     void setTimeTolerance(double newTimeTolerance) { time_tolerance = newTimeTolerance; }
@@ -36,13 +37,13 @@ public:
 private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
-    RobotMoveGoal goal;
     int8_t errorCode;
     bool goal_success_;
     RobotState currentRobotState;
     bool action_server_returned_;
     double time_tolerance;
     bool async_mode;
+    unordered_map<int8_t, string> errorCodeFinder;
 
     void doneCb(const actionlib::SimpleClientGoalState& state, const RobotMoveResultConstPtr& result);
     void activeCb();

@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     }
     ros::init(argc, argv, "camera_tester");
     ros::NodeHandle nh;
-    CameraEstimator camera(nh, "/ariac/logical_camera");
+    CameraEstimator camera(nh, "/ariac/logical_camera_1");
     while (ros::ok()) {
         camera.waitForUpdate();
         auto part = findPart(camera.inView, index);
@@ -28,5 +28,12 @@ int main(int argc, char** argv) {
             cout << "Id: " << atoi(argv[1]) << " is out of view" << endl;
         }
         cout << "inView size: " << camera.inView.size() << ", onConveyor size: " << camera.onConveyor.size() << endl;
+        for (int i = 0; i < camera.onBin.size(); ++i) {
+            cout << "onBin " << i << ": " << camera.onBin[i].size() << endl;
+        }
+        for (int i = 0; i < camera.onAGV.size(); ++i) {
+            cout << "onAGV " << i << ": " << camera.onAGV[i].size() << endl;
+        }
+        cout << "onGround : " << camera.onGround.size() << endl;
     }
 }

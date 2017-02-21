@@ -51,7 +51,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
                 tf_listener.transformPose(worldFrame, inPose, outPose);
             } catch (tf::TransformException &exception) {
 //                return;
-                ROS_ERROR("%s", exception.what());
+                ROS_WARN("%s", exception.what());
                 tferr = true;
                 ros::Duration(0.05).sleep();
                 ros::spinOnce();
@@ -146,6 +146,7 @@ void CameraEstimator::splitLocation() {
                 part.location = Part::BIN1 + j;
                 onBin[j].push_back(part);
                 jump = true;
+                // ROS_INFO("add part %d to bin %d", part.id, j);
                 break;
             }
         }

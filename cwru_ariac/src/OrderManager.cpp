@@ -110,19 +110,21 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     else {
         part.location = Part::AGV;
     }
+    ROS_INFO("Looking for transform between %s and %s, this would takes some time..", worldFrame, inPose.header.frame_id);
     while (tferr && ros::ok()) {
         tferr = false;
         try {
             inPose.header.stamp = ros::Time::now();
             tf_listener.transformPose(worldFrame, inPose, outPose);
         } catch (tf::TransformException &exception) {
-//                return;
-            ROS_ERROR("%s", exception.what());
+//            return;
+//            ROS_WARN("%s", exception.what());
             tferr = true;
             ros::Duration(0.05).sleep();
             ros::spinOnce();
         }
     }
+    ROS_INFO("Got transform");
     part.pose = outPose;
     part.traceable = false;
     part.name = object.type;

@@ -135,8 +135,15 @@ inline string locationToName(int32_t location) {
 inline double euclideanDistance(geometry_msgs::Point positionA, geometry_msgs::Point positionB) {
     return sqrt(pow(positionA.x - positionB.x, 2) + pow(positionA.y - positionB.y, 2) + pow(positionA.z - positionB.z, 2));
 }
+//inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
+//    return (boundBox.Xmin <= position.x && position.x <= boundBox.Xmax) && (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax) && (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
+//}
+
 inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
-    return (boundBox.Xmin<=position.x && position.x<=boundBox.Xmax) && (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax) && (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
+    bool x = (boundBox.Xmin <= position.x && position.x <= boundBox.Xmax);
+    bool y = (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax);
+    bool z = (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
+    return x & y & z;
 }
 
 // this class is used to storage some basic information of the competition and common algorithms.
@@ -164,6 +171,53 @@ protected:
         conveyorBoundBox.Ymin = -4.8;
         conveyorBoundBox.Xmax = 1.6;
         conveyorBoundBox.Ymax = 5.8;
+        conveyorBoundBox.Zmin = 0.5;
+        conveyorBoundBox.Zmax = 2;
+
+        binBoundBox[0].Xmin = -1.000000 - 0.3;
+        binBoundBox[0].Ymin = -1.330000 - 0.3;
+        binBoundBox[0].Xmax = -1.000000 + 0.3;
+        binBoundBox[0].Ymax = -1.330000 + 0.3;
+
+        binBoundBox[1].Xmin = -1.000000 - 0.3;
+        binBoundBox[1].Ymin = -0.535000 - 0.3;
+        binBoundBox[1].Xmax = -1.000000 + 0.3;
+        binBoundBox[1].Ymax = -0.535000 + 0.3;
+
+        binBoundBox[2].Xmin = -1.00000 - 0.3;
+        binBoundBox[2].Ymin = 0.230000 - 0.3;
+        binBoundBox[2].Xmax = -1.00000 + 0.3;
+        binBoundBox[2].Ymax = 0.230000 + 0.3;
+
+        binBoundBox[3].Xmin = -1.00000 - 0.3;
+        binBoundBox[3].Ymin = 0.995000 - 0.3;
+        binBoundBox[3].Xmax = -1.00000 + 0.3;
+        binBoundBox[3].Ymax = 0.995000 + 0.3;
+
+        binBoundBox[4].Xmin = -0.300000 - 0.3;
+        binBoundBox[4].Ymin = -1.330000 - 0.3;
+        binBoundBox[4].Xmax = -0.300000 + 0.3;
+        binBoundBox[4].Ymax = -1.330000 + 0.3;
+
+        binBoundBox[5].Xmin = -0.300000 - 0.3;
+        binBoundBox[5].Ymin = -0.535000 - 0.3;
+        binBoundBox[5].Xmax = -0.300000 + 0.3;
+        binBoundBox[5].Ymax = -0.535000 + 0.3;
+
+        binBoundBox[6].Xmin = -0.30000 - 0.3;
+        binBoundBox[6].Ymin = 0.230000 - 0.3;
+        binBoundBox[6].Xmax = -0.30000 + 0.3;
+        binBoundBox[6].Ymax = 0.230000 + 0.3;
+
+        binBoundBox[7].Xmin = -0.30000 - 0.3;
+        binBoundBox[7].Ymin = 0.995000 - 0.3;
+        binBoundBox[7].Xmax = -0.30000 + 0.3;
+        binBoundBox[7].Ymax = 0.995000 + 0.3;
+
+        for (int j = 0; j < totalBins; ++j) {
+            binBoundBox[j].Zmin = 0.5;
+            binBoundBox[j].Zmax = 2.0;
+        }
 
         PartType singlePart;
         for (int i = 0; i < totalPartsTypes; ++i) {

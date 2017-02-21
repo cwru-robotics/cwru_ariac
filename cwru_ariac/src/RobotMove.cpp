@@ -11,9 +11,18 @@ RobotMove::RobotMove(ros::NodeHandle &nodeHandle, string topic): nh_(nodeHandle)
     time_tolerance = 1.0;
     async_mode = false;
     ROS_INFO("Robot Move Action Client is ready.");
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::NO_ERROR, "NO_ERROR"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::CANCELLED, "CANCELLED"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::WRONG_PARAMETER, "WRONG_PARAMETER"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::TIMEOUT, "TIMEOUT"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::UNREACHABLE, "UNREACHABLE"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::GRIPPER_FAULT, "GRIPPER_FAULT"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::COLLISION, "COLLISION"));
+    errorCodeFinder.insert(pair<int8_t, string>(RobotMoveResult::PART_DROPPED, "PART_DROPPED"));
 }
 bool RobotMove::toHome(double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::TO_HOME;
     goal.timeout = timeout;
     sendGoal(goal);
@@ -28,7 +37,9 @@ bool RobotMove::toHome(double timeout) {
 
 bool RobotMove::toCruisePose(double timeout) {
     ROS_INFO("requesting move to cruise pose");
+    RobotMoveGoal goal;
     goal.timeout = timeout;
+    timeout = timeout <= 0? INFINITY:timeout;
     goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
     goal.predfinedPoseCode = RobotMoveGoal::AGV1_CRUISE_POSE;
     sendGoal(goal);
@@ -43,6 +54,8 @@ bool RobotMove::toCruisePose(double timeout) {
 
 bool RobotMove::toAgv1HoverPose(double timeout) {
     ROS_INFO("requesting move to agv1 hover pose");
+    RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.timeout = timeout;
     goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
     goal.predfinedPoseCode = RobotMoveGoal::AGV1_HOVER_POSE;
@@ -58,7 +71,7 @@ bool RobotMove::toAgv1HoverPose(double timeout) {
 
 bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
     ROS_INFO("requesting move to  pose code %d",predefined_pose_code);
-    
+    RobotMoveGoal goal;
     goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
     goal.predfinedPoseCode = predefined_pose_code;
     sendGoal(goal);
@@ -73,6 +86,7 @@ bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
 
 bool RobotMove::pick(Part part, double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::PICK;
     goal.timeout = timeout;
     goal.sourcePart = part;
@@ -88,6 +102,7 @@ bool RobotMove::pick(Part part, double timeout) {
 
 bool RobotMove::place(Part destination, double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::PLACE;
     goal.timeout = timeout;
     goal.targetPart = destination;
@@ -103,6 +118,7 @@ bool RobotMove::place(Part destination, double timeout) {
 
 bool RobotMove::move(Part part, Part destination, double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::MOVE;
     goal.timeout = timeout;
     goal.sourcePart = part;
@@ -119,6 +135,7 @@ bool RobotMove::move(Part part, Part destination, double timeout) {
 
 bool RobotMove::setJointValues(vector<double> joints, double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::PLACE;
     goal.timeout = timeout;
     goal.jointsValue = joints;
@@ -134,6 +151,7 @@ bool RobotMove::setJointValues(vector<double> joints, double timeout) {
 
 bool RobotMove::grasp(double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::GRASP;
     goal.timeout = timeout;
     sendGoal(goal);
@@ -148,6 +166,7 @@ bool RobotMove::grasp(double timeout) {
 
 bool RobotMove::release(double timeout) {
     RobotMoveGoal goal;
+    timeout = timeout <= 0? 100.0:timeout;
     goal.type = RobotMoveGoal::RELEASE;
     goal.timeout = timeout;
     sendGoal(goal);
