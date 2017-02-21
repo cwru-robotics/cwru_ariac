@@ -114,7 +114,8 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     while (tferr && ros::ok()) {
         tferr = false;
         try {
-            inPose.header.stamp = ros::Time::now();
+            inPose.header.stamp = ros::Time(0);
+//            inPose.header.stamp = ros::Time::now();
             tf_listener.transformPose(worldFrame, inPose, outPose);
         } catch (tf::TransformException &exception) {
 //            return;

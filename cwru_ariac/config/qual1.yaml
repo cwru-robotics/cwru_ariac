@@ -1,9 +1,4 @@
-arm:# sensors:
-#   logical_camera_1:
-#     type: logical_camera
-#     pose:
-#       xyz: [-0.7, -0.15, 3.5]
-#       rpy: [0, 'pi/2', 0]
+arm:
   type: ur10
   initial_joint_states:
     linear_arm_actuator_joint: 0
