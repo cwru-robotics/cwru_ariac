@@ -312,7 +312,7 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 0; //??
+        offset = 0.011; //??
         return offset;
     }
     ROS_WARN("part name not recognized");
@@ -325,13 +325,13 @@ double RobotMoveActionServer::get_dropoff_offset(Part part) {
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = 0.016; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = 0.011; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
         return offset;
     }
     ROS_WARN("part name not recognized");
@@ -450,14 +450,16 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   Eigen::Affine3d    affine_vacuum_gripper_pose_wrt_base_link;
   Eigen::Affine3d    affine_part_wrt_base_link, affine_part_wrt_world;
   //from part, extract pose w/rt world
-  geometry_msgs::PoseStamped part_pose_wrt_agv = part.pose; //this is presumably w/rt tray frame
+  //geometry_msgs::PoseStamped part_pose_wrt_agv = part.pose; //this is presumably w/rt tray frame
+  geometry_msgs::PoseStamped part_pose_wrt_world = part.pose;  //nope--w/rt world
   string frame_name(part.pose.header.frame_id);
   cout<<frame_name<<endl;
   //ROS_INFO("part frame: %s",part.pose.header.frame_id);
   Eigen::Affine3d affine_part_wrt_tray, affine_base_link_wrt_world;
   affine_base_link_wrt_world = affine_base_link(q_rail);
-  affine_part_wrt_tray = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_agv);
-  affine_part_wrt_world = agv1_tray_frame_wrt_world_*affine_part_wrt_tray;
+  //affine_part_wrt_tray = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_agv);
+  affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);  
+  //affine_part_wrt_world = agv1_tray_frame_wrt_world_*affine_part_wrt_tray;
   affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
 
   affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link; //start here, and offset height of gripper
