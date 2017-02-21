@@ -110,7 +110,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     else {
         part.location = Part::AGV;
     }
-    //ROS_INFO("Looking for transform between %s and %s, this would takes some time..", worldFrame, inPose.header.frame_id);
+    ROS_INFO("Looking for transform between %s and %s, this would takes some time..", worldFrame.c_str(), inPose.header.frame_id.c_str());
     while (tferr && ros::ok()) {
         tferr = false;
         try {
