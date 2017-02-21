@@ -148,6 +148,20 @@ vector<double> RobotPlanner::getJointsState() {
     return joints;
 }
 
+vector<string> RobotPlanner::getJointsNames() {
+    if (!called) {
+        while(!called && ros::ok()) {
+            //ROS_INFO("Waiting for joint feedback...");
+            ros::spinOnce();
+            ros::Duration(0.1).sleep();
+        }
+    }
+    vector<string> names = current_joint_states.name;
+    names.pop_back();
+    return names;
+}
+
+
 void RobotPlanner::grab() {
     //ROS_INFO("enable gripper");
     gripper.call(attach);

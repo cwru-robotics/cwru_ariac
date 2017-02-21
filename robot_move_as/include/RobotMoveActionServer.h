@@ -68,7 +68,9 @@ private:
     Eigen::VectorXd q_bin4_cruise_pose_,q_bin4_hover_pose_,q_bin4_retract_pose_;  
     Eigen::VectorXd q_bin3_cruise_pose_,q_bin3_hover_pose_,q_bin3_retract_pose_;  
     Eigen::VectorXd q_bin2_cruise_pose_,q_bin2_hover_pose_,q_bin2_retract_pose_;  
-    Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;    
+    Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;
+
+    Eigen::VectorXd j1;
     
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link_;
     Eigen::Affine3d affine_vacuum_dropoff_pose_wrt_base_link_;
@@ -101,6 +103,7 @@ private:
     //bool get_dropoff_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln);
     void grab();
     void release();
+    RobotState calcRobotState();
     osrf_gear::VacuumGripperState getGripperState();
     bool attached_;
     bool isGripperAttached();

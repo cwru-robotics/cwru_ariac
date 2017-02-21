@@ -37,15 +37,13 @@ int main(int argc, char** argv) {
                     ROS_INFO("Working on object type: %s", object.type.c_str());
                     camera.waitForUpdate();
                     PartList all_bins;
-                    int total_bin = 0, bin_cnt = 1;
+                    int bin_cnt = 1;
                     for (auto bin: camera.onBin) {
                         ROS_INFO("bin %d have %d parts", bin_cnt++, (int)bin.size());
-                        total_bin += bin.size();
                         for (auto p: bin) {
                             all_bins.push_back(p);
                         }
                     }
-                    ROS_INFO("There are %d parts in bin", total_bin);
 
                     ROS_INFO("Got %d parts from camera, try to find such part in all bins", (int)all_bins.size());
                     PartList candidates = findPart(all_bins, object.type);
@@ -60,6 +58,7 @@ int main(int argc, char** argv) {
                         ROS_INFO_STREAM(target);
                         if (robotMove.move(best, target)) {
                             ROS_INFO("Successfully move part to %s", agvName.c_str());
+                            camera.waitForUpdate();
                             break;
                         }
                         ROS_INFO("Failed to fetch the part, reason: %s", robotMove.getErrorCodeString().c_str());

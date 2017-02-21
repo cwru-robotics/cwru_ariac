@@ -4,7 +4,7 @@
 
 ### Fresh install
 
-If you just install Ubuntu 14.04 without ROS installed:
+If you have a newly installed Ubuntu 14.04 without ROS installed:
 
 ```
 cd [directory where this file locates]
@@ -53,12 +53,12 @@ To start a empty world (no robot, no parts, no camera):
 
 To start qualifiers 1A:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml
 ```
 
 To start qualifiers 1B:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml
 ```
 
 To start a world with full bins:

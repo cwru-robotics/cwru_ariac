@@ -32,9 +32,25 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     }
     lastTime.fromSec(currentTime.toSec());
     updateCount++;
+    auto models = image_msg->models;
+//    vector<double> distances;
+//    for (int j = 0; j < models.size(); ++j) {
+//        if (defaultParts.find(models[j].type) == defaultParts.end()) {
+//            models.erase(models.begin() + j);
+//            continue;
+//        }
+//        for (int i = j + 1; i < models.size(); ++i) {
+//            double distance = euclideanDistance(models[j].pose.position, models[i].pose.position);
+//            distances.push_back(distance);
+//            if (distance < 0.02) {
+//                models.erase(models.begin() + i);
+//            }
+//        }
+//    }
+//    sort(distances.begin(), distances.end());
     // TODO refactor to: match all exist object first, then all untraceable object then add new object
 //    ROS_INFO("inView: %d, size: %d, dt = %f",(int)inView.size(), (int)image_msg->models.size(), (float)dt);
-    for (int i = 0; i < image_msg->models.size(); ++i) {
+    for (int i = 0; i < models.size(); ++i) {
         geometry_msgs::PoseStamped inPose;
         geometry_msgs::PoseStamped outPose;
         inPose.header.frame_id = cameraFrame;
@@ -42,8 +58,8 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
         bool tferr = true;
         double distance;
         Part nextPart;
-        nextPart.name = image_msg->models[i].type;
-        inPose.pose = image_msg->models[i].pose;
+        nextPart.name = models[i].type;
+        inPose.pose = models[i].pose;
         while (tferr && ros::ok()) {
             tferr = false;
             try {

@@ -214,6 +214,16 @@ void RobotMoveActionServer::release() {
     gripper_client.call(detach_);
 }
 
+RobotState RobotMoveActionServer::calcRobotState() {
+    robotState.jointStates = robotPlanner.getJointsState();
+    robotState.jointNames = robotPlanner.getJointsNames();
+    j1.resize(7);
+    for (int i = 0; i < 7; ++i) {
+        j1[i] = robotState.jointStates[i];
+    }
+    robotState.gripperPose.pose = xformUtils_.transformEigenAffine3dToPose(fwd_solver_.fwd_kin_solve(j1));
+    return robotState;
+}
 //for each of the 10 key poses, extract the rail position
 bool RobotMoveActionServer::rail_prepose(int8_t location, double &q_rail) {
     switch (location) {
@@ -671,11 +681,12 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("part has been placed at target location");
             /*dt = ros::Time::now().toSec() - start_time;
             if (dt < timeout) {*/
-                ROS_INFO("action completed");
-                result_.success = true;
-                result_.errorCode = RobotMoveResult::NO_ERROR;
-                result_.robotState = robotState;
-                as.setSucceeded(result_);
+            ROS_INFO("action completed");
+            result_.success = true;
+            result_.errorCode = RobotMoveResult::NO_ERROR;
+            robotState = calcRobotState();
+            result_.robotState = robotState;
+            as.setSucceeded(result_);
                 /*
             } else {
                 ROS_INFO("I am running out of time");
@@ -858,6 +869,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("I completed the action");
             result_.success = true;
             result_.errorCode = RobotMoveResult::NO_ERROR;
+            robotState = calcRobotState();
             result_.robotState = robotState;
             as.setSucceeded(result_);
             break;

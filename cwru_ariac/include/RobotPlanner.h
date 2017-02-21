@@ -22,6 +22,7 @@ public:
 
     void sendJointsValue(vector<double> joints);
     vector<double> getJointsState();
+    vector<string> getJointsNames();
     void grab();
     void release();
     osrf_gear::VacuumGripperState getGripperState();

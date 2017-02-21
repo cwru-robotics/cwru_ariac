@@ -39,8 +39,8 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     AGVs.push_back(agv2);
 
     worldFrame = "/world";
+//    AGV1Frame = "/agv1_load_point_frame";
     AGV1Frame = "/kit_tray_frame";
-
 }
 
 void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &order_msg) {
