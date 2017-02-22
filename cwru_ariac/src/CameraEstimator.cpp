@@ -63,7 +63,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
         while (tferr && ros::ok()) {
             tferr = false;
             try {
-                inPose.header.stamp = ros::Time::now();
+                inPose.header.stamp = ros::Time(0);
                 tf_listener.transformPose(worldFrame, inPose, outPose);
             } catch (tf::TransformException &exception) {
 //                return;

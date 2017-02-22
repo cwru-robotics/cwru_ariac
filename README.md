@@ -9,8 +9,13 @@ Code for doing this competition, under development.
 some demo code (picks up gear and places on agv):
 
 rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+
+OR 
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+
 rosrun robot_move_as robot_move_as 
-rosrun cwru_ariac robot_move_as_tester
+rosrun cwru_ariac qualifier1
 
 ## osrf_gear
 

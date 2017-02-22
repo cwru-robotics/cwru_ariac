@@ -612,12 +612,17 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("moving to pickup_jspace_pose_ ");
             move_to_jspace_pose(pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
-            ros::Duration(4.0).sleep(); //TUNE ME!!
+            ros::Duration(2.0).sleep(); //TUNE ME!!
 
             ROS_INFO("enabling gripper");
             grab();
-             ros::Duration(2.0).sleep(); //TUNE ME!!
-            ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
+            while(!robotPlanner.isGripperAttached()) { ros::Duration(0.5).sleep();
+               ROS_INFO("waiting for gripper attachment");
+            }
+            ROS_INFO("part is attached to gripper");
+            
+            // ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
             //enable gripper
 
             ROS_INFO("moving to bin hover pose");
@@ -631,9 +636,18 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
             ROS_INFO("testing if part is still grasped");
+            
+            if (!robotPlanner.isGripperAttached()) {
+                result_.success = false;
+                result_.errorCode = RobotMoveResult::PART_DROPPED;
+                result_.robotState = robotState;
+                ROS_WARN("part dropped!");
+                as.setAborted(result_);
+                return;
+            }            
             //do grasp test; abort if failed
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
 
             ROS_INFO("moving to agv_cruise_pose_");
             move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
@@ -642,24 +656,57 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("moving to agv_hover_pose_");
             move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
             ros::Duration(2.0).sleep(); //TUNE ME!!
-
-            ROS_INFO("testing if part is still grasped");
+            
+            if (!robotPlanner.isGripperAttached()) {
+                ROS_INFO("moving to agv_cruise_pose_");
+                move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
+                ros::Duration(2.0).sleep(); //TUNE ME!!
+                result_.success = false;
+                result_.errorCode = RobotMoveResult::PART_DROPPED;
+                result_.robotState = robotState;
+                ROS_WARN("part dropped!");
+                as.setAborted(result_);
+                return;
+            } 
+            
+            //ROS_INFO("testing if part is still grasped");
             //do grasp test; abort if failed
-            ROS_INFO("I %s got the part", robotPlanner.waitForGripperAttach(2.0)? "still": "did not");
+           // ROS_INFO("I %s got the part", robotPlanner.waitForGripperAttach(2.0)? "still": "did not");
 
             ROS_INFO("moving to dropoff_jspace_pose_");
             move_to_jspace_pose(dropoff_jspace_pose_); //move to agv hover pose
             ros::Duration(2.0).sleep(); //TUNE ME!!
             ROS_INFO("testing if part is still grasped");
+            if (!robotPlanner.isGripperAttached()) {
+                //move back to a safe cruise pose before aborting
+                move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
+                ros::Duration(2.0).sleep(); //TUNE ME!!
+                ROS_INFO("moving to agv_cruise_pose_");
+                move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
+                ros::Duration(2.0).sleep(); //TUNE ME!!
+                result_.success = false;
+                result_.errorCode = RobotMoveResult::PART_DROPPED;
+                result_.robotState = robotState;
+                ROS_WARN("part dropped!");
+                as.setAborted(result_);
+                return;
+            } 
+            
+            
             //do grasp test; if failed, return to agv_cruise pose and abort
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
 
             ROS_INFO("releasing gripper");
             //release gripper
             release();
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            ROS_INFO("I %s dropped the part", robotPlanner.isGripperAttached()? "did not": "successfully");
+             while(robotPlanner.isGripperAttached()) { 
+                 ros::Duration(0.5).sleep();
+               ROS_INFO("waiting for gripper release");
+            }           
+            
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ROS_INFO("I %s dropped the part", robotPlanner.isGripperAttached()? "did not": "successfully");
 
             ROS_INFO("moving to agv_hover_pose_");
             move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
