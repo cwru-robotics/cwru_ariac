@@ -294,6 +294,10 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
             qvec= q_bin7_hover_pose_;
             return true; //valid code
             break;
+        case Part::BIN8:
+            qvec= q_bin8_hover_pose_;
+            return true; //valid code
+            break;            
         case Part::AGV1:
             qvec= q_agv1_hover_pose_;
             return true; //valid code
@@ -537,13 +541,17 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
             ROS_INFO("MOVE");
             ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
-            ROS_INFO_STREAM(goal->sourcePart.pose);
-            ROS_INFO("target pose:");
-            ROS_INFO_STREAM(goal->targetPart.pose);
+            ROS_INFO("goal source: ");
+            ROS_INFO_STREAM(goal->sourcePart);
+            //ROS_INFO_STREAM(goal->sourcePart.pose);
+            ROS_INFO("goal target:  ");
+            ROS_INFO_STREAM(goal->targetPart);
+            //ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", timeout);
             //anticipate failure, unless proven otherwise:
             result_.success = false;
             result_.errorCode = RobotMoveResult::WRONG_PARAMETER;
+            //goal->sourcePart
 
             //compute the necessary joint-space poses:
             if (!bin_hover_jspace_pose(goal->targetPart.location, agv_hover_pose_)) {
