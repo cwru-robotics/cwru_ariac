@@ -6,13 +6,15 @@ ARIAC (Agile Robotics for Industrial Automation Competition) is a competition ho
 
 Code for doing this competition, under development.
 
-some demo code (picks up gear and places on agv):
+TO RUN THE QUALIFIER CODE:
 
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+For qual1a:
 
-OR 
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml
 
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+OR, for qual1b:
+
+rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml
 
 rosrun robot_move_as robot_move_as 
 rosrun cwru_ariac qualifier1
