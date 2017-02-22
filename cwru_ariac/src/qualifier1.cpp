@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
                     ROS_INFO("Got %d parts from camera, try to find such part in all bins", (int)all_bins.size());
                     PartList candidates = findPart(all_bins, object.type);
                     ROS_INFO("Found %d parts from bins", (int)candidates.size());
-                    for (int i = 0; (i < candidates.size()); ++i) {
-                        PartList set(candidates.begin() + i, candidates.end());
-                        Part best =  conveyorManager.getClosestPart(set);
+                    while (!candidates.empty()) {
+                        Part best =  conveyorManager.getClosestPart(candidates);
                         Part target = orderManager.toAGVPart(agvName, object);
-                        ROS_INFO("got candidate part:");
+                        candidates.erase(findPart(candidates, best.id));
+                        ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());
                         ROS_INFO_STREAM(best);
                         ROS_INFO("moving part to target:");
                         ROS_INFO_STREAM(target);
@@ -86,7 +86,14 @@ int main(int argc, char** argv) {
                         }
                         camera.waitForUpdate();
                     }
-                    ROS_INFO("complete one object: %s in kit %s, order %s", object.type.c_str(), kit.kit_type.c_str(), order.order_id.c_str());
+                    if (candidates.size() != 0) {
+                        ROS_INFO("Complete one object: %s in kit %s, order %s", object.type.c_str(), kit.kit_type.c_str(), order.order_id.c_str());
+                    } else {
+                        ROS_WARN("Failed all candidate parts to complete object: %s in kit %s, order %s",
+                                 object.type.c_str(), kit.kit_type.c_str(), order.order_id.c_str());
+                        ROS_WARN("Ignore this object and continue? (hit enter)");
+                        getchar();
+                    }
                 }
                 ROS_INFO("complete one kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
                 ROS_INFO("Submitting order...");
