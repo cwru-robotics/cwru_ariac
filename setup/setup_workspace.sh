@@ -16,5 +16,5 @@ cd ~/ros_ws && catkin_make
 cd ~/ros_ws && catkin_make install
 
 echo -e "\e[34m Setup complete, still need to run following commands: \e[39m"
-echo 'git config --global user.name "your github uer name"'
+echo 'git config --global user.name "your github user name"'
 echo 'git config --global user.email "your password"'
