@@ -228,7 +228,7 @@ bool RobotMove::isGripperAttached() {
     goal.type = RobotMoveGoal::IS_ATTACHED;
     sendGoal(goal);
     if (!async_mode) {
-        bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance));
+        bool finished_before_timeout = ac.waitForResult();
         if (!finished_before_timeout)
             errorCode = RobotMoveResult::TIMEOUT;
         return finished_before_timeout && goal_success_;
@@ -241,7 +241,7 @@ bool RobotMove::getRobotState(RobotState &robotState) {
     goal.type = RobotMoveGoal::GET_ROBOT_STATE;
     sendGoal(goal);
     if (!async_mode) {
-        bool finished_before_timeout = ac.waitForResult(ros::Duration(time_tolerance));
+        bool finished_before_timeout = ac.waitForResult();
         if (!finished_before_timeout)
             errorCode = RobotMoveResult::TIMEOUT;
         return finished_before_timeout && goal_success_;
