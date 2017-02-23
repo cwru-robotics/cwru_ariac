@@ -53,24 +53,24 @@ rosrun osrf_gear gear.py
 
 To start qualifiers 1A:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml
 ```
 
 To start qualifiers 1B:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml
 ```
 
 To start a world with full bins:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf1.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/comp_conf1.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
 ```
 
 There is two more example configure:
 ```
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf2.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/comp_conf2.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
 
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/sample.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/sample.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
 ```
 
 ### Using moveit

@@ -61,4 +61,8 @@ sudo apt-get --yes --force-yes install sublime-text-installer atom
 sudo apt-get --yes --force-yes install kazam vlc
 sudo apt-get --yes --force-yes install gitk git-gui
 
+echo -e "\e[1m \e[34m >>> Copy gazebo model \e[21m \e[39m"
+
+cp -r models/* ~/.gazebo/models/
+
 echo -e "\e[34m Setup complete! \e[39m"

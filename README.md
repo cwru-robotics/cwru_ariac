@@ -8,18 +8,6 @@ TO RUN THE QUALIFIER CODE:
 
 For qual1a:
 
-``rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml``
-
-OR, for qual1b:
-
-``rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml``
-
-Then run:
-
-### Option2:
-
-For qual1a:
-
 ``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml``
 
 OR, for qual1b:
