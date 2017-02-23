@@ -2,7 +2,6 @@
 // Created by shipei on 11/8/16.
 //
 
-#include <AriacBase.h>
 #include <OrderManager.h>
 #include <RobotPlanner.h>
 

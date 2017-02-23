@@ -1,24 +1,6 @@
 //test module for sending pick/place commands
 
-#include <AriacBase.h>
 #include <RobotMove.h>
-#include <cwru_ariac/RobotMoveAction.h>
-
-#include <ros/ros.h>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <unordered_map>
-
-#include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Geometry>
-#include <cwru_ariac/RobotMoveGoal.h>
-using namespace std;
-using namespace Eigen;
-using namespace cwru_ariac;
 
 //Part g_pick_part,g_place_part;
 void set_part_vals(Part &pick_part,Part &place_part) {

@@ -16,7 +16,19 @@ OR, for qual1b:
 
 Then run:
 
-`rosrun robot_move_as robot_move_as `
+### Option2:
+
+For qual1a:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual1.yaml``
+
+OR, for qual1b:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml``
+
+Then run:
+
+`rosrun robot_move_as robot_move_as`
 
 `rosrun cwru_ariac qualifier1`
 
@@ -25,8 +37,6 @@ Then run:
 Official ARIAC repository
 
 Modified from [OSRF GEAR](https://bitbucket.org/osrf/ariac/overview).
-
-System setup see [here](https://github.com/cwru-robotics/cwru_scripts/blob/master/ariac/ariac.sh).
 
 ## gear_example
 

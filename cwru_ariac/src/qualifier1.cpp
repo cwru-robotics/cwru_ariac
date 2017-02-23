@@ -2,12 +2,7 @@
 // Created by tianshipei on 2/16/17.
 //
 
-#include <AriacBase.h>
-#include <CameraEstimator.h>
-#include <OrderManager.h>
-#include <RobotPlanner.h>
-#include <RobotMove.h>
-#include <ConveyorManager.h>
+#include <cwru_ariac.h>
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "ariac_qual1");
@@ -99,7 +94,7 @@ int main(int argc, char** argv) {
                 ROS_INFO("Submitting order...");
                 bool order_result = orderManager.submitOrder(agvName, kit);
                 ROS_INFO("Submission %s", order_result? "success":"failed");
-                ros::Duration(21.0).sleep();
+                ros::Duration(2.0).sleep();
                 ROS_INFO("Current score: %f", orderManager.getCurrentScore());
             }
             ROS_INFO("complete one order: %s", order.order_id.c_str());

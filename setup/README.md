@@ -48,7 +48,7 @@ catkin_make install
 
 To start a empty world (no robot, no parts, no camera):
 ```
-`rosrun osrf_gear gear.py`
+rosrun osrf_gear gear.py
 ```
 
 To start qualifiers 1A:

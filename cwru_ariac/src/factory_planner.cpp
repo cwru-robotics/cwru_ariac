@@ -2,13 +2,7 @@
 // Created by tianshipei on 12/3/16.
 //
 
-#include <BinManager.h>
-#include <CameraEstimator.h>
-#include <Cheater.h>
-#include <OrderManager.h>
-#include <OraclePlanner.h>
-#include <RobotPlanner.h>
-#include <RobotMove.h>
+#include <cwru_ariac.h>
 
 enum State {NONE = 0, INIT, END, FILL_ORDER, WAIT};
 

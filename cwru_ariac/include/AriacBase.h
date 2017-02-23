@@ -22,6 +22,7 @@
 #include <eigen3/Eigen/Geometry>
 
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/terminal_state.h>
 
 #include <sensor_msgs/JointState.h>
@@ -238,57 +239,3 @@ public:
 //#include <moveit/planning_scene_interface/planning_scene_interface.h>
 //#include <moveit_msgs/AttachedCollisionObject.h>
 //#include <moveit_msgs/CollisionObject.h>
-//#include <actionlib/client/simple_action_client.h>
-//#include <actionlib/server/simple_action_server.h>
-//#include <actionlib/client/terminal_state.h>
-// 一些垃圾代码就藏在这里了
-//enum Direction {
-//    top, bottom, left, right,
-//    topLeft, topRight, bottomLeft, bottomRight
-//};
-//class GridMap: public unordered_set<Grid, boost::hash<pair<int, int>>> {
-//public:
-//    bool checkCollision(Grid grid) {
-//        return find(grid)==end();
-//    }
-//
-//    bool addGrids(Grid start, Grid size, Direction direction) {
-//        Grid A;
-//        switch (direction) {
-//            case topLeft:
-//                A.first = start.first - size.first;
-//                A.second = start.second;
-//                break;
-//            case topRight:
-//                A = start;
-//                break;
-//            case bottomLeft:
-//                A.first = start.first - size.first;
-//                A.second = start.second - size.second;
-//                break;
-//            case bottomRight:
-//                A.first = start.first;
-//                A.second = start.second - size.second;
-//                break;
-//        }
-//        return addGrids(A, size);
-//    }
-//
-//    bool addGrids(Grid start, Grid size) {
-//        if (start.first >= 0 && start.second >= 0 && size.first >= 0 && size.second >= 0 &&
-//                start.first < gridNumber && start.second < gridNumber && size.first < gridNumber && size.second < gridNumber) {
-//            for (int i = start.first; i < size.first; ++i) {
-//                for (int j = start.second; j < size.second; ++j) {
-//                    if (!checkCollision(Grid(i, j))) {
-//                        insert(Grid(i, j));
-//                    } else {
-//                        return false;
-//                    }
-//                }
-//            }
-//        } else {
-//            return false;
-//        }
-//        return true;
-//    }
-//};

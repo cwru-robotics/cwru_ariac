@@ -85,12 +85,12 @@ bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
     osrf_gear::AGVControl srv;
     srv.request.kit_type = kit.kit_type;
     if (agvName == AGVs[0].name) {
-        AGV1Client.call(srv);  // Call the start Service.
-        return !srv.response.success;
+        bool result = AGV1Client.call(srv);  // Call the start Service.
+        return result && srv.response.success;
     }
     if (agvName == AGVs[1].name) {
-        AGV2Client.call(srv);  // Call the start Service.
-        return !srv.response.success;
+        bool result = AGV2Client.call(srv);  // Call the start Service.
+        return result && srv.response.success;
     }
     return false;
 }

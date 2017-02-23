@@ -2,7 +2,6 @@
 // Created by tianshipei on 12/3/16.
 //
 
-#include <AriacBase.h>
 #include <OraclePlanner.h>
 
 int main(int argc, char** argv) {

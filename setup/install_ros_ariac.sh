@@ -43,7 +43,7 @@ sudo apt-get --yes --force-yes install ros-indigo-navigation ros-indigo-csm ros-
 sudo apt-get --yes --force-yes install ros-indigo-control* ros-indigo-robot-controllers* ros-indigo-robot-state-publisher
 sudo apt-get --yes --force-yes install ros-indigo-ros-cont* ros-indigo-joint-*
 sudo apt-get --yes --force-yes install ros-indigo-rqt ros-indigo-rqt*
-sudo apt-get --yes --force-yes install ros-indigo-moveit-full ros-indigo-moveit-core ros-indigo-moveit-kinematics ros-indigo-moveit-ros-planning ros-indigo-moveit-ros-move-group ros-indigo-moveit-planners-ompl ros-indigo-moveit-ros-visualization ros-indigo-moveit-simple-controller-manager
+sudo apt-get --yes --force-yes install ros-indigo-moveit ros-indigo-moveit-core ros-indigo-moveit-kinematics ros-indigo-moveit-ros-planning ros-indigo-moveit-ros-move-group ros-indigo-moveit-planners-ompl ros-indigo-moveit-ros-visualization ros-indigo-moveit-simple-controller-manager
 sudo apt-get --yes --force-yes install ros-indigo-object-recognition-*
 sudo apt-get --yes --force-yes install ariac
 
