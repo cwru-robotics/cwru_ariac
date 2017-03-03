@@ -9,7 +9,6 @@
 #include <CameraEstimator.h>
 #include <Cheater.h>
 #include <GlobalPlanner.h>
-#include <ConveyorManager.h>
 #include <OrderManager.h>
 #include <OraclePlanner.h>
 #include <RobotMove.h>

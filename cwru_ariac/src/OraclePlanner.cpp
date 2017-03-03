@@ -10,7 +10,7 @@ OraclePlanner::OraclePlanner(ros::NodeHandle &nodeHandle): nh_(nodeHandle) {
         oracle.waitForExistence();
     }
 }
-bool OraclePlanner::pick(Part part, RobotState robotState, double &planningTime, double &executingTime, int &errorCode,
+bool OraclePlanner::pick(Part part, RobotState robotState, double &executingTime, double &planningTime, int &errorCode,
                          int &planID) {
     OracleQuery query;
     query.request.type = OracleQuery::Request::PICK;
@@ -25,7 +25,7 @@ bool OraclePlanner::pick(Part part, RobotState robotState, double &planningTime,
     }
     return false;
 }
-bool OraclePlanner::place(Part destination, RobotState robotState, double &planningTime, double &executingTime,
+bool OraclePlanner::place(Part destination, RobotState robotState, double &executingTime, double &planningTime,
                           int &errorCode, int &planID) {
     OracleQuery query;
     query.request.type = OracleQuery::Request::PLACE;
@@ -40,8 +40,8 @@ bool OraclePlanner::place(Part destination, RobotState robotState, double &plann
     }
     return false;
 }
-bool OraclePlanner::move(Part part, Part destination, RobotState robotState, double &planningTime,
-                         double &executingTime, int &errorCode, int &planID) {
+bool OraclePlanner::move(Part part, Part destination, RobotState robotState, double &executingTime, double &planningTime,
+                         int &errorCode, int &planID) {
     OracleQuery query;
     query.request.type = OracleQuery::Request::MOVE;
     query.request.robotState = robotState;

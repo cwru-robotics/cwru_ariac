@@ -10,9 +10,12 @@
 class OraclePlanner {
 public:
     OraclePlanner(ros::NodeHandle& nodeHandle);
-    bool pick(Part part, RobotState robotState, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
-    bool place(Part destination, RobotState robotState, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
-    bool move(Part part, Part destination, RobotState robotState, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
+    bool pick(Part part, RobotState robotState, double &executingTime = _fakeDouble, double &planningTime = _fakeDouble, int &errorCode = _fakeInt,
+                  int &planID = _fakeInt);
+    bool place(Part destination, RobotState robotState, double &executingTime = _fakeDouble, double &planningTime = _fakeDouble, int &errorCode = _fakeInt,
+               int &planID = _fakeInt);
+    bool move(Part part, Part destination, RobotState robotState, double &executingTime = _fakeDouble, double &planningTime = _fakeDouble, int &errorCode = _fakeInt,
+              int &planID = _fakeInt);
     bool setMaxPlanningTime(double maxPlanningTime, int &errorCode = _fakeInt);
     double getMaxPlanningTime() {return maxPlanningTime;}
 
