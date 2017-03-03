@@ -32,13 +32,11 @@ echo -e "\e[34m >>> Setting up environment \e[39m"
 cat bashrc >> ~/.bashrc
 source ~/.bashrc
 
-echo -e "\e[1m \e[34m >>> Installing dependencies for mobile robotics code \e[21m \e[39m"
+echo -e "\e[1m \e[34m >>> Installing dependencies \e[21m \e[39m"
 
 sudo apt-get --yes --force-yes install python-rosinstall
 sudo apt-get --yes --force-yes install ros-indigo-gazebo7-ros-*
 sudo apt-get --yes --force-yes install ros-indigo-joy ros-indigo-costmap* ros-indigo-nav-core ros-indigo-sound-play ros-indigo-amcl ros-indigo-move-base ros-indigo-joint-state-controller ros-indigo-effort-controllers ros-indigo-stdr-simulator
-#sudo apt-get --yes --force-yes install ros-indigo-baxter-core-msgs ros-indigo-baxter-examples ros-indigo-baxter-sim-controllers ros-indigo-baxter-sim-examples ros-indigo-baxter-tools ros-indigo-baxter-description ros-indigo-baxter-sim-hardware ros-indigo-baxter-interface ros-indigo-baxter-simulator ros-indigo-baxter-common ros-indigo-baxter-sdk ros-indigo-baxter-sim-io ros-indigo-baxter-moveit-config
-sudo apt-get --yes --force-yes install ros-indigo-libfreenect ros-indigo-freenect-camera ros-indigo-freenect-launch ros-indigo-openni-launch libopenni-dev
 sudo apt-get --yes --force-yes install ros-indigo-navigation ros-indigo-csm ros-indigo-laser-geometry
 sudo apt-get --yes --force-yes install ros-indigo-control* ros-indigo-robot-controllers* ros-indigo-robot-state-publisher
 sudo apt-get --yes --force-yes install ros-indigo-ros-cont* ros-indigo-joint-*
@@ -63,6 +61,7 @@ sudo apt-get --yes --force-yes install gitk git-gui
 
 echo -e "\e[1m \e[34m >>> Copy gazebo model \e[21m \e[39m"
 
+mkdir ~/.gazebo/models
 cp -r models/* ~/.gazebo/models/
 
 echo -e "\e[34m Setup complete! \e[39m"

@@ -1,28 +1,34 @@
-# Setup ARIAC
+# System Setup
 
-## System Setup
+ARIAC Runs on both ROS Indigo and Kinetic, you can pick either of this two version and our code runs on both version. However, using ROS Indigo is recommended, since most code are developed under ROS Indigo.
 
-### Fresh install
+ARIAC requires Gazebo7, which by default ROS Indigo is using Gazebo2. With this installation, there can be compatibility problem with ROS Indigo + Gazebo7. Currently knowing baxter simulator does not work with Gazebo7
 
-If you have a newly installed Ubuntu 14.04 without ROS installed:
+ROS Kinetic comes with Gazebo7, but there are less package resources.
+
+## Ubuntu 14.04 + ROS Indigo
+
+### Fresh installation
+
+If you have not install ROS yet:
 
 ```
 cd [directory where this file locates]
-
-chmod +x install_ros_ariac.sh setup_workspace.sh
 
 ./install_ros_ariac.sh
 ```
 
 Enter your password and wait...
 
-If you want to setup workspace also, run:
+Further, if you want to setup your workspace, run:
 
 `./setup_workspace.sh`
 
-### Already have ros indigo installed
+this will create a folder called **ros_ws** under your home folder, and it will becomes your ROS workspace.
 
-Then you have to uninstall gazebo2 first and then install gazebo7:
+### Already installed ROS Indigo
+
+You have to uninstall gazebo2 first and then install gazebo7:
 
 ```
 sudo apt-get --yes --force-yes remove gazebo2 ros-indigo-gazebo-*
@@ -30,9 +36,31 @@ sudo apt-get --yes --force-yes install gazebo7 gazebo7-plugin-base gazebo7-commo
 sudo apt-get --yes --force-yes install ros-indigo-gazebo7-ros-*
 ```
 
+## ROS Kinetic
+
+### Fresh installation
+
+If you have not install ROS yet:
+
+```
+cd [directory where this file locates]
+
+./install_ros_kinetic.sh
+```
+
+Enter your password and wait...
+
+Further, if you want to setup your workspace, run:
+
+`./setup_workspace.sh`
+
+this will create a folder called **ros_ws** under your home folder, and it will becomes your ROS workspace.
+
 ## Run ARIAC
 
-### Requirements
+### Clone repository
+
+**You can skip this step if you have already run setup_workspace.sh**
 
 Clone this repository in your catkin workspace under *src* folder and do
 
