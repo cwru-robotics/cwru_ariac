@@ -28,13 +28,15 @@ this will create a folder called **ros_ws** under your home folder, and it will 
 
 ### Already installed ROS Indigo
 
-You have to uninstall gazebo2 first and then install gazebo7:
+You have to uninstall gazebo2 and install gazebo7, run:
 
 ```
-sudo apt-get --yes --force-yes remove gazebo2 ros-indigo-gazebo-*
-sudo apt-get --yes --force-yes install gazebo7 gazebo7-plugin-base gazebo7-common libgazebo7
-sudo apt-get --yes --force-yes install ros-indigo-gazebo7-ros-*
+cd [directory where this file locates]
+
+./switch_to_ariac.sh
 ```
+
+Notice: you will get compile error if you have baxter code inside your workspace
 
 ## ROS Kinetic
 
