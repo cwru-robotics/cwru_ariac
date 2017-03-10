@@ -35,15 +35,15 @@ void Cheater::populationStateCallback(const osrf_gear::PopulationState::ConstPtr
     populationState = *populationStateMsg;
     populationCalled = true;
 }
-bool Cheater::setConveyorVelocity(double velocity) {
+bool Cheater::setConveyorPower(double percentage) {
     osrf_gear::ConveyorBeltControl service;
-    service.request.state.velocity = velocity;
+    service.request.state.power = percentage;
     if (conveyorControl.call(service))
         return service.response.success;
     return false;
 }
-double Cheater::getConveyorVelocity() {
-    return conveyorBeltState.velocity;
+double Cheater::getConveyorPower() {
+    return conveyorBeltState.power;
 }
 bool Cheater::pausePopulation() {
     osrf_gear::PopulationControl service;
