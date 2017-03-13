@@ -1,0 +1,13 @@
+# ROS stuff:
+source /opt/ros/kinetic/setup.bash
+export ROS_WORKSPACE=$HOME'/ros_ws'
+source $ROS_WORKSPACE/devel/setup.sh
+export ROS_WORKSPACE=$HOME'/ros_ws'
+
+alias cs_create_pkg='~/ros_ws/src/learning_ros_external_packages/cs_create_pkg.py'
+
+#export ROS_IP="atlas1.case.edu"
+#export ROS_HOSTNAME="atlas1"
+alias baxter_master='source $ROS_WORKSPACE"/baxter.sh"'
+
+alias ckm='roscd && catkin_make'
