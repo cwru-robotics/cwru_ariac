@@ -59,6 +59,7 @@ private:
     Eigen::VectorXd q_des_7dof_,q_cruise_pose_,bin_cruise_jspace_pose_,bin_hover_jspace_pose_;
     Eigen::VectorXd agv_hover_pose_,agv_cruise_pose_;
     Eigen::VectorXd pickup_jspace_pose_,dropoff_jspace_pose_;
+    Eigen::VectorXd approach_pickup_jspace_pose_,approach_dropoff_jspace_pose_;
     Eigen::VectorXd q_agv1_hover_pose_,q_agv1_cruise_pose_;  
     Eigen::VectorXd q_agv2_hover_pose_,q_agv2_cruise_pose_;      
     Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;    
@@ -101,8 +102,11 @@ private:
     bool get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln);
     //similarly for drop-off solution
     //bool get_dropoff_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln);
+    //compute q_vec_soln corresponding to approach to specified grasp pose; specify approach distance; choose IK soln that is closest
+    //to grasp IK soln
+    bool compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln);
     void grab();
-    void release();
+    void release();  
     RobotState calcRobotState();
     osrf_gear::VacuumGripperState getGripperState();
     bool attached_;
@@ -119,6 +123,7 @@ private:
     UR10FwdSolver fwd_solver_;
     UR10IkSolver ik_solver_;
     Eigen::Affine3d agv1_tray_frame_wrt_world_,agv2_tray_frame_wrt_world_;
+    double approach_dist_;
 public:
     RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic);
     void executeCB(const cwru_ariac::RobotMoveGoalConstPtr &goal);

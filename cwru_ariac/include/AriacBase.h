@@ -166,8 +166,10 @@ protected:
 
         agvBoundBox[0].Xmin = 0.0;
         agvBoundBox[0].Ymin = 2.7;
+        agvBoundBox[0].Zmin = 0.5;
         agvBoundBox[0].Xmax = 0.7;
         agvBoundBox[0].Ymax = 3.9;
+        agvBoundBox[0].Zmax = 0.9;
 
         conveyorBoundBox.Xmin = 0.9;
         conveyorBoundBox.Ymin = -4.8;

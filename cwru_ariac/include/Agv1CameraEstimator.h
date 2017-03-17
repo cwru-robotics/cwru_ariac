@@ -1,14 +1,15 @@
-//
+// created by wsn on 3/15/17, based on:
 // Created by shipei on 10/19/16.
-//
+// set up a second logical camera viewing agv1
+// topic is hard-coded as logical_camera_2
 
-#ifndef CWRU_ARIAC_CAMERAESTIMATOR_H
-#define CWRU_ARIAC_CAMERAESTIMATOR_H
+#ifndef CWRU_ARIAC_AGV1CAMERAESTIMATOR_H
+#define CWRU_ARIAC_AGV1CAMERAESTIMATOR_H
 
 #include <AriacBase.h>
 
 
-class CameraEstimator: public AriacBase {
+class Agv1CameraEstimator: public AriacBase {
 public:
     double distanceTolerance;
     double untraceableTolerance;
@@ -19,7 +20,7 @@ public:
     vector<PartList> onBin;
     string worldFrame;
     string cameraFrame;
-    CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
+    Agv1CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_2");
     //CameraEstimator *agv_camera_ptr;  //camera above AGV1 tray
     void waitForUpdate();
     int getMaxID() { return assignedID; }
@@ -38,4 +39,4 @@ private:
 };
 
 
-#endif //CWRU_ARIAC_CAMERAESTIMATOR_H
+#endif //CWRU_ARIAC_AGV1CAMERAESTIMATOR_H

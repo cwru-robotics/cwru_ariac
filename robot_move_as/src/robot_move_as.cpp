@@ -91,6 +91,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     //q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;
 
+    approach_dist_= 0.05; //arbitrarily set the approach offset value, e.g. 5cm
+
     tfListener_ = new tf::TransformListener;
     bool tferr=true;
 
@@ -334,18 +336,20 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
 
 }
 
+//assume drop-off poses specify the tray height;
+//therefore, need to add part thickness for gripper clearance
 double RobotMoveActionServer::get_dropoff_offset(Part part) {
     double offset;
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 0.016; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = 2.0*get_pickup_offset(part) + 0.005; //assumes frame is in middle of part, plus add clearance for drop
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 0.011; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = 2.0*get_pickup_offset(part) + 0.01; //assumes frame is in middle of part
         return offset;
     }
     ROS_WARN("part name not recognized");
@@ -497,7 +501,7 @@ bool RobotMoveActionServer::get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_
     //std::cout << "number of IK solutions: " << nsolns << std::endl;
     nsolns = fwd_solver_.prune_solns_by_jnt_limits(q6dof_solns);
     if (nsolns==0) {
-        ROS_WARN("NO viable IK solutions found for pick IK");
+        ROS_WARN("NO viable IK solutions found");
         return false; // NO SOLUTIONS
     }
     double q_rail = approx_jspace_pose[1];
@@ -513,6 +517,49 @@ bool RobotMoveActionServer::get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_
 
     return success;
 }
+
+//function to compute an approach pose: 
+//specify the Eigen::Affine3d of grasp pose (pickup or dropoff); specify the IK solution to be used for this grasp pose;
+//specify the approach vertical standoff distance (e.g. 5cm);
+//return (via reference variable) the IK solution for this approach
+//return false if no solution exists
+bool RobotMoveActionServer::compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln) {
+    bool success = true;
+    std::vector<Eigen::VectorXd> q6dof_solns;
+    Eigen::VectorXd q6dof_ref;
+    q6dof_ref = fwd_solver_.map726dof(approx_jspace_pose); //convert to 6dof
+    //compute the affine of the approach pose:
+    Eigen::Matrix3d R_grasp;  //approach pose should have identical orientation
+    R_grasp = affine_vacuum_gripper_pose_wrt_base_link.linear();
+    Eigen::Vector3d zvec,O_grasp,O_approach;
+    zvec = R_grasp.col(2); //approach pose should back off along pure z direction (typically, vertical)
+    O_grasp = affine_vacuum_gripper_pose_wrt_base_link.translation();
+    O_approach = O_grasp + approach_dist*zvec; //compute offset origin relative to grasp origin
+    Eigen::Affine3d approach_affine; //fill in components of approach affine
+    approach_affine = affine_vacuum_gripper_pose_wrt_base_link;
+    approach_affine.translation()= O_approach;
+    //compute IK solutions for approach:
+    
+    int nsolns = ik_solver_.ik_solve(approach_affine,q6dof_solns);
+    //std::cout << "number of IK solutions: " << nsolns << std::endl;
+    nsolns = fwd_solver_.prune_solns_by_jnt_limits(q6dof_solns);
+    if (nsolns==0) {
+        ROS_WARN("NO viable IK solutions found for approach IK");
+        return false; // NO SOLUTIONS
+    }
+    double q_rail = approx_jspace_pose[1];
+        //select the solution that is closest to the chosen grasp IK soln
+        Eigen::VectorXd q_fit;
+        q_fit = fwd_solver_.closest_soln(q6dof_ref,q6dof_solns);
+        cout<<"best fit soln for approach: "<<q_fit.transpose()<<endl;
+        //convert this back to a 7DOF vector, including rail pose
+        q_vec_soln = fwd_solver_.map627dof(q_rail, q_fit);
+        ROS_INFO("q7: [%4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f]",q_vec_soln[0],
+                q_vec_soln[1],q_vec_soln[2],q_vec_soln[3],q_vec_soln[4],q_vec_soln[5],q_vec_soln[6]);
+
+    return success;
+}
+
 
 /* not needed
 bool RobotMoveActionServer::get_dropoff_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln) {
@@ -550,7 +597,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("Time limit is %f", timeout);
             //anticipate failure, unless proven otherwise:
             result_.success = false;
-            result_.errorCode = RobotMoveResult::WRONG_PARAMETER;
+            result_.errorCode = RobotMoveResult::WRONG_PARAMETER;  //UNREACHABLE
             //goal->sourcePart
 
             //compute the necessary joint-space poses:
@@ -563,6 +610,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             if (!bin_hover_jspace_pose(goal->sourcePart.location, bin_hover_jspace_pose_)) {
                     ROS_WARN("bin_hover_jspace_pose() failed for source bin");
                     as.setAborted(result_);
+                    return;
             }
             ROS_INFO_STREAM("bin_hover: "<<bin_hover_jspace_pose_.transpose());
 
@@ -570,6 +618,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             if (!bin_cruise_jspace_pose(goal->sourcePart.location, goal->targetPart.location, bin_cruise_jspace_pose_)) {
                     ROS_WARN("bin_cruise_jspace_pose() failed");
                     as.setAborted(result_);
+                    return;
             }
             //cruise pose, adjacent to chosen agv:
             ROS_INFO_STREAM("bin_cruise_jspace_pose_: "<<bin_cruise_jspace_pose_.transpose());
@@ -577,6 +626,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             if (!agv_cruise_jspace_pose(goal->targetPart.location, agv_cruise_pose_)) {
                     ROS_WARN("agv_cruise_jspace_pose() failed");
                     as.setAborted(result_);
+                    return;
             }
             ROS_INFO_STREAM("agv_cruise_pose_: "<<agv_cruise_pose_.transpose());
 
@@ -590,17 +640,37 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             //if (!get_pickup_IK(cart_grasp_pose_wrt_base_link,approx_jspace_pose,&q_vec_soln);
               if(!get_pickup_IK(affine_vacuum_pickup_pose_wrt_base_link_,bin_hover_jspace_pose_,pickup_jspace_pose_)) {
                   ROS_WARN("could not compute IK soln for pickup pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
                     as.setAborted(result_);
+                    return;
               }
             ROS_INFO_STREAM("pickup_jspace_pose_: "<<pickup_jspace_pose_.transpose());
+            //compute approach_pickup_jspace_pose_
+            //compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln);
+            if(!compute_approach_IK(affine_vacuum_pickup_pose_wrt_base_link_,pickup_jspace_pose_,approach_dist_,approach_pickup_jspace_pose_)) {
+                  ROS_WARN("could not compute IK soln for pickup approach pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
+                    as.setAborted(result_);
+                    return;
+              }
 
             affine_vacuum_dropoff_pose_wrt_base_link_ = affine_vacuum_dropoff_pose_wrt_base_link(goal->targetPart, agv_hover_pose_[1]);
+            ROS_INFO("gripper pose for drop-off: ");
+            std::cout<<affine_vacuum_dropoff_pose_wrt_base_link_.translation().transpose()<<std::endl;
                if(!get_pickup_IK(affine_vacuum_dropoff_pose_wrt_base_link_,agv_hover_pose_,dropoff_jspace_pose_)) {
                   ROS_WARN("could not compute IK soln for drop-off pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
                     as.setAborted(result_);
+                    return;
               }
              ROS_INFO_STREAM("dropoff_jspace_pose_: "<<dropoff_jspace_pose_.transpose());
-
+             //compute offset for dropoff
+            if(!compute_approach_IK(affine_vacuum_dropoff_pose_wrt_base_link_,dropoff_jspace_pose_,approach_dist_,approach_dropoff_jspace_pose_)) {
+                  ROS_WARN("could not compute IK soln for dropoff approach pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
+                    as.setAborted(result_);
+                    return;
+              }
 
             //if all jspace solutions are valid, start the move sequence
 
@@ -615,6 +685,11 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
+            //now move to pickup approach pose:
+            ROS_INFO("moving to approach_pickup_jspace_pose_ ");
+            move_to_jspace_pose(approach_pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
+            //at this point, have already confired bin ID is good
+            ros::Duration(2.0).sleep(); //TUNE ME!!
 
             //now move to bin pickup pose:
             ROS_INFO("moving to pickup_jspace_pose_ ");
@@ -680,6 +755,11 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             //ROS_INFO("testing if part is still grasped");
             //do grasp test; abort if failed
            // ROS_INFO("I %s got the part", robotPlanner.waitForGripperAttach(2.0)? "still": "did not");
+
+            ROS_INFO("moving to approach_dropoff_jspace_pose_");
+            move_to_jspace_pose(approach_dropoff_jspace_pose_); //move to agv hover pose
+            ros::Duration(2.0).sleep(); //TUNE ME!! 
+            //could test for grasp...but skip this here            
 
             ROS_INFO("moving to dropoff_jspace_pose_");
             move_to_jspace_pose(dropoff_jspace_pose_); //move to agv hover pose
