@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     robotMove.disableAsync();
     vector <osrf_gear::KitObject> partialKit;
     osrf_gear::KitObject kitObject;
+    Part droppedPart;
     int nparts_partial, nparts_seen_on_AGV1;
     PartList onAGV1;
     ros::Subscriber agv1_sub = nh.subscribe("/ariac/agv1/state",1,agv1CB); //agv1 state subscriber
@@ -41,6 +42,7 @@ int main(int argc, char** argv) {
     while(!orderManager.startCompetition());
     ROS_INFO("Competition started");
     string agvName = orderManager.AGVs[0].name;
+    bool moveSuccess=false;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         camera.waitForUpdate();
         agv1Camera.waitForUpdate();
@@ -83,32 +85,58 @@ int main(int argc, char** argv) {
                         ROS_INFO_STREAM(best);
                         ROS_INFO("moving part to target:");
                         ROS_INFO_STREAM(target);
-
+                        moveSuccess=false;
                         if (robotMove.move(best, target)) {
+                           moveSuccess=true;
                             ROS_INFO("Successfully moved part to %s", agvName.c_str());
                            kitObject.type = object.type;
                            kitObject.pose = target.pose.pose;
                            partialKit.push_back(kitObject);
                            nparts_partial = partialKit.size();
                            ROS_INFO("partial kit has %d part(s): ",nparts_partial);
-                           for (int i=0;i<nparts_partial;i++) {
-                             ROS_INFO_STREAM(partialKit[i]);
+                           //for (int i=0;i<nparts_partial;i++) {
+                           //  ROS_INFO_STREAM(partialKit[i]);
+                           //}
                            }
-
+                         //if (!moveSuccess) {
                             camera.waitForUpdate();
                             agv1Camera.waitForUpdate();
                             onAGV1 =agv1Camera.onAGV[0];
                             nparts_seen_on_AGV1 = onAGV1.size();
                             ROS_INFO("AGV1 camera sees %d part(s) on AGV",nparts_seen_on_AGV1);
-                            for (int i=0;i<nparts_seen_on_AGV1;i++) {
-                             ROS_INFO_STREAM(onAGV1[i]);
+                            //for (int i=0;i<nparts_seen_on_AGV1;i++) {
+                            // ROS_INFO_STREAM(onAGV1[i]);
+                            //}
+                            ROS_INFO("expect %d parts placed on tray",nparts_partial);
+                            if (nparts_seen_on_AGV1>nparts_partial) {
+                              ROS_WARN("trying to identify dropped part on AGV1: ");
+                              if (agv1Camera.find_dropped_part(partialKit,onAGV1,droppedPart)) {
+
+                                ROS_INFO("identified dropped part; trying to move it");
+                                if (robotMove.move(droppedPart, target)) {
+                                  ROS_INFO("Successfully moved part to %s", agvName.c_str());
+                                  kitObject.type = object.type;
+                                  kitObject.pose = target.pose.pose;
+                                  partialKit.push_back(kitObject);
+                                  nparts_partial = partialKit.size();
+                                  ROS_INFO("partial kit has %d part(s): ",nparts_partial);   
+                                  moveSuccess=true;    
+                                }                    
+                                else {
+                                  ROS_WARN("could not identify dropped part on AGV1; should not happen!");
+                                                    return 0; //DEBUG
+                                }
+                              }
                             }
 
-
-                            break;
-                        }
+                            if (moveSuccess) break;  //TODO: check this logic
+                        //}
                         ROS_INFO("Failed to transfer the part, reason: %s", robotMove.getErrorCodeString().c_str());
+
                         switch (robotMove.getErrorCode()) {
+                            case RobotMoveResult::NO_ERROR:
+                               ROS_INFO("robot move returned NO_ERROR");
+                               break;
                             case RobotMoveResult::PART_DROPPED:
                                 //ROS_WARN("Continue with a new part? (hit enter)");
 				ROS_WARN("trying a new part...");

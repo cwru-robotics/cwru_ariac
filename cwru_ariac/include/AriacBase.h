@@ -156,8 +156,14 @@ protected:
     BoundBox binBoundBox[totalBins];
     BoundBox agvBoundBox[totalAGVs];
     BoundBox conveyorBoundBox;
+    double tray_tol_x,tray_tol_y,tray_tol_quat;
 
     AriacBase() {
+        // set tolerances of part placements on tray (per scoring)
+        tray_tol_x=0.03;  //TUNE THESE
+        tray_tol_y = 0.03;
+        tray_tol_quat = 0.05;
+
         defaultBin.name = "Bin";
         defaultBin.grid.x = 60;
         defaultBin.grid.y = 60;

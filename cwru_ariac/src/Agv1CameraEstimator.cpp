@@ -84,8 +84,8 @@ void Agv1CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::Co
         }
         nextPart.pose = outPose;
         if(updateCount == checkedCount) {
-          ROS_INFO("evaluating part:");
-          ROS_INFO_STREAM(nextPart);
+          //ROS_INFO("evaluating part:");
+          //ROS_INFO_STREAM(nextPart);
          }
         // find object by estimated distance;
         for (auto part:inView) {
@@ -152,19 +152,19 @@ void Agv1CameraEstimator::splitLocation() {
         }
         //part was not on conveyor, so test if it is on agv1
         if(updateCount == checkedCount) {
-          ROS_INFO("checking if part on agv:");
-          ROS_INFO_STREAM(part.pose.pose.position);
+          //ROS_INFO("checking if part on agv:");
+          //ROS_INFO_STREAM(part.pose.pose.position);
          }
         if (checkBound(part.pose.pose.position, agvBoundBox[0])) {
          if(updateCount == checkedCount) {
-          ROS_INFO("part is on AGV1:");
+          //ROS_INFO("part is on AGV1:");
          }                
                 part.location = Part::AGV1;
                 onAGV[0].push_back(part); //assign this part to AGV1
         }
         else {
          if(updateCount == checkedCount) {
-          ROS_INFO("part is not on AGV1:");
+          //ROS_INFO("part is not on AGV1:");
          }  
         }
     }
@@ -178,4 +178,96 @@ void Agv1CameraEstimator::waitForUpdate() {
         ros::Duration(0.05).sleep();
     }
     
+}
+
+//given a vector of expected parts/locattions on agv tray, 
+bool Agv1CameraEstimator::find_dropped_part(vector <osrf_gear::KitObject> partialKit, PartList onAGV1,Part &droppedPart) {
+ //try to find matches between parts viewed by camera on tray vs intended parts on tray
+ vector<int> camera_index_of_kit_index;
+ vector<int> kit_index_of_camera_index;
+ osrf_gear::KitObject kitPart;
+ int nparts_camera = onAGV1.size();
+ int nparts_kit = partialKit.size();
+ //build mappings from kit list to camera list, and vice versa; index value= -1 if no match
+ for (int i=0;i<nparts_kit;i++) {
+   camera_index_of_kit_index.push_back(-1);
+ }
+ for (int i=0;i<nparts_camera;i++) {
+   kit_index_of_camera_index.push_back(-1);
+ }
+ //walk through the kit parts list:
+ for (int i=0;i<nparts_kit;i++) {
+   kitPart = partialKit[i];
+   string kit_part_name(kitPart.type);
+   geometry_msgs::Pose kit_part_pose, camera_part_pose;
+   kit_part_pose = kitPart.pose;
+   Part camera_part;
+   for (int j=0;j<nparts_camera;j++) {
+
+    //logic: should have kit object not yet assigned;
+    //camera object not yet assigned
+    //kit and camera object names match
+    //kit and camera object coords are within tolerance of each other
+    if(camera_index_of_kit_index[i]== -1) {  //should halt the for:i loop
+     camera_part = onAGV1[j];
+     camera_part_pose = camera_part.pose.pose;
+     string camera_part_name(camera_part.name);
+
+     if (camera_part_name.compare(kit_part_name)==0) {
+      ROS_INFO("part names match; but check if camera object already assigned");
+      if (kit_index_of_camera_index[j]== -1) {
+        ROS_INFO("and this camera object is not yet paired");
+             if (match_poses_on_tray(camera_part_pose,kit_part_pose)) {
+               ROS_INFO("poses match within tolerance");
+               ROS_INFO("pairing kit object %d with camera object %d",i,j);
+               camera_index_of_kit_index[i] = j;
+               kit_index_of_camera_index[j] = i;
+              }
+              else {
+               ROS_INFO("part coords not within tolerance");
+              }
+       }
+     }
+     
+    }
+
+   }
+ }
+  //now find which element of camera list is "orphaned"
+  for (int j=0;j<nparts_camera;j++) {
+    if (kit_index_of_camera_index[j]== -1) {
+      ROS_INFO("element %d of camera part list is an orphan",j);
+      droppedPart = onAGV1[j];
+      return true; }
+   }
+ ROS_WARN("did not find orphaned part on camera list");
+ return false; //if found dropped part
+}
+
+bool Agv1CameraEstimator::match_poses_on_tray(geometry_msgs::Pose camera_part_pose,geometry_msgs::Pose kit_part_pose) {
+     //     tray_tol_x=0.01;  //TUNE THESE
+     //   tray_tol_y = 0.01;
+     //   tray_tol_quat = 0.05;
+  double x_cam_part = camera_part_pose.position.x;
+  double x_kit_part = kit_part_pose.position.x;
+  double y_cam_part = camera_part_pose.position.y;
+  double y_kit_part = kit_part_pose.position.y;
+  ROS_INFO("x_cam_part = %f; x_kit_part = %f",x_cam_part,x_kit_part);
+  double x_err = fabs(x_cam_part-x_kit_part);
+  ROS_INFO("x_err = %f",x_err);
+  if (x_err>tray_tol_x) { 
+     ROS_INFO("out of tolerance");
+     return false;
+  }
+  ROS_INFO("y_cam_part = %f; y_kit_part = %f",y_cam_part,y_kit_part);
+  double y_err = fabs(y_cam_part-y_kit_part);
+  ROS_INFO("y_err = %f",y_err);
+  if (y_err>tray_tol_y) {
+    ROS_INFO("out of tolerance");
+    return false;  
+  }
+  double quat_err;
+  //TODO: repeat test for quaternion error
+  ROS_INFO("poses match within tolerance");
+  return true;
 }
