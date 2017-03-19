@@ -343,13 +343,14 @@ double RobotMoveActionServer::get_dropoff_offset(Part part) {
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part) + 0.005; //assumes frame is in middle of part, plus add clearance for drop
+        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part, plus add clearance for drop
+        //drop did not work, so press down instead
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part) + 0.01; //assumes frame is in middle of part
+        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part
         return offset;
     }
     ROS_WARN("part name not recognized");
