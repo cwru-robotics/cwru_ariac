@@ -299,7 +299,7 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
         case Part::BIN8:
             qvec= q_bin8_hover_pose_;
             return true; //valid code
-            break;            
+            break;
         case Part::AGV1:
             qvec= q_agv1_hover_pose_;
             return true; //valid code
@@ -412,7 +412,7 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
     }
     // How long to take getting to the point (floating point seconds).
     msg.points[0].time_from_start = ros::Duration(2.0);
-    ROS_INFO_STREAM("populated traj msg:\n" << msg);
+    // ROS_INFO_STREAM("populated traj msg:\n" << msg);
     return msg;
 }
 
@@ -477,7 +477,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   Eigen::Affine3d affine_part_wrt_tray, affine_base_link_wrt_world;
   affine_base_link_wrt_world = affine_base_link(q_rail);
   //affine_part_wrt_tray = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_agv);
-  affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);  
+  affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);
   //affine_part_wrt_world = agv1_tray_frame_wrt_world_*affine_part_wrt_tray;
   affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
 
@@ -519,7 +519,7 @@ bool RobotMoveActionServer::get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_
     return success;
 }
 
-//function to compute an approach pose: 
+//function to compute an approach pose:
 //specify the Eigen::Affine3d of grasp pose (pickup or dropoff); specify the IK solution to be used for this grasp pose;
 //specify the approach vertical standoff distance (e.g. 5cm);
 //return (via reference variable) the IK solution for this approach
@@ -540,7 +540,7 @@ bool RobotMoveActionServer::compute_approach_IK(Eigen::Affine3d affine_vacuum_gr
     approach_affine = affine_vacuum_gripper_pose_wrt_base_link;
     approach_affine.translation()= O_approach;
     //compute IK solutions for approach:
-    
+
     int nsolns = ik_solver_.ik_solve(approach_affine,q6dof_solns);
     //std::cout << "number of IK solutions: " << nsolns << std::endl;
     nsolns = fwd_solver_.prune_solns_by_jnt_limits(q6dof_solns);
@@ -704,7 +704,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                ROS_INFO("waiting for gripper attachment");
             }
             ROS_INFO("part is attached to gripper");
-            
+
             // ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
             //enable gripper
@@ -720,7 +720,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
             ROS_INFO("testing if part is still grasped");
-            
+
             if (!robotPlanner.isGripperAttached()) {
                 result_.success = false;
                 result_.errorCode = RobotMoveResult::PART_DROPPED;
@@ -728,7 +728,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            }            
+            }
             //do grasp test; abort if failed
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
@@ -740,7 +740,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("moving to agv_hover_pose_");
             move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
             ros::Duration(2.0).sleep(); //TUNE ME!!
-            
+
             if (!robotPlanner.isGripperAttached()) {
                 ROS_INFO("moving to agv_cruise_pose_");
                 move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
@@ -751,16 +751,16 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            } 
-            
+            }
+
             //ROS_INFO("testing if part is still grasped");
             //do grasp test; abort if failed
            // ROS_INFO("I %s got the part", robotPlanner.waitForGripperAttach(2.0)? "still": "did not");
 
             ROS_INFO("moving to approach_dropoff_jspace_pose_");
             move_to_jspace_pose(approach_dropoff_jspace_pose_); //move to agv hover pose
-            ros::Duration(2.0).sleep(); //TUNE ME!! 
-            //could test for grasp...but skip this here            
+            ros::Duration(2.0).sleep(); //TUNE ME!!
+            //could test for grasp...but skip this here
 
             ROS_INFO("moving to dropoff_jspace_pose_");
             move_to_jspace_pose(dropoff_jspace_pose_); //move to agv hover pose
@@ -779,9 +779,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            } 
-            
-            
+            }
+
+
             //do grasp test; if failed, return to agv_cruise pose and abort
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
@@ -789,11 +789,11 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("releasing gripper");
             //release gripper
             release();
-             while(robotPlanner.isGripperAttached()) { 
+             while(robotPlanner.isGripperAttached()) {
                  ros::Duration(0.5).sleep();
                ROS_INFO("waiting for gripper release");
-            }           
-            
+            }
+
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s dropped the part", robotPlanner.isGripperAttached()? "did not": "successfully");
 

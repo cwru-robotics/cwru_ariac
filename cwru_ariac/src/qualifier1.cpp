@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
                     PartList candidates = findPart(all_bins, object.type);
                     ROS_INFO("Found %d parts from bins", (int)candidates.size());
                     while (!candidates.empty()) {
-                        Part best =  globalPlanner.getClosestPart(candidates);
+                        Part best = globalPlanner.getEuclideanBestPart(candidates);
                         Part target = orderManager.toAGVPart(agvName, object);
                         candidates.erase(findPart(candidates, best.id));
                         ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());

@@ -11,6 +11,8 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
             "/ariac/current_score", 10, &OrderManager::scoreCallback, this);
     competitionStateSubscriber = nh_.subscribe(
             "/ariac/competition_state", 10, &OrderManager::competitionStateCallback, this);
+    AGV1StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV1StateCallback, this);
+    AGV2StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV2StateCallback, this);
     AGV1Client =
             nh_.serviceClient<osrf_gear::AGVControl>("/ariac/agv1");
     AGV2Client =
@@ -41,13 +43,18 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     worldFrame = "/world";
 //    AGV1Frame = "/agv1_load_point_frame";
     AGV1Frame = "/kit_tray_1_frame";
+    ready_to_deliver_string = "ready_to_deliver";
+    delivering_string = "delivering";
+    returning_string = "returning";
+    g_agv1_state_string = "init";
+    assignedID = 10000;
 }
 
-void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &order_msg) {
-    if (orderFinder.find(order_msg->order_id) == orderFinder.end()) {
-        orderFinder.insert(pair<string, osrf_gear::Order>(order_msg->order_id, *order_msg));
-        orders.push_back(*order_msg);
-        ROS_INFO_STREAM("Received order:\n" << *order_msg);
+void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
+    if (orderFinder.find(orderMsg->order_id) == orderFinder.end()) {
+        orderFinder.insert(pair<string, osrf_gear::Order>(orderMsg->order_id, *orderMsg));
+        orders.push_back(*orderMsg);
+        ROS_INFO_STREAM("Received order:\n" << *orderMsg);
     }
 }
 
@@ -65,6 +72,30 @@ void OrderManager::competitionStateCallback(const std_msgs::String::ConstPtr &ms
         ROS_INFO("Competition ended.");
     }
     competitionState = msg->data;
+}
+
+void OrderManager::AGV1StateCallback(const std_msgs::String &state) {
+    if (state.data == "init") {
+        AGVs[0].state = AGV::INIT;
+    } else if (state.data == "ready_to_deliver") {
+        AGVs[0].state = AGV::READY;
+    } else if (state.data == "delivering") {
+        AGVs[0].state = AGV::DELIVERING;
+    } else if (state.data == "returning") {
+        AGVs[0].state = AGV::RETURNING;
+    }
+}
+
+void OrderManager::AGV2StateCallback(const std_msgs::String &state) {
+    if (state.data == "init") {
+        AGVs[1].state = AGV::INIT;
+    } else if (state.data == "ready_to_deliver") {
+        AGVs[1].state = AGV::READY;
+    } else if (state.data == "delivering") {
+        AGVs[1].state = AGV::DELIVERING;
+    } else if (state.data == "returning") {
+        AGVs[1].state = AGV::RETURNING;
+    }
 }
 
 bool OrderManager::startCompetition() {
@@ -139,6 +170,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     part.pose = outPose;
     part.traceable = false;
     part.name = object.type;
+    part.id = assignedID++;
     return part;
 }
 double OrderManager::scoreFunction(double TC, double TT) {

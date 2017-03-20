@@ -7,5 +7,7 @@ cwru_ariac/BoundBox bound
 int8 state
 float64 priority
 
-int8 READY = 0
-int8 LEFT = 20
+int8 INIT = 0
+int8 READY = 1
+int8 DELIVERING = 2
+int8 RETURNING = 3

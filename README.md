@@ -14,6 +14,14 @@ OR, for qual1b:
 
 ``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual1.yaml``
 
+OR, qual2a:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual2.yaml``
+
+OR, for qual2b:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual2.yaml``
+
 Then run:
 
 `rosrun robot_move_as robot_move_as`
@@ -40,4 +48,3 @@ for qual2a:
 `rosrun robot_move_as robot_move_as`
 
 `rosrun cwru_ariac qualifier2`
-

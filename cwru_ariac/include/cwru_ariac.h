@@ -7,7 +7,6 @@
 
 #include <BinManager.h>
 #include <CameraEstimator.h>
-#include <Agv1CameraEstimator.h>
 #include <Cheater.h>
 #include <GlobalPlanner.h>
 #include <OrderManager.h>
