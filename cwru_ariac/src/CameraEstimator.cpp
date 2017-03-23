@@ -175,7 +175,7 @@ void CameraEstimator::waitForUpdate() {
     while (updateCount == checkedCount && ros::ok()){
         //ROS_INFO("Waiting for camera callback...");
         ros::spinOnce();
-        ros::Duration(0.05).sleep();
+        ros::Duration(0.02).sleep();
     }
     checkedCount = updateCount;
 }

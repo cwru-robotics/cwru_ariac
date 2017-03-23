@@ -146,20 +146,29 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
         tferr = false;
         try {
             inPose.header.stamp = ros::Time(0);
-//            inPose.header.stamp = ros::Time::now();
             tf_listener.transformPose(worldFrame, inPose, outPose);
-            if (checkBound(outPose.pose.position, agvBoundBox[0])) {
-               ROS_INFO("target pose passes agv-bound test:");
+            if (agvName == AGVs[0].name) {
+                if (checkBound(outPose.pose.position, AGVs[0].bound)) {
+                    ROS_INFO("target pose passes agv-bound test:");
+                } else {
+                    ROS_WARN("got xform, but target pose fails agv-bound test");
+                    tferr = true;
+                    ros::Duration(0.2).sleep();
+                    ros::spinOnce();
+                }
             }
-            else {
-             ROS_WARN("got xform, but target pose fails agv-bound test");
-             tferr=true;
-             ros::Duration(0.05).sleep();
-             ros::spinOnce();
+            else if(agvName == AGVs[1].name) {
+                if (checkBound(outPose.pose.position, AGVs[1].bound)) {
+                    ROS_INFO("target pose passes agv-bound test:");
+                } else {
+                    ROS_WARN("got xform, but target pose fails agv-bound test");
+                    tferr = true;
+                    ros::Duration(0.2).sleep();
+                    ros::spinOnce();
+                }
             }
          }        
          catch (tf::TransformException &exception) {
-//            return;
 //            ROS_WARN("%s", exception.what());
             tferr = true;
             ros::Duration(0.05).sleep();
