@@ -16,11 +16,11 @@ OR, for qual1b:
 
 OR, qual2a:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/qual2.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual2a.yaml `rospack find cwru_ariac`/config/qual2.yaml``
 
 OR, for qual2b:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1b.yaml `rospack find cwru_ariac`/config/qual2.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual2b.yaml `rospack find cwru_ariac`/config/qual2.yaml``
 
 Then run:
 

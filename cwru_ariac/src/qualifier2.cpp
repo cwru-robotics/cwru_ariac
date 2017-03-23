@@ -75,9 +75,11 @@ int main(int argc, char** argv) {
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
-                    ROS_WARN("waiting on AGV1");
+                    ROS_WARN_ONCE("waiting on AGV%d", useAGV);
                     agv1Camera.waitForUpdate();
+                    ros::Duration(0.05).sleep();
                 }
+                ROS_INFO("AGV%d is Ready", useAGV);
                 for (auto object : kit.objects) {
                     ROS_INFO("Working on object type: %s", object.type.c_str());
                     bool succeed = false;
@@ -202,6 +204,7 @@ int main(int argc, char** argv) {
                                         if (robotMove.move(redundantParts, target)) {
                                             completedObjects.push_back(target);
                                             succeed = true;
+                                            break;
                                         }
                                         ROS_INFO("move part failed, add redundant parts to future list");
                                         extraParts.push_back(redundantParts);
