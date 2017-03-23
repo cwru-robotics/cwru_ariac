@@ -322,17 +322,42 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 0.016;
+        offset = GEAR_PART_THICKNESS+0.007; //0.007 seems perfect, within 1mm, for bin; but had to add addl 4mm for pickup from tray
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 0.011; //??
+        offset = PISTON_ROD_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
         return offset;
     }
     ROS_WARN("part name not recognized");
     return 0.0; // don't recognize part, so just return zero
+
+}
+
+double RobotMoveActionServer::get_surface_height(Part part) {
+  switch(part.location) {
+   case Part::AGV1:
+     return TRAY1_HEIGHT;
+     break;
+   case Part::BIN1:
+   case Part::BIN2:
+   case Part::BIN3:
+   case Part::BIN4:
+   case Part::BIN5:
+   case Part::BIN6:
+   case Part::BIN7:
+   case Part::BIN8:
+     return BIN_HEIGHT;
+     break;
+   case Part::CONVEYOR:
+     return CONVEYOR_HEIGHT;
+     break;
+   default:
+     ROS_WARN("surface code not recognized");
+     return 0;
+ }
 
 }
 
@@ -343,14 +368,15 @@ double RobotMoveActionServer::get_dropoff_offset(Part part) {
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part, plus add clearance for drop
-        //drop did not work, so press down instead
+        offset = get_pickup_offset(part)+0.006; //assumes frame is at bottom of part, plus add clearance for drop
+        //0.01 cm was virtually perfect
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = get_pickup_offset(part)+0.006; //assumes frame is at bottom of part; try 1cm offset; 7mm was not enough
+                                               // 1cm correction looks very good--very small drop
         return offset;
     }
     ROS_WARN("part name not recognized");
@@ -455,7 +481,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_pickup_pose_wrt_base_link(P
   //add this to the z component of the gripper pose:
   Eigen::Vector3d Oe;
   Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  Oe[2]+=pickup_offset;
+  Oe[2]=get_surface_height(part)+pickup_offset-BASE_LINK_HEIGHT;
   affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
@@ -486,7 +512,8 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   //add this to the z component of the gripper pose:
   Eigen::Vector3d Oe;
   Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  Oe[2]+=dropoff_offset;
+  //Oe[2]+=dropoff_offset;
+  Oe[2]=get_surface_height(part)+dropoff_offset-BASE_LINK_HEIGHT;
   affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
@@ -927,7 +954,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             as.publishFeedback(feedback_);
             ros::Duration(0.5).sleep();
             if (int((((double)rand())/RAND_MAX) * 6) == 1) {
-                ROS_INFO("I drop the part");
+                ROS_INFO("I dropped the part");
                 result_.success = false;
                 result_.errorCode = RobotMoveResult::PART_DROPPED;
                 result_.robotState = robotState;

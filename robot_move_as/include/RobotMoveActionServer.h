@@ -39,6 +39,14 @@ using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
 
+const double PISTON_ROD_PART_THICKNESS=0.0074;
+const double GEAR_PART_THICKNESS = 0.0127;
+
+const double TRAY1_HEIGHT = 0.755+0.005; //pad tray height as manual fix...gravity droop problem?
+const double BIN_HEIGHT = 0.725;
+const double CONVEYOR_HEIGHT = 0.907;
+const double BASE_LINK_HEIGHT = 1.0;
+
 class RobotMoveActionServer {
 private:
     ros::NodeHandle nh;
@@ -93,6 +101,7 @@ private:
 
     double get_pickup_offset(Part part); //fnc to return offset values for gripper: part top relative to part frame
     double get_dropoff_offset(Part part);
+    double get_surface_height(Part part);
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
     //an Affine3 w/rt base_link frame
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link(Part part, double q_rail);
