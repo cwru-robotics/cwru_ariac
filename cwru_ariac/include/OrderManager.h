@@ -52,11 +52,14 @@ private:
     string worldFrame;
     string AGV1Frame;
     tf::TransformListener tf_listener;
+    tf::Transform tfWorldToTray1_;
+    tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;
     string ready_to_deliver_string;
     string delivering_string;
     string returning_string;
     string g_agv1_state_string;
     int assignedID;
+    XformUtils xform_utils_; //instantiate an object of XformUtils
 };
 
 

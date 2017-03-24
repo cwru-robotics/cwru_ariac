@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
     ros::AsyncSpinner spinner(4);
     spinner.start();
     robotMove.disableAsync();
+    robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE);
     ROS_INFO("Trying to start the competition");
     while(!orderManager.startCompetition()) ;
     ROS_INFO("Competition started");
@@ -141,11 +142,11 @@ int main(int argc, char** argv) {
                                     ROS_INFO_STREAM(currentTarget.first);
                                     ROS_INFO("to");
                                     ROS_INFO_STREAM(currentTarget.second);
-//                                    if (robotMove.move(currentTarget.first, currentTarget.second)) {
-//                                        ROS_INFO("move part succeed");
-//                                    } else {
-//                                        ROS_INFO("move part failed");
-//                                    }
+                                    if (robotMove.move(currentTarget.first, currentTarget.second)) {
+                                        ROS_INFO("move part succeed");
+                                    } else {
+                                        ROS_INFO("move part failed");
+                                    }
                                 }
                                 for (auto lostPart: lost) {
                                     ROS_INFO("add lost parts to future list");
@@ -199,16 +200,19 @@ int main(int argc, char** argv) {
                                     }
                                     for (auto redundantParts: redundant) {
                                         ROS_INFO("try to pick the dropped part");
+                                        ROS_INFO("numb redundant parts = %d",(int) redundant.size());
                                         if (robotMove.move(redundantParts, target)) {
                                             completedObjects.push_back(target);
                                             succeed = true;
                                         }
-                                        ROS_INFO("move part failed, add redundant parts to future list");
-                                        extraParts.push_back(redundantParts);
-                                        continue;
+                                        if (!succeed) {
+                                          ROS_INFO("move part failed, add redundant parts to future list");
+                                          extraParts.push_back(redundantParts);
+                                          continue;
+                                        }
                                     }
                                 } else {
-                                    ROS_INFO("failed to found target part");
+                                    ROS_INFO("failed to find target part");
                                 }
                                 break;
                             }

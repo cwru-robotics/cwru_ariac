@@ -615,7 +615,8 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
             ROS_INFO("MOVE");
-            ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
+            ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), 
+               placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
             ROS_INFO("goal source: ");
             ROS_INFO_STREAM(goal->sourcePart);
             //ROS_INFO_STREAM(goal->sourcePart.pose);
@@ -708,10 +709,10 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
             //now move to bin hover pose:
 
-            ROS_INFO("moving to bin_hover_jspace_pose_ ");
-            move_to_jspace_pose(bin_hover_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
+            //ROS_INFO("moving to bin_hover_jspace_pose_ ");
+            //move_to_jspace_pose(bin_hover_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
-            ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
 
             //now move to pickup approach pose:
             ROS_INFO("moving to approach_pickup_jspace_pose_ ");
@@ -764,9 +765,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
              ros::Duration(2.0).sleep(); //TUNE ME!!
 
-            ROS_INFO("moving to agv_hover_pose_");
-            move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
-            ros::Duration(2.0).sleep(); //TUNE ME!!
+            //ROS_INFO("moving to agv_hover_pose_");
+            //move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
 
             if (!robotPlanner.isGripperAttached()) {
                 ROS_INFO("moving to agv_cruise_pose_");
@@ -914,7 +915,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             }
             break;
         case RobotMoveGoal::TO_PREDEFINED_POSE:
-            ROS_INFO("moving to AGV1 hover pose");
+            //ROS_INFO("moving to AGV1 hover pose");
             result_.success = true;
             switch(goal->predfinedPoseCode){
                 //various cases for pre-defined poses go here:
@@ -924,6 +925,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 case RobotMoveGoal::BIN8_CRUISE_POSE:
                     traj_ = jspace_pose_to_traj(q_bin8_cruise_pose_);
                     break;
+                case RobotMoveGoal::BIN6_HOVER_POSE:
+                   ROS_INFO("moving to bin6 hover poser ");
+                   move_to_jspace_pose(q_bin6_hover_pose_); 
                 default:
                     ROS_WARN("predefined move code not implemented!");
                     result_.success = false;

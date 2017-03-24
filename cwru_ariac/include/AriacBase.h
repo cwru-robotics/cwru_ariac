@@ -54,6 +54,8 @@
 #include <cwru_ariac/RobotMoveAction.h>
 #include <cwru_ariac/OracleQuery.h>
 
+#include <ariac_xform_utils/ariac_xform_utils.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;

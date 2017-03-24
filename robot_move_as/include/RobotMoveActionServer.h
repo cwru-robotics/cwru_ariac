@@ -28,7 +28,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <tf/transform_listener.h>
-#include <xform_utils/xform_utils.h>
+#include <ariac_xform_utils/ariac_xform_utils.h>
 #include <ariac_ur_fk_ik/ur_kin.h>
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
