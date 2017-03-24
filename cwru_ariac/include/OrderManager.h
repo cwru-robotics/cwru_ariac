@@ -27,6 +27,9 @@ public:
         ros::spinOnce();
         return score;
     }
+    bool isAGVReady(int agvNumber) {
+        return AGVs[agvNumber].state == AGV::READY;
+    }
     double scoreFunction(double TC, double TT);
 
 private:
@@ -35,6 +38,8 @@ private:
     ros::Subscriber orderSubscriber;
     ros::Subscriber scoreSubscriber;
     ros::Subscriber competitionStateSubscriber;
+    ros::Subscriber AGV1StateSubscriber;
+    ros::Subscriber AGV2StateSubscriber;
     ros::ServiceClient AGV1Client;
     ros::ServiceClient AGV2Client;
     string competitionState;
@@ -42,9 +47,19 @@ private:
     void orderCallback(const osrf_gear::Order::ConstPtr &order_msg);
     void scoreCallback(const std_msgs::Float32::ConstPtr &msg);
     void competitionStateCallback(const std_msgs::String::ConstPtr &msg);
+    void AGV1StateCallback(const std_msgs::String &state);
+    void AGV2StateCallback(const std_msgs::String &state);
     string worldFrame;
     string AGV1Frame;
     tf::TransformListener tf_listener;
+    tf::Transform tfWorldToTray1_;
+    tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;
+    string ready_to_deliver_string;
+    string delivering_string;
+    string returning_string;
+    string g_agv1_state_string;
+    int assignedID;
+    XformUtils xform_utils_; //instantiate an object of XformUtils
 };
 
 

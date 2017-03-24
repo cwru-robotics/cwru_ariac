@@ -20,9 +20,11 @@ public:
     string worldFrame;
     string cameraFrame;
     CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
+    //CameraEstimator *agv_camera_ptr;  //camera above AGV1 tray
     void waitForUpdate();
     int getMaxID() { return assignedID; }
-
+//    bool find_dropped_part(vector <osrf_gear::KitObject> partialKit, PartList onAGV1,Part &droppedPart);
+//    bool match_poses_on_tray(geometry_msgs::Pose camera_part_pose,geometry_msgs::Pose kit_part_pose);
 private:
     ros::NodeHandle nh_;
     ros::Subscriber cameraSubscriber;

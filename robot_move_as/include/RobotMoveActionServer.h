@@ -28,7 +28,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <tf/transform_listener.h>
-#include <xform_utils/xform_utils.h>
+#include <ariac_xform_utils/ariac_xform_utils.h>
 #include <ariac_ur_fk_ik/ur_kin.h>
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
@@ -38,6 +38,18 @@
 using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
+
+const double PISTON_ROD_PART_THICKNESS=0.0074;
+const double GEAR_PART_THICKNESS = 0.0127;
+const double DISK_PART_THICKNESS = 0.0247;
+const double GASKET_PART_THICKNESS = 0.0336;
+
+//surface heights:
+const double TRAY1_HEIGHT = 0.755+0.005; //pad tray height as manual fix...gravity droop problem?
+const double BIN_HEIGHT = 0.725;
+const double CONVEYOR_HEIGHT = 0.907;
+const double BASE_LINK_HEIGHT = 1.0;
+
 
 class RobotMoveActionServer {
 private:
@@ -59,6 +71,7 @@ private:
     Eigen::VectorXd q_des_7dof_,q_cruise_pose_,bin_cruise_jspace_pose_,bin_hover_jspace_pose_;
     Eigen::VectorXd agv_hover_pose_,agv_cruise_pose_;
     Eigen::VectorXd pickup_jspace_pose_,dropoff_jspace_pose_;
+    Eigen::VectorXd approach_pickup_jspace_pose_,approach_dropoff_jspace_pose_;
     Eigen::VectorXd q_agv1_hover_pose_,q_agv1_cruise_pose_;  
     Eigen::VectorXd q_agv2_hover_pose_,q_agv2_cruise_pose_;      
     Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;    
@@ -92,6 +105,7 @@ private:
 
     double get_pickup_offset(Part part); //fnc to return offset values for gripper: part top relative to part frame
     double get_dropoff_offset(Part part);
+    double get_surface_height(Part part);
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
     //an Affine3 w/rt base_link frame
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link(Part part, double q_rail);
@@ -101,8 +115,11 @@ private:
     bool get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln);
     //similarly for drop-off solution
     //bool get_dropoff_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln);
+    //compute q_vec_soln corresponding to approach to specified grasp pose; specify approach distance; choose IK soln that is closest
+    //to grasp IK soln
+    bool compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln);
     void grab();
-    void release();
+    void release();  
     RobotState calcRobotState();
     osrf_gear::VacuumGripperState getGripperState();
     bool attached_;
@@ -119,6 +136,7 @@ private:
     UR10FwdSolver fwd_solver_;
     UR10IkSolver ik_solver_;
     Eigen::Affine3d agv1_tray_frame_wrt_world_,agv2_tray_frame_wrt_world_;
+    double approach_dist_;
 public:
     RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic);
     void executeCB(const cwru_ariac::RobotMoveGoalConstPtr &goal);

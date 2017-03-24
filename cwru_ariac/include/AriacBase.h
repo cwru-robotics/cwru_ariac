@@ -54,9 +54,12 @@
 #include <cwru_ariac/RobotMoveAction.h>
 #include <cwru_ariac/OracleQuery.h>
 
+#include <ariac_xform_utils/ariac_xform_utils.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
+using namespace osrf_gear;
 
 // overlaod hash function for Part to use unordered set
 namespace std {
@@ -79,9 +82,9 @@ namespace cwru_ariac {
         return (a.id == b.id) && (a.name == b.name);}
 }
 
-typedef unordered_set<Part> PartSet;  // int is id of the part, Part is part object, using map for fast search
-typedef vector<Part> PartList;
-typedef list<Part> PartLinkedList;
+typedef unordered_set<Part> PartSet;    // for faster searching
+typedef vector<Part> PartList;          // normal container
+typedef list<Part> PartLinkedList;      // for some applications
 
 static double _fakeDouble;   // declared for default parameter, please ignore
 static int _fakeInt;         // declared for default parameter, please ignore
@@ -113,7 +116,7 @@ template<typename T> inline PartList findPart(T& parts, string type) {
 
 template<typename T> inline typename T::iterator findBin(T& bins, int id) {
     string name = "Bin" + id;
-    return findBinByName(bins, name);
+    return findBin(bins, name);
 }
 template<typename T> inline typename T::iterator findBin(T& bins, string name) {
     return find_if(bins.begin(), bins.end(), [name](Bin bin){return bin.name == name;});
@@ -134,6 +137,36 @@ inline string locationToName(int32_t location) {
     return string("unassigned");
 }
 
+inline std::vector<double> quatToEuler(geometry_msgs::Quaternion orientation) {
+    std::vector<double> euler(3);
+    const double PI_OVER_2 = M_PI * 0.5;
+    const double EPSILON = 1e-10;
+
+    // quick conversion to Euler angles to give tilt to user
+    double sqw = orientation.w*orientation.w;
+    double sqx = orientation.x*orientation.x;
+    double sqy = orientation.y*orientation.y;
+    double sqz = orientation.z*orientation.z;
+
+    euler[1] = asin(2.0 * (orientation.w*orientation.y - orientation.x*orientation.z));
+    if (PI_OVER_2 - fabs(euler[1]) > EPSILON) {
+        euler[2] = atan2(2.0 * (orientation.x*orientation.y + orientation.w*orientation.z),
+                         sqx - sqy - sqz + sqw);
+        euler[0] = atan2(2.0 * (orientation.w*orientation.x + orientation.y*orientation.z),
+                         sqw - sqx - sqy + sqz);
+    } else {
+        // compute heading from local 'down' vector
+        euler[2] = atan2(2*orientation.y*orientation.z - 2*orientation.x*orientation.w,
+                         2*orientation.x*orientation.z + 2*orientation.y*orientation.w);
+        euler[0] = 0.0;
+
+        // If facing down, reverse yaw
+        if (euler[1] < 0)
+            euler[2] = M_PI - euler[2];
+    }
+    return euler;
+}
+
 inline double euclideanDistance(geometry_msgs::Point positionA, geometry_msgs::Point positionB) {
     return sqrt(pow(positionA.x - positionB.x, 2) + pow(positionA.y - positionB.y, 2) + pow(positionA.z - positionB.z, 2));
 }
@@ -146,6 +179,23 @@ inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
     bool y = (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax);
     bool z = (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
     return x & y & z;
+}
+
+inline double unifyAngle(double input) {
+    input = fmod(input, M_PI);
+    return (input > M_PI/2)? M_PI - input : input;
+}
+inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
+    // set tolerances of part placements on tray (per scoring)
+    vector<double> rotA = quatToEuler(A.orientation);
+    vector<double> rotB = quatToEuler(B.orientation);
+    bool x = fabs(A.position.x - B.position.x) < 0.05;  // 0.03 (old)
+    bool y = fabs(A.position.y - B.position.y) < 0.05;
+    bool z = fabs(A.position.z - B.position.z) < 0.05;
+    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
+    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
+    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.1;
+    return x & y & z & row & pitch & yaw;
 }
 
 // this class is used to storage some basic information of the competition and common algorithms.
@@ -166,8 +216,10 @@ protected:
 
         agvBoundBox[0].Xmin = 0.0;
         agvBoundBox[0].Ymin = 2.7;
+        agvBoundBox[0].Zmin = 0.5;
         agvBoundBox[0].Xmax = 0.7;
         agvBoundBox[0].Ymax = 3.9;
+        agvBoundBox[0].Zmax = 0.9;
 
         conveyorBoundBox.Xmin = 0.9;
         conveyorBoundBox.Ymin = -4.8;
@@ -236,6 +288,7 @@ public:
 
 #endif //CWRU_ARIAC_ARIACBASE_H
 
+// hidden unused stuffs
 //#include <moveit/move_group_interface/move_group.h>
 //#include <moveit/planning_scene_interface/planning_scene_interface.h>
 //#include <moveit_msgs/AttachedCollisionObject.h>

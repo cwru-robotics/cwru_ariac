@@ -11,6 +11,8 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
             "/ariac/current_score", 10, &OrderManager::scoreCallback, this);
     competitionStateSubscriber = nh_.subscribe(
             "/ariac/competition_state", 10, &OrderManager::competitionStateCallback, this);
+    AGV1StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV1StateCallback, this);
+    AGV2StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV2StateCallback, this);
     AGV1Client =
             nh_.serviceClient<osrf_gear::AGVControl>("/ariac/agv1");
     AGV2Client =
@@ -38,16 +40,41 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     AGVs.push_back(agv1);
     AGVs.push_back(agv2);
 
-    worldFrame = "/world";
+    worldFrame = "world";
 //    AGV1Frame = "/agv1_load_point_frame";
-    AGV1Frame = "/kit_tray_1_frame";
+    AGV1Frame = "kit_tray_1_frame";
+    ready_to_deliver_string = "ready_to_deliver";
+    delivering_string = "delivering";
+    returning_string = "returning";
+    g_agv1_state_string = "init";
+    assignedID = 10000;
+    //tfWorldToTray1_
+    //xformUtils_
+   bool tferr=true;
+   ROS_INFO("looking up tray1 transform...");
+   while (tferr && ros::ok()) {
+        tferr = false;
+        try {
+              tf_listener.lookupTransform(worldFrame, AGV1Frame, ros::Time(0), stfWorldToTray1_);
+            }     
+         catch (tf::TransformException &exception) {
+            tferr = true;
+            ROS_INFO("trying...");
+            ros::Duration(0.5).sleep();
+            ros::spinOnce();
+        }
+    }
+    ROS_INFO("Got transform");
+    xform_utils_.printStampedTf(stfWorldToTray1_);
+    tfWorldToTray1_ = xform_utils_.get_tf_from_stamped_tf(stfWorldToTray1_);
+    
 }
 
-void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &order_msg) {
-    if (orderFinder.find(order_msg->order_id) == orderFinder.end()) {
-        orderFinder.insert(pair<string, osrf_gear::Order>(order_msg->order_id, *order_msg));
-        orders.push_back(*order_msg);
-        ROS_INFO_STREAM("Received order:\n" << *order_msg);
+void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
+    if (orderFinder.find(orderMsg->order_id) == orderFinder.end()) {
+        orderFinder.insert(pair<string, osrf_gear::Order>(orderMsg->order_id, *orderMsg));
+        orders.push_back(*orderMsg);
+        ROS_INFO_STREAM("Received order:\n" << *orderMsg);
     }
 }
 
@@ -65,6 +92,30 @@ void OrderManager::competitionStateCallback(const std_msgs::String::ConstPtr &ms
         ROS_INFO("Competition ended.");
     }
     competitionState = msg->data;
+}
+
+void OrderManager::AGV1StateCallback(const std_msgs::String &state) {
+    if (state.data == "init") {
+        AGVs[0].state = AGV::INIT;
+    } else if (state.data == "ready_to_deliver") {
+        AGVs[0].state = AGV::READY;
+    } else if (state.data == "delivering") {
+        AGVs[0].state = AGV::DELIVERING;
+    } else if (state.data == "returning") {
+        AGVs[0].state = AGV::RETURNING;
+    }
+}
+
+void OrderManager::AGV2StateCallback(const std_msgs::String &state) {
+    if (state.data == "init") {
+        AGVs[1].state = AGV::INIT;
+    } else if (state.data == "ready_to_deliver") {
+        AGVs[1].state = AGV::READY;
+    } else if (state.data == "delivering") {
+        AGVs[1].state = AGV::DELIVERING;
+    } else if (state.data == "returning") {
+        AGVs[1].state = AGV::RETURNING;
+    }
 }
 
 bool OrderManager::startCompetition() {
@@ -97,7 +148,7 @@ bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
 Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     Part part;
     geometry_msgs::PoseStamped inPose;
-    geometry_msgs::PoseStamped outPose;
+    geometry_msgs::PoseStamped outPose,outPose2;
     bool tferr = true;
     inPose.pose = object.pose;
     if (agvName == AGVs[0].name) {
@@ -117,7 +168,31 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
             inPose.header.stamp = ros::Time(0);
 //            inPose.header.stamp = ros::Time::now();
             tf_listener.transformPose(worldFrame, inPose, outPose);
-        } catch (tf::TransformException &exception) {
+            ROS_INFO("computed outPose: ");
+            xform_utils_.printStampedPose(outPose);
+             stfTray1ToPart_ = xform_utils_.convert_poseStamped_to_stampedTransform(inPose,"part_frame");
+             xform_utils_.multiply_stamped_tfs(stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_);
+             outPose2 = xform_utils_.get_pose_from_stamped_tf(stfWorldToPart_);
+            ROS_INFO("alternative computation: ");
+            xform_utils_.printStampedPose(outPose2);
+            if (checkBound(outPose.pose.position, agvBoundBox[0])) {
+               ROS_INFO("target pose passes agv-bound test:");
+            }
+            else {
+             ROS_WARN("got xform, but target pose fails agv-bound test; using original xform");
+             //want to transform inPose (PoseStamped) to outPose (PoseStamped) using tfWorldToTray1_ (tf::Transform)
+             outPose = outPose2;
+             //tf::StampedTransform XformUtils::convert_poseStamped_to_stampedTransform(geometry_msgs::PoseStamped stPose, std::string child_frame_id) 
+
+
+              //xform_utils.multiply_stamped_tfs(stfWorldToTray1_,
+               // tf::StampedTransform B_stf, tf::StampedTransform &C_stf)
+             tferr=false;
+             ros::Duration(0.05).sleep();
+             ros::spinOnce();
+            }
+         }        
+         catch (tf::TransformException &exception) {
 //            return;
 //            ROS_WARN("%s", exception.what());
             tferr = true;
@@ -129,6 +204,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     part.pose = outPose;
     part.traceable = false;
     part.name = object.type;
+    part.id = assignedID++;
     return part;
 }
 double OrderManager::scoreFunction(double TC, double TT) {

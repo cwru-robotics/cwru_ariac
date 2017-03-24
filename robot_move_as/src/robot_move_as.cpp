@@ -91,6 +91,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     //q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;
 
+    approach_dist_= 0.05; //arbitrarily set the approach offset value, e.g. 5cm
+
     tfListener_ = new tf::TransformListener;
     bool tferr=true;
 
@@ -297,7 +299,7 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
         case Part::BIN8:
             qvec= q_bin8_hover_pose_;
             return true; //valid code
-            break;            
+            break;
         case Part::AGV1:
             qvec= q_agv1_hover_pose_;
             return true; //valid code
@@ -320,32 +322,78 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part")==0)
     {
-        offset = 0.016;
+        offset = GEAR_PART_THICKNESS+0.007; //0.007 seems perfect, within 1mm, for bin; but had to add addl 4mm for pickup from tray
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 0.011; //??
+        offset = PISTON_ROD_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
         return offset;
     }
+    //disk_part
+    if (part_name.compare("disk_part")==0)
+    {
+        offset = DISK_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        return offset;
+    }
+    //gasket_part
+    if (part_name.compare("gasket_part")==0)
+    {
+        offset = GASKET_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        return offset;
+    }
+
     ROS_WARN("part name not recognized");
     return 0.0; // don't recognize part, so just return zero
 
 }
 
+double RobotMoveActionServer::get_surface_height(Part part) {
+  switch(part.location) {
+   case Part::AGV1:
+     return TRAY1_HEIGHT;
+     break;
+   case Part::BIN1:
+   case Part::BIN2:
+   case Part::BIN3:
+   case Part::BIN4:
+   case Part::BIN5:
+   case Part::BIN6:
+   case Part::BIN7:
+   case Part::BIN8:
+     return BIN_HEIGHT;
+     break;
+   case Part::CONVEYOR:
+     return CONVEYOR_HEIGHT;
+     break;
+   default:
+     ROS_WARN("surface code not recognized");
+     return 0;
+ }
+
+}
+
+//assume drop-off poses specify the tray height;
+//therefore, need to add part thickness for gripper clearance
 double RobotMoveActionServer::get_dropoff_offset(Part part) {
     double offset;
     string part_name(part.name); //a C++ string
+    offset = get_pickup_offset(part)+0.006; //just pad w/ clearance to drop
+    return offset;
+
+    //obsolete below here
     if (part_name.compare("gear_part")==0)
     {
-        offset = 0.016; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = get_pickup_offset(part)+0.006; //assumes frame is at bottom of part, plus add clearance for drop
+        //0.01 cm was virtually perfect
         return offset;
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part")==0)
     {
-        offset = 0.011; //2.0*get_pickup_offset(part); //assumes frame is in middle of part
+        offset = get_pickup_offset(part)+0.006; //assumes frame is at bottom of part; try 1cm offset; 7mm was not enough
+                                               // 1cm correction looks very good--very small drop
         return offset;
     }
     ROS_WARN("part name not recognized");
@@ -407,7 +455,7 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
     }
     // How long to take getting to the point (floating point seconds).
     msg.points[0].time_from_start = ros::Duration(2.0);
-    ROS_INFO_STREAM("populated traj msg:\n" << msg);
+    // ROS_INFO_STREAM("populated traj msg:\n" << msg);
     return msg;
 }
 
@@ -450,7 +498,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_pickup_pose_wrt_base_link(P
   //add this to the z component of the gripper pose:
   Eigen::Vector3d Oe;
   Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  Oe[2]+=pickup_offset;
+  Oe[2]=get_surface_height(part)+pickup_offset-BASE_LINK_HEIGHT;
   affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
@@ -472,7 +520,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   Eigen::Affine3d affine_part_wrt_tray, affine_base_link_wrt_world;
   affine_base_link_wrt_world = affine_base_link(q_rail);
   //affine_part_wrt_tray = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_agv);
-  affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);  
+  affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);
   //affine_part_wrt_world = agv1_tray_frame_wrt_world_*affine_part_wrt_tray;
   affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
 
@@ -481,7 +529,8 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   //add this to the z component of the gripper pose:
   Eigen::Vector3d Oe;
   Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  Oe[2]+=dropoff_offset;
+  //Oe[2]+=dropoff_offset;
+  Oe[2]=get_surface_height(part)+dropoff_offset-BASE_LINK_HEIGHT;
   affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
@@ -497,7 +546,7 @@ bool RobotMoveActionServer::get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_
     //std::cout << "number of IK solutions: " << nsolns << std::endl;
     nsolns = fwd_solver_.prune_solns_by_jnt_limits(q6dof_solns);
     if (nsolns==0) {
-        ROS_WARN("NO viable IK solutions found for pick IK");
+        ROS_WARN("NO viable IK solutions found");
         return false; // NO SOLUTIONS
     }
     double q_rail = approx_jspace_pose[1];
@@ -513,6 +562,49 @@ bool RobotMoveActionServer::get_pickup_IK(Eigen::Affine3d affine_vacuum_gripper_
 
     return success;
 }
+
+//function to compute an approach pose:
+//specify the Eigen::Affine3d of grasp pose (pickup or dropoff); specify the IK solution to be used for this grasp pose;
+//specify the approach vertical standoff distance (e.g. 5cm);
+//return (via reference variable) the IK solution for this approach
+//return false if no solution exists
+bool RobotMoveActionServer::compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln) {
+    bool success = true;
+    std::vector<Eigen::VectorXd> q6dof_solns;
+    Eigen::VectorXd q6dof_ref;
+    q6dof_ref = fwd_solver_.map726dof(approx_jspace_pose); //convert to 6dof
+    //compute the affine of the approach pose:
+    Eigen::Matrix3d R_grasp;  //approach pose should have identical orientation
+    R_grasp = affine_vacuum_gripper_pose_wrt_base_link.linear();
+    Eigen::Vector3d zvec,O_grasp,O_approach;
+    zvec = R_grasp.col(2); //approach pose should back off along pure z direction (typically, vertical)
+    O_grasp = affine_vacuum_gripper_pose_wrt_base_link.translation();
+    O_approach = O_grasp + approach_dist*zvec; //compute offset origin relative to grasp origin
+    Eigen::Affine3d approach_affine; //fill in components of approach affine
+    approach_affine = affine_vacuum_gripper_pose_wrt_base_link;
+    approach_affine.translation()= O_approach;
+    //compute IK solutions for approach:
+
+    int nsolns = ik_solver_.ik_solve(approach_affine,q6dof_solns);
+    //std::cout << "number of IK solutions: " << nsolns << std::endl;
+    nsolns = fwd_solver_.prune_solns_by_jnt_limits(q6dof_solns);
+    if (nsolns==0) {
+        ROS_WARN("NO viable IK solutions found for approach IK");
+        return false; // NO SOLUTIONS
+    }
+    double q_rail = approx_jspace_pose[1];
+        //select the solution that is closest to the chosen grasp IK soln
+        Eigen::VectorXd q_fit;
+        q_fit = fwd_solver_.closest_soln(q6dof_ref,q6dof_solns);
+        cout<<"best fit soln for approach: "<<q_fit.transpose()<<endl;
+        //convert this back to a 7DOF vector, including rail pose
+        q_vec_soln = fwd_solver_.map627dof(q_rail, q_fit);
+        ROS_INFO("q7: [%4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f]",q_vec_soln[0],
+                q_vec_soln[1],q_vec_soln[2],q_vec_soln[3],q_vec_soln[4],q_vec_soln[5],q_vec_soln[6]);
+
+    return success;
+}
+
 
 /* not needed
 bool RobotMoveActionServer::get_dropoff_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,Eigen::VectorXd &q_vec_soln) {
@@ -540,7 +632,8 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
             ROS_INFO("MOVE");
-            ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
+            ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(), 
+               placeFinder[goal->sourcePart.location].c_str(), placeFinder[goal->targetPart.location].c_str());
             ROS_INFO("goal source: ");
             ROS_INFO_STREAM(goal->sourcePart);
             //ROS_INFO_STREAM(goal->sourcePart.pose);
@@ -550,7 +643,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("Time limit is %f", timeout);
             //anticipate failure, unless proven otherwise:
             result_.success = false;
-            result_.errorCode = RobotMoveResult::WRONG_PARAMETER;
+            result_.errorCode = RobotMoveResult::WRONG_PARAMETER;  //UNREACHABLE
             //goal->sourcePart
 
             //compute the necessary joint-space poses:
@@ -561,8 +654,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM("agv_hover: "<<agv_hover_pose_.transpose());
 
             if (!bin_hover_jspace_pose(goal->sourcePart.location, bin_hover_jspace_pose_)) {
-                    ROS_WARN("bin_hover_jspace_pose() failed for source bin");
+                    ROS_WARN("bin_hover_jspace_pose() failed for source bin %d", (int) goal->sourcePart.location);
                     as.setAborted(result_);
+                    return;
             }
             ROS_INFO_STREAM("bin_hover: "<<bin_hover_jspace_pose_.transpose());
 
@@ -570,6 +664,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             if (!bin_cruise_jspace_pose(goal->sourcePart.location, goal->targetPart.location, bin_cruise_jspace_pose_)) {
                     ROS_WARN("bin_cruise_jspace_pose() failed");
                     as.setAborted(result_);
+                    return;
             }
             //cruise pose, adjacent to chosen agv:
             ROS_INFO_STREAM("bin_cruise_jspace_pose_: "<<bin_cruise_jspace_pose_.transpose());
@@ -577,6 +672,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             if (!agv_cruise_jspace_pose(goal->targetPart.location, agv_cruise_pose_)) {
                     ROS_WARN("agv_cruise_jspace_pose() failed");
                     as.setAborted(result_);
+                    return;
             }
             ROS_INFO_STREAM("agv_cruise_pose_: "<<agv_cruise_pose_.transpose());
 
@@ -590,17 +686,37 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             //if (!get_pickup_IK(cart_grasp_pose_wrt_base_link,approx_jspace_pose,&q_vec_soln);
               if(!get_pickup_IK(affine_vacuum_pickup_pose_wrt_base_link_,bin_hover_jspace_pose_,pickup_jspace_pose_)) {
                   ROS_WARN("could not compute IK soln for pickup pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
                     as.setAborted(result_);
+                    return;
               }
             ROS_INFO_STREAM("pickup_jspace_pose_: "<<pickup_jspace_pose_.transpose());
+            //compute approach_pickup_jspace_pose_
+            //compute_approach_IK(Eigen::Affine3d affine_vacuum_gripper_pose_wrt_base_link,Eigen::VectorXd approx_jspace_pose,double approach_dist,Eigen::VectorXd &q_vec_soln);
+            if(!compute_approach_IK(affine_vacuum_pickup_pose_wrt_base_link_,pickup_jspace_pose_,approach_dist_,approach_pickup_jspace_pose_)) {
+                  ROS_WARN("could not compute IK soln for pickup approach pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
+                    as.setAborted(result_);
+                    return;
+              }
 
             affine_vacuum_dropoff_pose_wrt_base_link_ = affine_vacuum_dropoff_pose_wrt_base_link(goal->targetPart, agv_hover_pose_[1]);
+            ROS_INFO("gripper pose for drop-off: ");
+            std::cout<<affine_vacuum_dropoff_pose_wrt_base_link_.translation().transpose()<<std::endl;
                if(!get_pickup_IK(affine_vacuum_dropoff_pose_wrt_base_link_,agv_hover_pose_,dropoff_jspace_pose_)) {
                   ROS_WARN("could not compute IK soln for drop-off pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
                     as.setAborted(result_);
+                    return;
               }
              ROS_INFO_STREAM("dropoff_jspace_pose_: "<<dropoff_jspace_pose_.transpose());
-
+             //compute offset for dropoff
+            if(!compute_approach_IK(affine_vacuum_dropoff_pose_wrt_base_link_,dropoff_jspace_pose_,approach_dist_,approach_dropoff_jspace_pose_)) {
+                  ROS_WARN("could not compute IK soln for dropoff approach pose!");
+                  result_.errorCode = RobotMoveResult::UNREACHABLE;
+                    as.setAborted(result_);
+                    return;
+              }
 
             //if all jspace solutions are valid, start the move sequence
 
@@ -610,11 +726,16 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
             //now move to bin hover pose:
 
-            ROS_INFO("moving to bin_hover_jspace_pose_ ");
-            move_to_jspace_pose(bin_hover_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
+            //ROS_INFO("moving to bin_hover_jspace_pose_ ");
+            //move_to_jspace_pose(bin_hover_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
+            //at this point, have already confired bin ID is good
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
+
+            //now move to pickup approach pose:
+            ROS_INFO("moving to approach_pickup_jspace_pose_ ");
+            move_to_jspace_pose(approach_pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
-
 
             //now move to bin pickup pose:
             ROS_INFO("moving to pickup_jspace_pose_ ");
@@ -628,7 +749,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                ROS_INFO("waiting for gripper attachment");
             }
             ROS_INFO("part is attached to gripper");
-            
+
             // ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
             //enable gripper
@@ -644,7 +765,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
             ROS_INFO("testing if part is still grasped");
-            
+
             if (!robotPlanner.isGripperAttached()) {
                 result_.success = false;
                 result_.errorCode = RobotMoveResult::PART_DROPPED;
@@ -652,7 +773,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            }            
+            }
             //do grasp test; abort if failed
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
@@ -661,10 +782,10 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
              ros::Duration(2.0).sleep(); //TUNE ME!!
 
-            ROS_INFO("moving to agv_hover_pose_");
-            move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            
+            //ROS_INFO("moving to agv_hover_pose_");
+            //move_to_jspace_pose(agv_hover_pose_); //move to agv hover pose
+            //ros::Duration(2.0).sleep(); //TUNE ME!!
+
             if (!robotPlanner.isGripperAttached()) {
                 ROS_INFO("moving to agv_cruise_pose_");
                 move_to_jspace_pose(agv_cruise_pose_); //move to agv cruise pose
@@ -675,11 +796,16 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            } 
-            
+            }
+
             //ROS_INFO("testing if part is still grasped");
             //do grasp test; abort if failed
            // ROS_INFO("I %s got the part", robotPlanner.waitForGripperAttach(2.0)? "still": "did not");
+
+            ROS_INFO("moving to approach_dropoff_jspace_pose_");
+            move_to_jspace_pose(approach_dropoff_jspace_pose_); //move to agv hover pose
+            ros::Duration(2.0).sleep(); //TUNE ME!!
+            //could test for grasp...but skip this here
 
             ROS_INFO("moving to dropoff_jspace_pose_");
             move_to_jspace_pose(dropoff_jspace_pose_); //move to agv hover pose
@@ -698,9 +824,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 ROS_WARN("part dropped!");
                 as.setAborted(result_);
                 return;
-            } 
-            
-            
+            }
+
+
             //do grasp test; if failed, return to agv_cruise pose and abort
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotPlanner.isGripperAttached()? "still": "did not");
@@ -708,11 +834,11 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("releasing gripper");
             //release gripper
             release();
-             while(robotPlanner.isGripperAttached()) { 
+             while(robotPlanner.isGripperAttached()) {
                  ros::Duration(0.5).sleep();
                ROS_INFO("waiting for gripper release");
-            }           
-            
+            }
+
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s dropped the part", robotPlanner.isGripperAttached()? "did not": "successfully");
 
@@ -806,7 +932,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             }
             break;
         case RobotMoveGoal::TO_PREDEFINED_POSE:
-            ROS_INFO("moving to AGV1 hover pose");
+            //ROS_INFO("moving to AGV1 hover pose");
             result_.success = true;
             switch(goal->predfinedPoseCode){
                 //various cases for pre-defined poses go here:
@@ -816,6 +942,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 case RobotMoveGoal::BIN8_CRUISE_POSE:
                     traj_ = jspace_pose_to_traj(q_bin8_cruise_pose_);
                     break;
+                case RobotMoveGoal::BIN6_HOVER_POSE:
+                   ROS_INFO("moving to bin6 hover poser ");
+                   move_to_jspace_pose(q_bin6_hover_pose_); 
                 default:
                     ROS_WARN("predefined move code not implemented!");
                     result_.success = false;
@@ -846,7 +975,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             as.publishFeedback(feedback_);
             ros::Duration(0.5).sleep();
             if (int((((double)rand())/RAND_MAX) * 6) == 1) {
-                ROS_INFO("I drop the part");
+                ROS_INFO("I dropped the part");
                 result_.success = false;
                 result_.errorCode = RobotMoveResult::PART_DROPPED;
                 result_.robotState = robotState;
