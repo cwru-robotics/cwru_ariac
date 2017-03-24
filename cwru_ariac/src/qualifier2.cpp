@@ -76,9 +76,11 @@ int main(int argc, char** argv) {
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
-                    ROS_WARN("waiting on AGV1");
+                    ROS_WARN_ONCE("waiting on AGV%d", useAGV);
                     agv1Camera.waitForUpdate();
+                    ros::Duration(0.1).sleep();
                 }
+                ROS_INFO("AGV%d is Ready", useAGV);
                 for (auto object : kit.objects) {
                     ROS_INFO("Working on object type: %s", object.type.c_str());
                     bool succeed = false;
@@ -171,28 +173,15 @@ int main(int argc, char** argv) {
                                 break;
                             case RobotMoveResult::PART_DROPPED:
                             {
-                                // ROS_WARN("Continue with a new part? (hit enter)");
-                                // ROS_WARN("trying a new part...");
-                                ROS_INFO("Recheck part pose");
+                                ROS_INFO("Checking dropped part location");
                                 agv1Camera.waitForUpdate();
                                 binCamera.waitForUpdate();
                                 vector<pair<Part, Part>> wrong;
                                 PartList lost, redundant;
                                 if (findDroppedParts(agv1Camera.onAGV[0], completedObjects, wrong, lost, redundant)) {
-                                    ROS_INFO("Found parts not in correct pose");
-                                    for (auto currentTarget:wrong) {
-                                        ROS_INFO("try to adjust part from:");
-                                        ROS_INFO_STREAM(currentTarget.first);
-                                        ROS_INFO("to");
-                                        ROS_INFO_STREAM(currentTarget.second);
-//                                        if (robotMove.move(currentTarget.first, currentTarget.second)) {
-//                                            ROS_INFO("move part succeed");
-//                                        } else {
-//                                            ROS_INFO("move part failed");
-//                                        }
-                                    }
+                                    ROS_INFO("Found parts not in correct position");
                                     for (auto lostPart: lost) {
-                                        ROS_INFO("add lost parts to future list");
+                                        ROS_INFO("add lost parts to kit object list");
                                         osrf_gear::KitObject add_to_list;
                                         add_to_list.pose = lostPart.pose.pose;
                                         add_to_list.type = lostPart.name;
@@ -204,6 +193,7 @@ int main(int argc, char** argv) {
                                         if (robotMove.move(redundantParts, target)) {
                                             completedObjects.push_back(target);
                                             succeed = true;
+                                            break;
                                         }
                                         if (!succeed) {
                                           ROS_INFO("move part failed, add redundant parts to future list");

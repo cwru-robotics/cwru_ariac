@@ -82,9 +82,9 @@ namespace cwru_ariac {
         return (a.id == b.id) && (a.name == b.name);}
 }
 
-typedef unordered_set<Part> PartSet;  // int is id of the part, Part is part object, using map for fast search
-typedef vector<Part> PartList;
-typedef list<Part> PartLinkedList;
+typedef unordered_set<Part> PartSet;    // for faster searching
+typedef vector<Part> PartList;          // normal container
+typedef list<Part> PartLinkedList;      // for some applications
 
 static double _fakeDouble;   // declared for default parameter, please ignore
 static int _fakeInt;         // declared for default parameter, please ignore
