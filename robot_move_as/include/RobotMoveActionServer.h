@@ -41,11 +41,15 @@ using namespace cwru_ariac;
 
 const double PISTON_ROD_PART_THICKNESS=0.0074;
 const double GEAR_PART_THICKNESS = 0.0127;
+const double DISK_PART_THICKNESS = 0.0247;
+const double GASKET_PART_THICKNESS = 0.0336;
 
+//surface heights:
 const double TRAY1_HEIGHT = 0.755+0.005; //pad tray height as manual fix...gravity droop problem?
 const double BIN_HEIGHT = 0.725;
 const double CONVEYOR_HEIGHT = 0.907;
 const double BASE_LINK_HEIGHT = 1.0;
+
 
 class RobotMoveActionServer {
 private:

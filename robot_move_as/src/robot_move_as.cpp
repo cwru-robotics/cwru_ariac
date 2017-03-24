@@ -331,6 +331,19 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
         offset = PISTON_ROD_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
         return offset;
     }
+    //disk_part
+    if (part_name.compare("disk_part")==0)
+    {
+        offset = DISK_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        return offset;
+    }
+    //gasket_part
+    if (part_name.compare("gasket_part")==0)
+    {
+        offset = GASKET_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        return offset;
+    }
+
     ROS_WARN("part name not recognized");
     return 0.0; // don't recognize part, so just return zero
 
@@ -366,6 +379,10 @@ double RobotMoveActionServer::get_surface_height(Part part) {
 double RobotMoveActionServer::get_dropoff_offset(Part part) {
     double offset;
     string part_name(part.name); //a C++ string
+    offset = get_pickup_offset(part)+0.006; //just pad w/ clearance to drop
+    return offset;
+
+    //obsolete below here
     if (part_name.compare("gear_part")==0)
     {
         offset = get_pickup_offset(part)+0.006; //assumes frame is at bottom of part, plus add clearance for drop
@@ -637,7 +654,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM("agv_hover: "<<agv_hover_pose_.transpose());
 
             if (!bin_hover_jspace_pose(goal->sourcePart.location, bin_hover_jspace_pose_)) {
-                    ROS_WARN("bin_hover_jspace_pose() failed for source bin");
+                    ROS_WARN("bin_hover_jspace_pose() failed for source bin %d", (int) goal->sourcePart.location);
                     as.setAborted(result_);
                     return;
             }
