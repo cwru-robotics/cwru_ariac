@@ -15,6 +15,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     double vy = part.linear.y;
     double part_y_start = part.pose.pose.position.y;
     ROS_INFO("travel speed vy = %f",vy);
+    double dt_move;
     int npts=15; //arbitrary number of points in conveyor-tracking trajectory
     vector <double> q_rail_vals,arrival_times;
     double  q_rail_start= 2.0;  //FIX ME!  choose rail position from which to begin conveyor tracking of part
@@ -33,7 +34,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
        errorCode = RobotMoveResult::UNREACHABLE;
        return errorCode;
     }
-    if (part_dock_y> q_rail_start) {
+    if (part_dock_y< q_rail_start) {
       q_rail_start = part_dock_y;
     }
       ROS_INFO("will try to start tracking at y = %f",q_rail_start);    
@@ -175,23 +176,33 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("lifting part...");
     ros::Duration(lift_time).sleep();
 
-    //Eigen::VectorXd q_intermediate_pose;
-    //q_intermediate_pose = q_bin7_hover_pose_;
+    Eigen::VectorXd q_intermediate_pose;
+    q_intermediate_pose = q_conveyor_cruise_pose_; //q_conveyor_hover_pose_;//
     //q_intermediate_pose[3] = 1.57;  //go here first, to avoid wind-up of turret
-    //q_intermediate_pose[1] = cur_q_rail;
+
     //move_to_jspace_pose(q_intermediate_pose,1.0);
     //ros::Duration(1.0).sleep();
     robotState = calcRobotState();
     cur_q_rail = robotState.jointStates[1];
-    if (cur_q_rail<1) cur_q_rail = 1.0;  //if too close to agv1, robot will swing around and hit frame
+    double q_rail_safe_spin = 0.0;
+    //if (cur_q_rail<1) cur_q_rail = 1.0;  //if too close to agv1, robot will swing around and hit frame
     //q_conveyor_cruise_pose_ = q_agv1_hover_pose_;
-    q_conveyor_cruise_pose_[1] = cur_q_rail;
+    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position //cur_q_rail;
+    q_intermediate_pose[3] = approach_pickup_jspace_pose_[3]; //but keep same turret angle for now;
 
-           ROS_INFO("part has been placed at target location");
-    double cruise_pose_move_time=2.0;
+    q_conveyor_cruise_pose_[1] = q_rail_safe_spin; //cur_q_rail;
+    //q_conveyor_hover_pose_[1] = q_rail_start;
+
+    dt_move=2.0;
+    ROS_INFO("moving to conveyor intermediate pose at qrail=%f",q_rail_safe_spin);
+    cout<<"q_soln: "<<q_intermediate_pose.transpose()<<endl;
+    move_to_jspace_pose(q_intermediate_pose,dt_move);
+    ros::Duration(dt_move).sleep();
+
     ROS_INFO("moving to cruise pose at qrail = %f",q_conveyor_cruise_pose_[1]);
-    move_to_jspace_pose(q_conveyor_cruise_pose_,cruise_pose_move_time);
-    ros::Duration(cruise_pose_move_time).sleep();
+    cout<<"q_soln: "<<q_conveyor_cruise_pose_.transpose()<<endl;
+    move_to_jspace_pose(q_conveyor_cruise_pose_,dt_move);
+    ros::Duration(dt_move).sleep();
 
     ROS_INFO("testing if part is still grasped");
 
@@ -203,42 +214,48 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("part is still grasped");
     
 
-    ROS_INFO("moving to agv_cruise_pose_");           ROS_INFO("part has been placed at target location");
-    move_to_jspace_pose(agv_cruise_pose_,2.0); //move to agv cruise pose
-    ros::Duration(2.0).sleep(); //TUNE ME!!
+    ROS_INFO("moving to agv1_cruise_pose_");   
+    cout<<"q_soln: "<<q_agv1_cruise_pose_.transpose()<<endl;        
+    move_to_jspace_pose(q_agv1_cruise_pose_,dt_move); //move to agv cruise pose
+    ros::Duration(dt_move).sleep(); //TUNE ME!!
     if (!robotPlanner.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
             }
-            ROS_INFO("moving to approach_dropoff_jspace_pose_");
-            move_to_jspace_pose(approach_dropoff_jspace_pose_,2.0); //move to agv hover pose
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            //could test for grasp...but skip this here
+    ROS_INFO("moving to approach_dropoff_jspace_pose_");
+    move_to_jspace_pose(approach_dropoff_jspace_pose_,dt_move); //move to agv hover pose
+    ros::Duration(dt_move).sleep(); //TUNE ME!!
+    if (!robotPlanner.isGripperAttached()) {
+               errorCode = RobotMoveResult::PART_DROPPED;
+                ROS_WARN("part dropped!");
+                return errorCode;
+            }
 
-            ROS_INFO("moving to dropoff_jspace_pose_");
-            move_to_jspace_pose(dropoff_jspace_pose_,1.0); //move to agv hover pose
-            ros::Duration(1.0).sleep(); //TUNE ME!!
+    ROS_INFO("moving to dropoff_jspace_pose_");
+    dt_move = 1.0;
+    move_to_jspace_pose(dropoff_jspace_pose_,dt_move); //move to agv hover pose
+            ros::Duration(dt_move).sleep(); //TUNE ME!!
     if (!robotPlanner.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
             }
-           ROS_INFO("releasing gripper");
-            //release gripper
-            release();
-             while(robotPlanner.isGripperAttached()) {
+    ROS_INFO("releasing gripper");
+    release();
+    while(robotPlanner.isGripperAttached()) {
                  ros::Duration(0.5).sleep();
                ROS_INFO("waiting for gripper release");
-            }
-            ROS_INFO("moving to approach_dropoff_jspace_pose_");
-            move_to_jspace_pose(approach_dropoff_jspace_pose_,1.0); //move to agv hover pose
-            ros::Duration(1.0).sleep(); //TUNE ME!!
+    }
+    ROS_INFO("moving to approach_dropoff_jspace_pose_");
+    move_to_jspace_pose(approach_dropoff_jspace_pose_,dt_move); //move to agv hover pose
+    ros::Duration(dt_move).sleep(); //TUNE ME!!
 
-           ROS_INFO("moving to agv_cruise_pose_");
-            move_to_jspace_pose(agv_cruise_pose_,2.0); //move to agv cruise pose
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-           ROS_INFO("part has been placed at target location"); 
+    ROS_INFO("moving to agv1_cruise_pose_");
+    cout<<"q_soln: "<<q_agv1_cruise_pose_.transpose()<<endl;        
+    move_to_jspace_pose(q_agv1_cruise_pose_,dt_move); //move to agv cruise pose
+    ros::Duration(dt_move).sleep(); //TUNE ME!!
+    ROS_INFO("part has been placed at target location"); 
 
   return errorCode;
 }
