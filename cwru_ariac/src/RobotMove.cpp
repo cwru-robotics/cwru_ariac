@@ -96,7 +96,27 @@ bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
     return finished_before_timeout && goal_success_;        
 }
 
-
+bool RobotMove::fetchPartFromConveyor(Part part, Part destination, double timeout) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::CONVEYOR_FETCH;
+    goal.timeout = timeout;
+    goal.sourcePart = part;
+    goal.targetPart = destination;
+    sendGoal(goal);
+    if (!async_mode) {
+        bool finished_before_timeout;
+        if (timeout == 0) {
+            finished_before_timeout = ac.waitForResult();
+        } else {
+            finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+        }
+        if (!finished_before_timeout) {
+            errorCode = RobotMoveResult::TIMEOUT;
+        }
+        return finished_before_timeout && goal_success_;
+    }
+    return true;
+}
 
 bool RobotMove::pick(Part part, double timeout) {
     RobotMoveGoal goal;

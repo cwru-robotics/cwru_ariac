@@ -4,6 +4,9 @@
 
 #include <RobotMoveActionServer.h>
 
+//define this func in separate file--just to focus on its devel
+#include "fetch_part_from_conveyor_fnc.cpp"
+
 RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic):
         nh(nodeHandle), as(nh, topic, boost::bind(&RobotMoveActionServer::executeCB, this, _1), false),
         robotPlanner(nh){
@@ -50,6 +53,9 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_agv1_cruise_pose_.resize(7);
     q_agv2_hover_pose_.resize(7);
     q_agv2_cruise_pose_.resize(7);
+    q_conveyor_hover_pose_.resize(7);
+    q_conveyor_cruise_pose_.resize(7);
+    approach_pickup_jspace_pose_.resize(7);
 
     q_bin1_hover_pose_.resize(7);
     q_bin2_hover_pose_.resize(7);
@@ -75,7 +81,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_agv1_cruise_pose_<<2.364, 2.1, -1.297, 1.57, 3.646, -1.571, 1.480;
     q_agv2_hover_pose_<<1.292, -2.100, -0.714, 4.71, 4.134, -1.571, -0.000;
     q_agv2_cruise_pose_<<2.364, -2.1, -1.297, 4.71, 3.646, -1.571, 1.480;
-
+    q_conveyor_hover_pose_<<1.292, 0, -0.714, 0, 4.134, -1.571, -0.000;
+    q_conveyor_cruise_pose_<<2.364, 0, -2, 1.57, 3.646, -1.571, 1.480;
 
     q_bin5_hover_pose_<<2.364, -1.130, -1.297, 3.051, 3.646, -1.571, 1.480; //1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;
     q_bin6_hover_pose_<<2.364, -0.340, -1.297, 3.051, 3.646, -1.571, 1.480;
@@ -438,7 +445,7 @@ bool RobotMoveActionServer::agv_cruise_jspace_pose(int8_t agv, Eigen::VectorXd &
      return true;
 }
 
-trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints) {
+trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints, double dtime) {
     // Create a message to send.
     trajectory_msgs::JointTrajectory msg;
     int njnts = robotState.jointNames.size();
@@ -454,13 +461,14 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
         msg.points[0].positions[i] = joints[i];
     }
     // How long to take getting to the point (floating point seconds).
-    msg.points[0].time_from_start = ros::Duration(2.0);
+    msg.points[0].time_from_start = ros::Duration(dtime);
     // ROS_INFO_STREAM("populated traj msg:\n" << msg);
     return msg;
 }
 
-void RobotMoveActionServer::move_to_jspace_pose(Eigen::VectorXd q_vec) {
-     traj_ = jspace_pose_to_traj(q_vec);
+
+void RobotMoveActionServer::move_to_jspace_pose(Eigen::VectorXd q_vec, double dtime) {
+     traj_ = jspace_pose_to_traj(q_vec, dtime);
      joint_trajectory_publisher_.publish(traj_);
 }
 
@@ -621,6 +629,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
     double start_time = ros::Time::now().toSec();
     double dt;
     double timeout = goal->timeout <= 0? FLT_MAX:goal->timeout;
+    unsigned short int errorCode;
     switch (goal->type) {
         case RobotMoveGoal::NONE:
             ROS_INFO("NONE");
@@ -628,6 +637,24 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             result_.errorCode = RobotMoveResult::NO_ERROR;
             result_.robotState = robotState;
             as.setSucceeded(result_);
+            break;
+
+        case RobotMoveGoal::CONVEYOR_FETCH:
+            ROS_INFO("attempting to grab part from conveyor");
+            errorCode = fetch_from_conveyor(goal);  //this does pick from conveyor and place to destination
+            result_.errorCode = errorCode;
+            if (errorCode == RobotMoveResult::NO_ERROR) {
+             result_.success = true;
+             result_.robotState = robotState;
+             as.setSucceeded(result_);
+             ROS_INFO("grabbed part from conveyor");
+            }
+            else {
+             ROS_INFO("failed to grab part from conveyor");
+             ROS_INFO("error code: %d",(int) errorCode);
+             result_.robotState = robotState;
+             as.setAborted(result_);
+            }
             break;
 
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
@@ -880,7 +907,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
         case RobotMoveGoal::PICK:
             ROS_INFO("PICK");
-            ROS_INFO("The part is %s, locate at %s, with pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str());
+            ROS_INFO("The part is %s, located at %s, with pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str());
             ROS_INFO_STREAM(goal->sourcePart.pose);
             ROS_INFO("And moving speed:");
             ROS_INFO_STREAM(goal->sourcePart.linear);
@@ -945,6 +972,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 case RobotMoveGoal::BIN6_HOVER_POSE:
                    ROS_INFO("moving to bin6 hover poser ");
                    move_to_jspace_pose(q_bin6_hover_pose_); 
+                   break;
                 default:
                     ROS_WARN("predefined move code not implemented!");
                     result_.success = false;
