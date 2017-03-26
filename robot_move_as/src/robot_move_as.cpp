@@ -639,9 +639,9 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             as.setSucceeded(result_);
             break;
 
-        case RobotMoveGoal::CONVEYOR_FETCH:
+        case RobotMoveGoal::CONVEYOR_FETCH:  //this does pick from conveyor and place to destination
             ROS_INFO("attempting to grab part from conveyor");
-            errorCode = fetch_from_conveyor(goal);  //this does pick from conveyor and place to destination
+            errorCode = fetch_from_conveyor(goal);  
             result_.errorCode = errorCode;
             if (errorCode == RobotMoveResult::NO_ERROR) {
              result_.success = true;
@@ -668,6 +668,29 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM(goal->targetPart);
             //ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", timeout);
+
+            //special case if fetch from conveyor:
+            if (goal->sourcePart.location ==Part::CONVEYOR) {
+               ROS_INFO("acquire part from conveyor: ");
+               errorCode = fetch_from_conveyor(goal);  
+               result_.errorCode = errorCode;
+               if (errorCode == RobotMoveResult::NO_ERROR) {
+                 result_.success = true;
+                 result_.robotState = robotState;
+                 as.setSucceeded(result_);
+                 ROS_INFO("grabbed part from conveyor");
+                }
+               else {
+                 ROS_INFO("failed to grab part from conveyor");
+                 ROS_INFO("error code: %d",(int) errorCode);
+                 result_.robotState = robotState;
+                 as.setAborted(result_);
+              }
+            return;
+
+            }
+
+
             //anticipate failure, unless proven otherwise:
             result_.success = false;
             result_.errorCode = RobotMoveResult::WRONG_PARAMETER;  //UNREACHABLE
