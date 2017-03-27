@@ -12,7 +12,9 @@ bool findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part
     redundantParts.clear();
     PartList not_in_search;
     PartList kit_tray = findPart(searchList, "kit_tray");
-    searchList.erase(findPart(searchList, kit_tray[0].id));
+    if (kit_tray.size() > 0) {
+        searchList.erase(findPart(searchList, kit_tray[0].id));
+    }
     for (auto searching: searchList) {
         bool ignored = false;
         for (int i = 0; i < targetList.size(); ++i) {
