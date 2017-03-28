@@ -3,8 +3,8 @@ cwru_ariac/Dimension size
 cwru_ariac/Grid grid
 geometry_msgs/PoseStamped basePose
 cwru_ariac/Parts contains
-osrf_gear/Order orderAssigned
-osrf_gear/Order orderCompleted
+osrf_gear/Kit kitAssigned
+osrf_gear/Kit kitCompleted
 cwru_ariac/BoundBox bound
 int8 state
 float64 priority

@@ -12,8 +12,8 @@ public:
     OrderManager(ros::NodeHandle nodeHandle);
 
     vector<AGV> AGVs;
+    AGV AGV1, AGV2;
     vector<osrf_gear::Order> orders;
-    unordered_map<string, osrf_gear::Order> orderFinder;
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
     bool startCompetition();
