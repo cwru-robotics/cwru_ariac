@@ -324,6 +324,8 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
 
 //for each part, there is a vertical offset from the part frame to the gripper frame on top surface
 //return this value; only needs part.name
+//******** generalize this to get T_grasp = T_part_frame/gripper_frame
+
 double RobotMoveActionServer::get_pickup_offset(Part part) {
     double offset;
     string part_name(part.name); //a C++ string
@@ -347,7 +349,7 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
     //gasket_part
     if (part_name.compare("gasket_part")==0)
     {
-        offset = GASKET_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        offset = GASKET_PART_THICKNESS +  0.005; //try adjusting for conveyor pickup
         return offset;
     }
 
@@ -502,6 +504,8 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_pickup_pose_wrt_base_link(P
   affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
 
   affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link; //start here, and offset height of gripper
+  
+  //generalize this to use grasp transform!  
   double pickup_offset = get_pickup_offset(part);
   //add this to the z component of the gripper pose:
   Eigen::Vector3d Oe;
