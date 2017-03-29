@@ -87,19 +87,17 @@ int main(int argc, char** argv) {
                 orderManager.AGVs[useAGV].kitCompleted.kit_type = kit.kit_type;
                 orderManager.AGVs[useAGV].kitCompleted.objects.clear();
                 while (!orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
-                    for (auto object : kit.objects) {
+                    for (auto object : orderManager.AGVs[useAGV].kitAssigned.objects) {
                         ROS_INFO("Working on object type: %s", object.type.c_str());
                         bool succeed = false;
                         while (ros::ok() && !succeed) {
                             agv1Camera.waitForUpdate();
                             binCamera.waitForUpdate();
                             PartList allParts;
-                            int bin_cnt = 1;
                             for (auto p : extraParts) {
                                 allParts.push_back(p);
                             }
                             for (auto bin : binCamera.onBin) {
-                                ROS_INFO("bin %d has %d parts", bin_cnt++, (int)bin.size());
                                 for (auto p : bin) {
                                     allParts.push_back(p);
                                 }
