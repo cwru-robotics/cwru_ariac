@@ -39,13 +39,14 @@ using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
 
-const double PISTON_ROD_PART_THICKNESS=0.0074;
-const double GEAR_PART_THICKNESS = 0.0127;
+const double PISTON_ROD_PART_THICKNESS=0.0075; //works for qual2
+const double GEAR_PART_THICKNESS = 0.015; // 0.015 works for qual2
 const double DISK_PART_THICKNESS = 0.0247;
 const double GASKET_PART_THICKNESS = 0.0336;
 
 //surface heights:
-const double TRAY1_HEIGHT = 0.755+0.005; //pad tray height as manual fix...gravity droop problem?
+// had to increase tray height by 0.010 to get drop-off height of tray correct.  Don't know why
+const double TRAY1_HEIGHT = 0.755+0.010; //pad tray height as manual fix...gravity droop problem?
 const double BIN_HEIGHT = 0.725;
 const double CONVEYOR_HEIGHT = 0.907;
 const double BASE_LINK_HEIGHT = 1.0;
@@ -88,7 +89,7 @@ private:
     Eigen::VectorXd q_bin3_cruise_pose_,q_bin3_hover_pose_,q_bin3_retract_pose_;  
     Eigen::VectorXd q_bin2_cruise_pose_,q_bin2_hover_pose_,q_bin2_retract_pose_;  
     Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;
-
+    Eigen::Affine3d grasp_transform_;
     Eigen::VectorXd j1;
     
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link_;
@@ -112,7 +113,8 @@ private:
     double get_pickup_offset(Part part); //fnc to return offset values for gripper: part top relative to part frame
     double get_dropoff_offset(Part part);
     double get_surface_height(Part part);
-
+    
+    bool get_grasp_transform(Part part,Eigen::Affine3d &grasp_transform);
     unsigned short int fetch_from_conveyor(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
     //an Affine3 w/rt base_link frame
