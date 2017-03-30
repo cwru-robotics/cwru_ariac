@@ -9,7 +9,7 @@ sensors:
     pose:
       xyz: [0, 0.5, 5]
       rpy: [0, 'pi/2', 0]
-  laser_profiler_1:
+  laser_profiler:
     type: laser_profiler
     pose:
       xyz: [1.21816, 4, 1.6]
