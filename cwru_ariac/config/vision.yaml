@@ -12,7 +12,7 @@ sensors:
   laser_profiler:
     type: laser_profiler
     pose:
-      xyz: [1.21816, 4, 1.6]
+      xyz: [1.21816, 4, 1.61]
       rpy: ['-pi', 'pi/2', 'pi/2']
 
 # plz run the below to test or substitute the yaml file every time launching gazebo
