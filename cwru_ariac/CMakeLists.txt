@@ -39,7 +39,8 @@ cs_add_executable(oracle_tester src/oracle_tester.cpp)
 cs_add_executable(qualifier1 src/qualifier1.cpp)
 cs_add_executable(qualifier2 src/qualifier2.cpp)
 cs_add_executable(robot_move_as_tester src/robot_move_as_tester.cpp)
-
+cs_add_executable(test_conveyor_fetch src/test_conveyor_fetch.cpp)
+cs_add_executable(qualifier2b src/qualifier2b.cpp)
 # the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
 target_link_libraries(pose_tuner AriacLib)
@@ -50,7 +51,8 @@ target_link_libraries(oracle_tester AriacLib)
 target_link_libraries(qualifier1 AriacLib)
 target_link_libraries(qualifier2 AriacLib)
 target_link_libraries(robot_move_as_tester AriacLib)
-
+target_link_libraries(test_conveyor_fetch AriacLib)
+target_link_libraries(qualifier2b AriacLib)
 cs_install()
 cs_export()
     

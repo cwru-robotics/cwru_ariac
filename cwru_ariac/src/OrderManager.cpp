@@ -71,8 +71,10 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
 }
 
 void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
-    if (orderFinder.find(orderMsg->order_id) == orderFinder.end()) {
-        orderFinder.insert(pair<string, osrf_gear::Order>(orderMsg->order_id, *orderMsg));
+    auto it = find_if(orders.begin(), orders.end(), [orderMsg](osrf_gear::Order order) {
+        return orderMsg->order_id == order.order_id;
+    });
+    if (it == orders.end()) {
         orders.push_back(*orderMsg);
         ROS_INFO_STREAM("Received order:\n" << *orderMsg);
     }

@@ -4,7 +4,7 @@ sensors:
   logical_camera_1:
     type: logical_camera
     pose:
-      xyz: [-0.6, -0.1, 2.6]
+      xyz: [-0.6, -0.55, 2.6]
       rpy: [0, 'pi/2', 0]
   logical_camera_2:
     type: logical_camera

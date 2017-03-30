@@ -18,6 +18,7 @@ public:
     bool pick(Part part, double timeout = 0);
     bool place(Part destination, double timeout = 0);
     bool move(Part part, Part destination, double timeout = 0);
+    bool fetchPartFromConveyor(Part part,Part destination, double timeout=0);
     bool setJointValues(vector<double> joints, double timeout = 0);
     bool grasp(double timeout = 0);
     bool release(double timeout = 0);

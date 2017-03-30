@@ -4,6 +4,9 @@
 
 #include <RobotMoveActionServer.h>
 
+//define this func in separate file--just to focus on its devel
+#include "fetch_part_from_conveyor_fnc.cpp"
+
 RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic):
         nh(nodeHandle), as(nh, topic, boost::bind(&RobotMoveActionServer::executeCB, this, _1), false),
         robotPlanner(nh){
@@ -50,6 +53,9 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_agv1_cruise_pose_.resize(7);
     q_agv2_hover_pose_.resize(7);
     q_agv2_cruise_pose_.resize(7);
+    q_conveyor_hover_pose_.resize(7);
+    q_conveyor_cruise_pose_.resize(7);
+    approach_pickup_jspace_pose_.resize(7);
 
     q_bin1_hover_pose_.resize(7);
     q_bin2_hover_pose_.resize(7);
@@ -75,7 +81,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_agv1_cruise_pose_<<2.364, 2.1, -1.297, 1.57, 3.646, -1.571, 1.480;
     q_agv2_hover_pose_<<1.292, -2.100, -0.714, 4.71, 4.134, -1.571, -0.000;
     q_agv2_cruise_pose_<<2.364, -2.1, -1.297, 4.71, 3.646, -1.571, 1.480;
-
+    q_conveyor_hover_pose_<<1.292, 0, -0.714, 0, 4.134, -1.571, -0.000;
+    q_conveyor_cruise_pose_<<2.364, 0, -2, 1.57, 3.646, -1.571, 1.480;
 
     q_bin5_hover_pose_<<2.364, -1.130, -1.297, 3.051, 3.646, -1.571, 1.480; //1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;
     q_bin6_hover_pose_<<2.364, -0.340, -1.297, 3.051, 3.646, -1.571, 1.480;
@@ -315,8 +322,64 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
     }
 }
 
+//3/29/17 new function, generalizes on pickup offset;
+//w/ gasket, cannot pick up part at part origin, due to hole in center
+//define a desired transform between gripper frame and part frame
+// this should include part thickness as part of any necessary displacement from part origin
+bool RobotMoveActionServer::get_grasp_transform(Part part,Eigen::Affine3d &grasp_transform) {
+//Eigen::Affine3d grasp_transform;
+Eigen::Matrix3d R;
+R =  Eigen::MatrixXd::Identity(3,3);
+Eigen::Vector3d O_part_wrt_gripper;
+O_part_wrt_gripper <<0,0,0; //= Eigen::MatrixXd::Zero(3, 1);
+grasp_transform.linear() = R;
+ //default: transform is identity, zero offset--> part frame = gripper frame
+grasp_transform.translation() = O_part_wrt_gripper;
+
+    string part_name(part.name); //a C++ string
+    if (part_name.compare("gear_part")==0)
+    {
+       O_part_wrt_gripper[2] = -(GEAR_PART_THICKNESS);
+       O_part_wrt_gripper[1] = 0.04; // offset to avoid touching dowell
+       grasp_transform.translation() = O_part_wrt_gripper;
+        return true;
+    }
+    //piston_rod_part
+    if (part_name.compare("piston_rod_part")==0)
+    {
+       O_part_wrt_gripper[2] = -(PISTON_ROD_PART_THICKNESS + 0.003);
+       grasp_transform.translation() = O_part_wrt_gripper;        
+        return true;
+    }
+    //disk_part
+    if (part_name.compare("disk_part")==0)
+    {
+       O_part_wrt_gripper[2] = -(DISK_PART_THICKNESS + 0.005);
+       grasp_transform.translation() = O_part_wrt_gripper;        
+        return true;
+    }
+    //gasket_part
+    if (part_name.compare("gasket_part")==0)
+    {
+       O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS +  0.005);
+       //for gasket, CANNOT grab at center!! there is a hole there
+       O_part_wrt_gripper[0] = 0.1; // TUNE ME
+       grasp_transform.translation() = O_part_wrt_gripper;        
+        return true;
+    }
+
+    ROS_WARN("get_grasp_transform: part name not recognized: %s",part.name.c_str());
+    return false; // don't recognize part, so just return zero
+
+}
+
+
 //for each part, there is a vertical offset from the part frame to the gripper frame on top surface
 //return this value; only needs part.name
+//******** generalize this to get T_grasp = T_part_frame/gripper_frame
+
+
+
 double RobotMoveActionServer::get_pickup_offset(Part part) {
     double offset;
     string part_name(part.name); //a C++ string
@@ -340,7 +403,7 @@ double RobotMoveActionServer::get_pickup_offset(Part part) {
     //gasket_part
     if (part_name.compare("gasket_part")==0)
     {
-        offset = GASKET_PART_THICKNESS + 0.005; //0.005 correction looks very good for pickup from bin
+        offset = GASKET_PART_THICKNESS +  0.005; //try adjusting for conveyor pickup
         return offset;
     }
 
@@ -438,7 +501,7 @@ bool RobotMoveActionServer::agv_cruise_jspace_pose(int8_t agv, Eigen::VectorXd &
      return true;
 }
 
-trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints) {
+trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints, double dtime) {
     // Create a message to send.
     trajectory_msgs::JointTrajectory msg;
     int njnts = robotState.jointNames.size();
@@ -454,13 +517,14 @@ trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eige
         msg.points[0].positions[i] = joints[i];
     }
     // How long to take getting to the point (floating point seconds).
-    msg.points[0].time_from_start = ros::Duration(2.0);
+    msg.points[0].time_from_start = ros::Duration(dtime);
     // ROS_INFO_STREAM("populated traj msg:\n" << msg);
     return msg;
 }
 
-void RobotMoveActionServer::move_to_jspace_pose(Eigen::VectorXd q_vec) {
-     traj_ = jspace_pose_to_traj(q_vec);
+
+void RobotMoveActionServer::move_to_jspace_pose(Eigen::VectorXd q_vec, double dtime) {
+     traj_ = jspace_pose_to_traj(q_vec, dtime);
      joint_trajectory_publisher_.publish(traj_);
 }
 
@@ -491,15 +555,30 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_pickup_pose_wrt_base_link(P
   Eigen::Affine3d affine_part_wrt_world, affine_base_link_wrt_world;
   affine_base_link_wrt_world = affine_base_link(q_rail);
   affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);
-  affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
 
-  affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link; //start here, and offset height of gripper
-  double pickup_offset = get_pickup_offset(part);
+  //manual repair of pickup height:
+  //Eigen::Vector3d Oe;
+  //Oe = affine_part_wrt_world.translation();
+
+  //Oe[2]=get_surface_height(part); //assumes part frame should be flush with target surface
+  //affine_part_wrt_world.translation() = Oe;   
+  
+  affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
+  if (!get_grasp_transform(part,grasp_transform_)) {
+      ROS_WARN("did not recognize this part; using identity grasp transform");
+  }
+
+  //compute desired gripper pose from part pose and appropriate grasp transform
+  //gripper_wrt_base = T_part_wrt_base*T_gripper_wrt_part
+  affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link*grasp_transform_.inverse(); 
+  
+  //generalize this to use grasp transform!  
+ //double pickup_offset = get_pickup_offset(part);
   //add this to the z component of the gripper pose:
-  Eigen::Vector3d Oe;
-  Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  Oe[2]=get_surface_height(part)+pickup_offset-BASE_LINK_HEIGHT;
-  affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
+ // Eigen::Vector3d Oe;
+  //Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
+  //Oe[2]=get_surface_height(part)+pickup_offset-BASE_LINK_HEIGHT;
+  //affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
 
@@ -516,22 +595,40 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
   geometry_msgs::PoseStamped part_pose_wrt_world = part.pose;  //nope--w/rt world
   string frame_name(part.pose.header.frame_id);
   cout<<frame_name<<endl;
+  ROS_INFO_STREAM("requested part pose w/rt world: "<<part_pose_wrt_world);
   //ROS_INFO("part frame: %s",part.pose.header.frame_id);
   Eigen::Affine3d affine_part_wrt_tray, affine_base_link_wrt_world;
   affine_base_link_wrt_world = affine_base_link(q_rail);
   //affine_part_wrt_tray = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_agv);
   affine_part_wrt_world = xformUtils_.transformPoseToEigenAffine3d(part_pose_wrt_world);
+  
+  //manual repair of dropoff height:
+  Eigen::Vector3d Oe;
+  Oe = affine_part_wrt_world.translation();
+
+  Oe[2]=get_surface_height(part); //assumes part frame should be flush with target surface
+  affine_part_wrt_world.translation() = Oe; 
+  ROS_WARN("I will instead use  part dropoff pose w/rt world of: ");
+  xformUtils_.printAffine(affine_part_wrt_world);
+  
   //affine_part_wrt_world = agv1_tray_frame_wrt_world_*affine_part_wrt_tray;
   affine_part_wrt_base_link = affine_base_link_wrt_world.inverse()*affine_part_wrt_world;
+  ROS_INFO("dropoff part affine w/rt base link");
+   xformUtils_.printAffine(affine_part_wrt_base_link); 
 
-  affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link; //start here, and offset height of gripper
-  double dropoff_offset = get_dropoff_offset(part);
+  if (!get_grasp_transform(part,grasp_transform_)) {
+      ROS_WARN("did not recognize this part; using identity grasp transform");
+  }  
+  affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link*grasp_transform_.inverse(); 
+  ROS_INFO("dropoff gripper affine w/rt base link");
+   xformUtils_.printAffine(affine_vacuum_gripper_pose_wrt_base_link);   
+ // affine_vacuum_gripper_pose_wrt_base_link= affine_part_wrt_base_link; //start here, and offset height of gripper
+  
+  
+  
+ // double dropoff_offset = get_dropoff_offset(part);
   //add this to the z component of the gripper pose:
-  Eigen::Vector3d Oe;
-  Oe = affine_vacuum_gripper_pose_wrt_base_link.translation();
-  //Oe[2]+=dropoff_offset;
-  Oe[2]=get_surface_height(part)+dropoff_offset-BASE_LINK_HEIGHT;
-  affine_vacuum_gripper_pose_wrt_base_link.translation() = Oe;
+
   return affine_vacuum_gripper_pose_wrt_base_link;
 }
 
@@ -621,6 +718,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
     double start_time = ros::Time::now().toSec();
     double dt;
     double timeout = goal->timeout <= 0? FLT_MAX:goal->timeout;
+    unsigned short int errorCode;
     switch (goal->type) {
         case RobotMoveGoal::NONE:
             ROS_INFO("NONE");
@@ -628,6 +726,24 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             result_.errorCode = RobotMoveResult::NO_ERROR;
             result_.robotState = robotState;
             as.setSucceeded(result_);
+            break;
+
+        case RobotMoveGoal::CONVEYOR_FETCH:  //this does pick from conveyor and place to destination
+            ROS_INFO("attempting to grab part from conveyor");
+            errorCode = fetch_from_conveyor(goal);  
+            result_.errorCode = errorCode;
+            if (errorCode == RobotMoveResult::NO_ERROR) {
+             result_.success = true;
+             result_.robotState = robotState;
+             as.setSucceeded(result_);
+             ROS_INFO("grabbed part from conveyor");
+            }
+            else {
+             ROS_INFO("failed to grab part from conveyor");
+             ROS_INFO("error code: %d",(int) errorCode);
+             result_.robotState = robotState;
+             as.setAborted(result_);
+            }
             break;
 
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
@@ -641,6 +757,29 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM(goal->targetPart);
             //ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", timeout);
+
+            //special case if fetch from conveyor:
+            if (goal->sourcePart.location ==Part::CONVEYOR) {
+               ROS_INFO("acquire part from conveyor: ");
+               errorCode = fetch_from_conveyor(goal);  
+               result_.errorCode = errorCode;
+               if (errorCode == RobotMoveResult::NO_ERROR) {
+                 result_.success = true;
+                 result_.robotState = robotState;
+                 as.setSucceeded(result_);
+                 ROS_INFO("grabbed part from conveyor");
+                }
+               else {
+                 ROS_INFO("failed to grab part from conveyor");
+                 ROS_INFO("error code: %d",(int) errorCode);
+                 result_.robotState = robotState;
+                 as.setAborted(result_);
+              }
+            return;
+
+            }
+
+
             //anticipate failure, unless proven otherwise:
             result_.success = false;
             result_.errorCode = RobotMoveResult::WRONG_PARAMETER;  //UNREACHABLE
@@ -880,7 +1019,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
         case RobotMoveGoal::PICK:
             ROS_INFO("PICK");
-            ROS_INFO("The part is %s, locate at %s, with pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str());
+            ROS_INFO("The part is %s, located at %s, with pose:", goal->sourcePart.name.c_str(), placeFinder[goal->sourcePart.location].c_str());
             ROS_INFO_STREAM(goal->sourcePart.pose);
             ROS_INFO("And moving speed:");
             ROS_INFO_STREAM(goal->sourcePart.linear);
@@ -945,6 +1084,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 case RobotMoveGoal::BIN6_HOVER_POSE:
                    ROS_INFO("moving to bin6 hover poser ");
                    move_to_jspace_pose(q_bin6_hover_pose_); 
+                   break;
                 default:
                     ROS_WARN("predefined move code not implemented!");
                     result_.success = false;
