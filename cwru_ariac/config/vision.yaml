@@ -2,12 +2,7 @@ arm:
   type: ur10
   initial_joint_states:
     linear_arm_actuator_joint: 0
-# sensors:
-#   logical_camera_1:
-#     type: logical_camera
-#     pose:
-#       xyz: [-0.7, -0.15, 3.5]
-#       rpy: [0, 'pi/2', 0]
+
 sensors:
   logical_camera_1:
     type: logical_camera
@@ -20,4 +15,5 @@ sensors:
       xyz: [1.21816, 4, 1.6]
       rpy: ['-pi', 'pi/2', 'pi/2']
 
+# plz run the below to test or substitute the yaml file every time launching gazebo
 # rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/vision.yaml
