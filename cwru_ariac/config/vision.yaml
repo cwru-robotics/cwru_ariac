@@ -17,5 +17,7 @@ sensors:
   laser_profiler_1:
     type: laser_profiler
     pose:
-      xyz: [1.21816, 4, 1.24]
+      xyz: [1.21816, 4, 1.6]
       rpy: ['-pi', 'pi/2', 'pi/2']
+
+# rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml `rospack find cwru_ariac`/config/vision.yaml
