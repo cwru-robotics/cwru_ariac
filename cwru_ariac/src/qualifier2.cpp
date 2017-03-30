@@ -241,6 +241,7 @@ int main(int argc, char** argv) {
                             binCamera.waitForUpdate();
                             agv1Camera.waitForUpdate();
                         }
+                        break;
                     }
                 }
                 ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
