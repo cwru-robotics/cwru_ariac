@@ -67,3 +67,6 @@ sudo apt-get update
 sudo apt-get upgrade ariac
 ```
 
+To check what version of ariac you are running, do:
+`dpkg -s ariac | grep Version`
+

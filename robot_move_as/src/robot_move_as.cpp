@@ -361,9 +361,9 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     }
     //gasket_part
     if (part_name.compare("gasket_part") == 0) {
-        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS + 0.005);
+        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS); // + 0.005);
         //for gasket, CANNOT grab at center!! there is a hole there
-        O_part_wrt_gripper[0] = 0.1; // TUNE ME
+        O_part_wrt_gripper[0] = 0.6; // TUNE ME
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
     }
