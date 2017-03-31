@@ -132,7 +132,8 @@ int main(int argc, char** argv) {
                             ROS_INFO_STREAM(target);
                             candidates.erase(findPart(candidates, best.id));
                             if (robotMove.move(best, target)) {
-                                ROS_INFO("Successfully moved part to %s", agvName.c_str());
+                                ROS_INFO("Successfully moved part to %s, error code is %s", agvName.c_str(),
+                                         robotMove.getErrorCodeString().c_str());
                                 completedObjects.push_back(target);
                                 succeed = true;
                                 ROS_INFO("Recheck part pose");
@@ -241,7 +242,9 @@ int main(int argc, char** argv) {
                             binCamera.waitForUpdate();
                             agv1Camera.waitForUpdate();
                         }
-                        break;
+                        if (succeed) {
+                            break;
+                        }
                     }
                 }
                 ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
