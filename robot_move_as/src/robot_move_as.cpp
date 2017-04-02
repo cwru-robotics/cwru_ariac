@@ -361,9 +361,9 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     }
     //gasket_part
     if (part_name.compare("gasket_part") == 0) {
-        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS); // + 0.005);
+        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS)+0.006; // manual tweak for grasp from conveyor
         //for gasket, CANNOT grab at center!! there is a hole there
-        O_part_wrt_gripper[0] = 0.6; // TUNE ME
+        O_part_wrt_gripper[0] = 0.03; // TUNE ME; if negative, then hit 
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
     }
@@ -1090,7 +1090,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     traj_ = jspace_pose_to_traj(q_bin8_cruise_pose_);
                     break;
                 case RobotMoveGoal::BIN6_HOVER_POSE:
-                    ROS_INFO("moving to bin6 hover poser ");
+                    ROS_INFO("moving to bin6 hover pose ");
                     move_to_jspace_pose(q_bin6_hover_pose_);
                     break;
                 default:

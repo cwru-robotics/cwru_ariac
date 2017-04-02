@@ -26,7 +26,8 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
                                 // will be approx 2.5sec in the future, and send robot there to wait
                                 
     //where will the part be in 2.5 sec?
-    double part_dock_y = part_y_start +vy*2.5;
+    double fudge_wait_time = 6.0; //4 sec
+    double part_dock_y = part_y_start +vy*fudge_wait_time;
     ROS_INFO("part_y_start = %f",part_y_start);
     ROS_INFO("earliest part_dock_y = %f",part_dock_y);
     if (part_dock_y<0) {
@@ -47,6 +48,13 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("expect arrival at t = %f",part_arrival_time);
     robotState = calcRobotState();
     double cur_q_rail = robotState.jointStates[1];
+
+    Eigen::VectorXd q_intermediate_pose;
+    q_intermediate_pose = q_conveyor_cruise_pose_; //q_conveyor_hover_pose_;//
+    double q_rail_safe_spin = 0.0;
+    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position //cur_q_rail;
+
+
 
     q_rail_vals.push_back(q_rail_start+ vy*1.0); //allow 1 sec to get to first point
     arrival_times.push_back(1.0);  // + 0.5*vy*(arrival_times[1]-arrival_times[0]);
@@ -107,8 +115,15 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
                  return errorCode;
               }
 
-    ROS_INFO("moving to approach pose ");
 
+    dt_move=2.0;
+    ROS_INFO("moving to conveyor intermediate pose at qrail=%f",q_rail_safe_spin);
+    cout<<"q_soln: "<<q_intermediate_pose.transpose()<<endl;
+    move_to_jspace_pose(q_intermediate_pose,dt_move);
+    ros::Duration(dt_move).sleep();
+
+
+    ROS_INFO("moving to approach pose ");
     move_to_jspace_pose(approach_pickup_jspace_pose_,2.0); 
     ros::Duration(2.0).sleep(); //TUNE ME!!
 
@@ -176,22 +191,12 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("lifting part...");
     ros::Duration(lift_time).sleep();
 
-    Eigen::VectorXd q_intermediate_pose;
     q_intermediate_pose = q_conveyor_cruise_pose_; //q_conveyor_hover_pose_;//
-    //q_intermediate_pose[3] = 1.57;  //go here first, to avoid wind-up of turret
-
-    //move_to_jspace_pose(q_intermediate_pose,1.0);
-    //ros::Duration(1.0).sleep();
-    robotState = calcRobotState();
-    cur_q_rail = robotState.jointStates[1];
-    double q_rail_safe_spin = 0.0;
-    //if (cur_q_rail<1) cur_q_rail = 1.0;  //if too close to agv1, robot will swing around and hit frame
-    //q_conveyor_cruise_pose_ = q_agv1_hover_pose_;
-    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position //cur_q_rail;
+    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position 
     q_intermediate_pose[3] = approach_pickup_jspace_pose_[3]; //but keep same turret angle for now;
 
-    q_conveyor_cruise_pose_[1] = q_rail_safe_spin; //cur_q_rail;
-    //q_conveyor_hover_pose_[1] = q_rail_start;
+    q_conveyor_cruise_pose_[1] = q_rail_safe_spin; 
+
 
     dt_move=2.0;
     ROS_INFO("moving to conveyor intermediate pose at qrail=%f",q_rail_safe_spin);
