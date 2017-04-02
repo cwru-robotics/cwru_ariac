@@ -54,6 +54,8 @@ private:
     tf::TransformListener tf_listener;
     tf::Transform tfWorldToTray1_;
     tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;
+    tf::StampedTransform stfStaticWorldToTray1_;
+    geometry_msgs::PoseStamped stpTray1_;
     string ready_to_deliver_string;
     string delivering_string;
     string returning_string;
