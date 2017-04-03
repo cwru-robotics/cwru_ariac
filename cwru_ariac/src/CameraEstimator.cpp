@@ -156,7 +156,7 @@ void CameraEstimator::splitLocation() {
     }
 }
 
-void CameraEstimator::waitForUpdate() {
+void CameraEstimator::ForceUpdate() {
     while (updateCount == checkedCount && ros::ok()){
         //ROS_INFO("Waiting for camera callback...");
         ros::spinOnce();

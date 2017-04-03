@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     ROS_INFO("Competition started");
     string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
-        agv1Camera.waitForUpdate();
+        agv1Camera.ForceUpdate();
         if (orderManager.orders.empty()) {
             ROS_INFO("Got no order, waiting...");
             continue;
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
                     ROS_WARN_ONCE("waiting on AGV%d", useAGV);
-                    agv1Camera.waitForUpdate();
+                    agv1Camera.ForceUpdate();
                     ros::Duration(0.1).sleep();
                 }
                 ROS_INFO("AGV%d is Ready", useAGV);
@@ -49,8 +49,8 @@ int main(int argc, char** argv) {
                         ROS_INFO("Working on object type: %s", object.type.c_str());
                         bool succeed = false;
                         while (ros::ok() && !succeed) {
-                            agv1Camera.waitForUpdate();
-                            binCamera.waitForUpdate();
+                            agv1Camera.ForceUpdate();
+                            binCamera.ForceUpdate();
                             PartList allParts;
                             for (auto p : extraParts) {
                                 allParts.push_back(p);
@@ -95,8 +95,8 @@ int main(int argc, char** argv) {
                                 orderManager.AGVs[useAGV].contains.push_back(target);
                                 succeed = true;
                                 ROS_INFO("Recheck part pose");
-                                agv1Camera.waitForUpdate();
-                                binCamera.waitForUpdate();
+                                agv1Camera.ForceUpdate();
+                                binCamera.ForceUpdate();
                                 vector<pair<Part, Part>> wrong;
                                 PartList lost, redundant;
                                 if (orderManager.findDroppedParts(agv1Camera.onAGV[useAGV], orderManager.AGVs[useAGV].contains, wrong, lost, redundant)) {
@@ -142,8 +142,8 @@ int main(int argc, char** argv) {
                                 case RobotMoveResult::PART_DROPPED:
                                 {
                                     ROS_INFO("Checking dropped part location");
-                                    agv1Camera.waitForUpdate();
-                                    binCamera.waitForUpdate();
+                                    agv1Camera.ForceUpdate();
+                                    binCamera.ForceUpdate();
                                     vector<pair<Part, Part>> wrong;
                                     PartList lost, redundant;
                                     if (orderManager.findDroppedParts(agv1Camera.onAGV[useAGV], orderManager.AGVs[useAGV].contains, wrong, lost, redundant)) {
@@ -197,8 +197,8 @@ int main(int argc, char** argv) {
                                 default:
                                     break;
                             }
-                            binCamera.waitForUpdate();
-                            agv1Camera.waitForUpdate();
+                            binCamera.ForceUpdate();
+                            agv1Camera.ForceUpdate();
                         }
                         if (succeed) {
                             break;

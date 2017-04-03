@@ -18,8 +18,13 @@ public:
     vector<PartList> onAGV;
     vector<PartList> onBin;
     CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
-    void waitForUpdate();
-    int getMaxID() { return assignedID; }
+
+    void ForceUpdate();
+
+    int getAssignedID() { return assignedID; }
+
+    void setAssignedID(int assignedID) { this->assignedID = assignedID; }
+
 private:
     ros::NodeHandle nh_;
     ros::Subscriber cameraSubscriber;
@@ -33,6 +38,8 @@ private:
     int checkedCount;
     string worldFrame;
     string cameraFrame;
+
+    friend class SensorManager;
 };
 
 
