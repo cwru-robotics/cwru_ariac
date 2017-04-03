@@ -17,8 +17,6 @@ public:
     PartList onConveyor;
     vector<PartList> onAGV;
     vector<PartList> onBin;
-    string worldFrame;
-    string cameraFrame;
     CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
     void waitForUpdate();
     int getMaxID() { return assignedID; }
@@ -33,6 +31,8 @@ private:
     int assignedID;
     int updateCount;
     int checkedCount;
+    string worldFrame;
+    string cameraFrame;
 };
 
 

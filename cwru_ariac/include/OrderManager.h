@@ -15,6 +15,8 @@ public:
     vector<osrf_gear::Order> orders;
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
+    bool findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part, Part>> &wrongLocationParts, PartList &lostParts, PartList &redundantParts);
+
     bool startCompetition();
     bool submitOrder(string agvName, osrf_gear::Kit kit);
 
@@ -48,7 +50,6 @@ private:
     void AGV1StateCallback(const std_msgs::String &state);
     void AGV2StateCallback(const std_msgs::String &state);
     string worldFrame;
-    string AGV1Frame;
     tf::TransformListener tf_listener;
     tf::Transform tfWorldToTray1_;
     tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;

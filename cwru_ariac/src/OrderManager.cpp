@@ -247,3 +247,44 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
       return part;      
     }
 }
+
+bool OrderManager::findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part, Part>> &wrongLocationParts, PartList &lostParts,
+                                    PartList &redundantParts) {
+    wrongLocationParts.clear();
+    lostParts.clear();
+    redundantParts.clear();
+    PartList not_in_search;
+    PartList kit_tray = findPart(AGVs[0].contains, "kit_tray");
+    if (kit_tray.size() > 0) {
+        searchList.erase(findPart(searchList, kit_tray[0].id));
+    }
+    for (auto searching: searchList) {
+        bool ignored = false;
+        for (int i = 0; i < targetList.size(); ++i) {
+            if (searching.name == targetList[i].name && matchPose(searching.pose.pose, targetList[i].pose.pose)) {
+                targetList.erase(targetList.begin() + i);
+                ignored = true;
+            }
+        }
+        if (!ignored) {
+            // ROS_INFO("Found part mismatch");
+            not_in_search.push_back(searching);
+        }
+    }
+    for (auto matching: not_in_search) {
+        PartList candidates = findPart(targetList, matching.name);
+        if (candidates.empty()) {
+            redundantParts.push_back(matching);
+            continue;
+        }
+        auto closest = min_element(candidates.begin(), candidates.end(), [matching](Part A, Part B) {
+            return euclideanDistance(matching.pose.pose.position, A.pose.pose.position) < euclideanDistance(matching.pose.pose.position, B.pose.pose.position);
+        });
+        wrongLocationParts.push_back(pair<Part, Part>(matching, *closest));
+        targetList.erase(findPart(targetList, (*closest).id));
+    }
+    for (auto p: targetList) {
+        lostParts.push_back(p);
+    }
+    return !(not_in_search.empty() && targetList.empty());
+}
