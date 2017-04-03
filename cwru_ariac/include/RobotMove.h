@@ -35,6 +35,7 @@ public:
     void setTimeTolerance(double newTimeTolerance) { time_tolerance = newTimeTolerance; }
     void enableAsync() { async_mode = true; }
     void disableAsync() { async_mode = false; }
+
 private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;

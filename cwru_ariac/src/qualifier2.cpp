@@ -51,7 +51,6 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     CameraEstimator binCamera(nh, "/ariac/logical_camera_1");
     CameraEstimator agv1Camera(nh, "/ariac/logical_camera_2");
-    RobotPlanner robotPlanner(nh);
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
     GlobalPlanner globalPlanner(nh, robotMove);
@@ -73,7 +72,6 @@ int main(int argc, char** argv) {
         for (auto order : orderManager.orders) {
             ROS_INFO("Working on order id: %s", order.order_id.c_str());
             for (auto kit : order.kits) {
-                PartList completedObjects;
                 PartList extraParts;
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
@@ -134,14 +132,14 @@ int main(int argc, char** argv) {
                             if (robotMove.move(best, target)) {
                                 ROS_INFO("Successfully moved part to %s, error code is %s", agvName.c_str(),
                                          robotMove.getErrorCodeString().c_str());
-                                completedObjects.push_back(target);
+                                orderManager.AGVs[useAGV].contains.push_back(target);
                                 succeed = true;
                                 ROS_INFO("Recheck part pose");
                                 agv1Camera.waitForUpdate();
                                 binCamera.waitForUpdate();
                                 vector<pair<Part, Part>> wrong;
                                 PartList lost, redundant;
-                                if (findDroppedParts(agv1Camera.onAGV[useAGV], completedObjects, wrong, lost, redundant)) {
+                                if (findDroppedParts(agv1Camera.onAGV[useAGV], orderManager.AGVs[useAGV].contains, wrong, lost, redundant)) {
                                     ROS_INFO("Found parts not in correct pose");
                                     for (auto currentTarget:wrong) {
                                         ROS_INFO("try to adjust part from:");
@@ -188,7 +186,7 @@ int main(int argc, char** argv) {
                                     binCamera.waitForUpdate();
                                     vector<pair<Part, Part>> wrong;
                                     PartList lost, redundant;
-                                    if (findDroppedParts(agv1Camera.onAGV[useAGV], completedObjects, wrong, lost, redundant)) {
+                                    if (findDroppedParts(agv1Camera.onAGV[useAGV], orderManager.AGVs[useAGV].contains, wrong, lost, redundant)) {
                                         ROS_INFO("Found parts not in correct position");
                                         for (auto lostPart: lost) {
                                             ROS_INFO("add lost parts to kit object list");
@@ -201,7 +199,7 @@ int main(int argc, char** argv) {
                                             ROS_INFO("try to pick the dropped part");
                                             ROS_INFO("numb redundant parts = %d",(int) redundant.size());
                                             if (robotMove.move(redundantParts, target)) {
-                                                completedObjects.push_back(target);
+                                                orderManager.AGVs[useAGV].contains.push_back(target);
                                                 succeed = true;
                                                 orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
                                                 orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(

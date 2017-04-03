@@ -12,7 +12,7 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     competitionStateSubscriber = nh_.subscribe(
             "/ariac/competition_state", 10, &OrderManager::competitionStateCallback, this);
     AGV1StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV1StateCallback, this);
-    AGV2StateSubscriber = nh_.subscribe("/ariac/agv1/state", 10, &OrderManager::AGV2StateCallback, this);
+    AGV2StateSubscriber = nh_.subscribe("/ariac/agv2/state", 10, &OrderManager::AGV2StateCallback, this);
     AGV1Client =
             nh_.serviceClient<osrf_gear::AGVControl>("/ariac/agv1");
     AGV2Client =
@@ -27,12 +27,6 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     agv1.name = "AGV1";
     agv1.state = AGV::READY;
     agv1.priority = 2.0;
-    //tray wrt world:  (0.3,3.45,0.755), yaw = pi
-    worldFrame = "world";
-//    AGV1Frame = "/agv1_load_point_frame";
-    AGV1Frame = "kit_tray_1_frame";
-//    AGV2Frame = "kit_tray_2_frame";
-
     agv1.basePose.pose.position.x = 0.3;
     agv1.basePose.pose.position.y = 3.15;
     agv1.basePose.pose.position.z = 0.755;
@@ -42,7 +36,6 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     agv1.basePose.pose.orientation.w = 0.0;
 
     agv1.bound = agvBoundBox[0];
-    AGV1 = agv1; //member var
     stpTray1_.pose = agv1.basePose.pose;
     stpTray1_.header.stamp = ros::Time::now();
     stpTray1_.header.frame_id = worldFrame; 
@@ -55,11 +48,11 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
     AGVs.push_back(agv1);
     AGVs.push_back(agv2);
 
-
-    ready_to_deliver_string = "ready_to_deliver";
-    delivering_string = "delivering";
-    returning_string = "returning";
-    g_agv1_state_string = "init";
+    //tray wrt world:  (0.3,3.45,0.755), yaw = pi
+    worldFrame = "world";
+//    AGV1Frame = "/agv1_load_point_frame";
+    AGVs[0].frameName = "kit_tray_1_frame";
+    AGVs[1].frameName = "kit_tray_2_frame";
     assignedID = 10000;
     //tfWorldToTray1_
     //xformUtils_
@@ -70,7 +63,7 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
    while (tferr && ros::ok() && (ntries < max_tries) ) {
         tferr = false;
         try {
-              tf_listener.lookupTransform(worldFrame, AGV1Frame, ros::Time(0), stfWorldToTray1_);
+              tf_listener.lookupTransform(worldFrame, AGVs[0].frameName, ros::Time(0), stfWorldToTray1_);
             }     
          catch (tf::TransformException &exception) {
             tferr = true;
@@ -89,7 +82,7 @@ OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh_(nodeHandle){
      {
           ROS_WARN("could not get tf of AGV1 w/rt world; using hard-coded frame");
 
-         stfWorldToTray1_ = xform_utils_.convert_poseStamped_to_stampedTransform(stpTray1_,AGV1Frame);
+         stfWorldToTray1_ = xform_utils_.convert_poseStamped_to_stampedTransform(stpTray1_,AGVs[0].frameName);
 
     }
     stfStaticWorldToTray1_= stfWorldToTray1_;
@@ -108,7 +101,7 @@ void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
 void OrderManager::scoreCallback(const std_msgs::Float32::ConstPtr &msg) {
     if (msg->data != score)
     {
-        ROS_INFO("Score: %f", msg->data);
+        ROS_INFO("New Score: %f", msg->data);
     }
     score = msg->data;
 }
@@ -180,7 +173,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     inPose.pose = object.pose;
     if (agvName == AGVs[0].name) {
         part.location = Part::AGV1;
-        inPose.header.frame_id = AGV1Frame;
+        inPose.header.frame_id = AGVs[0].frameName;
     }
     else if(agvName == AGVs[1].name) {
         part.location = Part::AGV2;
@@ -253,14 +246,4 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
       part.pose = outPose2;
       return part;      
     }
-}
-double OrderManager::scoreFunction(double TC, double TT) {
-    //double TC = 1;
-    double AC = 1;
-    //double TT;
-    double AT = 1;
-    double CS = getCurrentScore();
-    double CF = AC/TC;
-    double EF = AT/TT;
-    return CF*CS+EF*CS;
 }

@@ -1,8 +1,9 @@
 string name
 cwru_ariac/Dimension size
 cwru_ariac/Grid grid
+string frameName
 geometry_msgs/PoseStamped basePose
-cwru_ariac/Parts contains
+cwru_ariac/Part[] contains
 osrf_gear/Kit kitAssigned
 osrf_gear/Kit kitCompleted
 cwru_ariac/BoundBox bound

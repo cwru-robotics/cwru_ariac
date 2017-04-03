@@ -2,7 +2,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
   unsigned short int errorCode = RobotMoveResult::NO_ERROR;
     ROS_INFO("Received goal type: %d", goal->type);
     cwru_ariac::Part part = goal->sourcePart;
-            ROS_INFO("The part is %s, should be fetched from location code %s ", part.name.c_str(), 
+            ROS_INFO("The part is %s, should be fetched from location code %s ", part.name.c_str(),
                placeFinder[part.location].c_str());
             ROS_INFO("part info: ");
             ROS_INFO_STREAM(part);
@@ -24,7 +24,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
                                 // therefore, q_rail_start>= 0.0
                                 // for part further downstream, anticipate 2sec move to q_rail_start, so estimate where part
                                 // will be approx 2.5sec in the future, and send robot there to wait
-                                
+
     //where will the part be in 2.5 sec?
     double fudge_wait_time = 6.0; //4 sec
     double part_dock_y = part_y_start +vy*fudge_wait_time;
@@ -38,7 +38,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     if (part_dock_y< q_rail_start) {
       q_rail_start = part_dock_y;
     }
-      ROS_INFO("will try to start tracking at y = %f",q_rail_start);    
+      ROS_INFO("will try to start tracking at y = %f",q_rail_start);
 
     double part_y_travel = q_rail_start - part_y_start;
     double part_travel_time = part_y_travel/vy;
@@ -71,13 +71,13 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("num pts in tracking traj = %d",npts);
 
     //set the part y-value to zero, w/rt robot: fix this later
-    part.pose.pose.position.y=q_rail_start; 
+    part.pose.pose.position.y=q_rail_start;
 
     //strategy:
     // compute approach and grasp IK solns (assuming dy=0)
     //move robot to a conveyor-hover pose:  approach pose at some y_start of q_rail
     //compute a balistic docking trajectory:
-    // pre-compute q_rail(t_ramp), q_rail(t_const_v), q_rail,q_grasp(dt_grasp), 
+    // pre-compute q_rail(t_ramp), q_rail(t_const_v), q_rail,q_grasp(dt_grasp),
     q_conveyor_hover_pose_[1] = q_rail_start;
     affine_vacuum_pickup_pose_wrt_base_link_ = affine_vacuum_pickup_pose_wrt_base_link(part, q_conveyor_hover_pose_[1]);
     if(!get_pickup_IK(affine_vacuum_pickup_pose_wrt_base_link_,q_conveyor_hover_pose_,pickup_jspace_pose_)) {
@@ -124,7 +124,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
 
 
     ROS_INFO("moving to approach pose ");
-    move_to_jspace_pose(approach_pickup_jspace_pose_,2.0); 
+    move_to_jspace_pose(approach_pickup_jspace_pose_,2.0);
     ros::Duration(2.0).sleep(); //TUNE ME!!
 
     trajectory_msgs::JointTrajectory traj;
@@ -146,7 +146,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
         traj.points[i].positions[j] = approach_pickup_jspace_pose_[j];
        }
       traj.points[i].positions[1] = q_rail_vals[i];
-      traj.points[i].time_from_start = ros::Duration(arrival_times[i]);  
+      traj.points[i].time_from_start = ros::Duration(arrival_times[i]);
     }
 
     for (int i=2;i<npts;i++) {
@@ -156,7 +156,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
         traj.points[i].positions[j] = pickup_jspace_pose_[j];
        }
       traj.points[i].positions[1] = q_rail_vals[i];
-      traj.points[i].time_from_start = ros::Duration(arrival_times[i]);  
+      traj.points[i].time_from_start = ros::Duration(arrival_times[i]);
     }
     //have traj queued up, but wait to launch it.  Compute when part is expected to arrive at y=0;
     double cur_time = ros::Time::now().toSec();
@@ -171,13 +171,13 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     grab();
     robotState = calcRobotState();
     cur_q_rail = robotState.jointStates[1];
-    while((!robotPlanner.isGripperAttached())&&(cur_q_rail>CONVEYOR_FETCH_QRAIL_MIN)) { 
+    while((!robotInterface.isGripperAttached())&&(cur_q_rail>CONVEYOR_FETCH_QRAIL_MIN)) {
       ros::Duration(0.5).sleep();
       ROS_INFO("waiting for gripper attachment");
       robotState = calcRobotState();
       cur_q_rail = robotState.jointStates[1];
     }
-    if(!robotPlanner.isGripperAttached()) {
+    if(!robotInterface.isGripperAttached()) {
             ROS_INFO("could not grab part");
       errorCode=  RobotMoveResult::GRIPPER_FAULT;
       return errorCode;
@@ -192,10 +192,10 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ros::Duration(lift_time).sleep();
 
     q_intermediate_pose = q_conveyor_cruise_pose_; //q_conveyor_hover_pose_;//
-    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position 
+    q_intermediate_pose[1] = q_rail_safe_spin; //force turret rotation at safe rail position
     q_intermediate_pose[3] = approach_pickup_jspace_pose_[3]; //but keep same turret angle for now;
 
-    q_conveyor_cruise_pose_[1] = q_rail_safe_spin; 
+    q_conveyor_cruise_pose_[1] = q_rail_safe_spin;
 
 
     dt_move=2.0;
@@ -211,19 +211,19 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
 
     ROS_INFO("testing if part is still grasped");
 
-    if (!robotPlanner.isGripperAttached()) {
+    if (!robotInterface.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
             }
     ROS_INFO("part is still grasped");
-    
 
-    ROS_INFO("moving to agv1_cruise_pose_");   
+
+    ROS_INFO("moving to agv1_cruise_pose_");
     cout<<"q_soln: "<<q_agv1_cruise_pose_.transpose()<<endl;        
     move_to_jspace_pose(q_agv1_cruise_pose_,dt_move); //move to agv cruise pose
     ros::Duration(dt_move).sleep(); //TUNE ME!!
-    if (!robotPlanner.isGripperAttached()) {
+    if (!robotInterface.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
@@ -231,7 +231,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ROS_INFO("moving to approach_dropoff_jspace_pose_");
     move_to_jspace_pose(approach_dropoff_jspace_pose_,dt_move); //move to agv hover pose
     ros::Duration(dt_move).sleep(); //TUNE ME!!
-    if (!robotPlanner.isGripperAttached()) {
+    if (!robotInterface.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
@@ -241,14 +241,14 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     dt_move = 1.0;
     move_to_jspace_pose(dropoff_jspace_pose_,dt_move); //move to agv hover pose
             ros::Duration(dt_move).sleep(); //TUNE ME!!
-    if (!robotPlanner.isGripperAttached()) {
+    if (!robotInterface.isGripperAttached()) {
                errorCode = RobotMoveResult::PART_DROPPED;
                 ROS_WARN("part dropped!");
                 return errorCode;
             }
     ROS_INFO("releasing gripper");
     release();
-    while(robotPlanner.isGripperAttached()) {
+    while(robotInterface.isGripperAttached()) {
                  ros::Duration(0.5).sleep();
                ROS_INFO("waiting for gripper release");
     }
@@ -257,10 +257,10 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
     ros::Duration(dt_move).sleep(); //TUNE ME!!
 
     ROS_INFO("moving to agv1_cruise_pose_");
-    cout<<"q_soln: "<<q_agv1_cruise_pose_.transpose()<<endl;        
+    cout<<"q_soln: "<<q_agv1_cruise_pose_.transpose()<<endl;
     move_to_jspace_pose(q_agv1_cruise_pose_,dt_move); //move to agv cruise pose
     ros::Duration(dt_move).sleep(); //TUNE ME!!
-    ROS_INFO("part has been placed at target location"); 
+    ROS_INFO("part has been placed at target location");
 
   return errorCode;
 }

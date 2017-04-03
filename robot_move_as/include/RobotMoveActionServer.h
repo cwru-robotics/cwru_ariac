@@ -33,7 +33,7 @@
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
 
-#include <RobotPlanner.h>
+#include <RobotInterface.h>
 
 using namespace std;
 using namespace Eigen;
@@ -60,7 +60,7 @@ const double CONVEYOR_FETCH_QRAIL_MIN = -1.0; // don't go more negative than thi
 class RobotMoveActionServer {
 private:
     ros::NodeHandle nh;
-    RobotPlanner robotPlanner;
+    RobotInterface robotInterface;
     actionlib::SimpleActionServer<cwru_ariac::RobotMoveAction> as;
     cwru_ariac::RobotMoveGoal goal_;
     cwru_ariac::RobotMoveFeedback feedback_;

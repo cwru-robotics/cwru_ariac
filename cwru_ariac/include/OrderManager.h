@@ -12,7 +12,6 @@ public:
     OrderManager(ros::NodeHandle nodeHandle);
 
     vector<AGV> AGVs;
-    AGV AGV1, AGV2;
     vector<osrf_gear::Order> orders;
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
@@ -30,7 +29,6 @@ public:
     bool isAGVReady(int agvNumber) {
         return AGVs[agvNumber].state == AGV::READY;
     }
-    double scoreFunction(double TC, double TT);
 
 private:
     ros::NodeHandle nh_;

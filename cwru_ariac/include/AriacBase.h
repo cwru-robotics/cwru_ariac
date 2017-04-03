@@ -86,8 +86,8 @@ typedef unordered_set<Part> PartSet;    // for faster searching
 typedef vector<Part> PartList;          // normal container
 typedef list<Part> PartLinkedList;      // for some applications
 
-static double _fakeDouble;   // declared for default parameter, please ignore
-static int _fakeInt;         // declared for default parameter, please ignore
+static double _placeHolderDouble;   // declared for default parameter, please ignore
+static int _placeHolderInt;         // declared for default parameter, please ignore
 
 const int gridNumber = 60;
 const int totalPartsTypes = 8;

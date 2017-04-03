@@ -25,6 +25,7 @@ Cheater::Cheater(ros::NodeHandle nodeHandle) : nh_(nodeHandle) {
     if (!populationControl.exists()) {
         populationControl.waitForExistence();
     }
+    conveyorMaxSpeed = 0.2;
 }
 
 void Cheater::conveyorStateCallback(const osrf_gear::ConveyorBeltState::ConstPtr &conveyorStateMsg) {
@@ -35,15 +36,17 @@ void Cheater::populationStateCallback(const osrf_gear::PopulationState::ConstPtr
     populationState = *populationStateMsg;
     populationCalled = true;
 }
-bool Cheater::setConveyorPower(double percentage) {
+bool Cheater::setConveyorSpeed(double speed) {
     osrf_gear::ConveyorBeltControl service;
-    service.request.state.power = percentage;
+    double power = fmin(100, speed / conveyorMaxSpeed);
+    ROS_INFO("Conveyor speed is limited to %f m/s", conveyorMaxSpeed);
+    service.request.state.power = power;
     if (conveyorControl.call(service))
         return service.response.success;
     return false;
 }
-double Cheater::getConveyorPower() {
-    return conveyorBeltState.power;
+double Cheater::getConveyorSpeed() {
+    return conveyorBeltState.power * conveyorMaxSpeed;
 }
 bool Cheater::pausePopulation() {
     osrf_gear::PopulationControl service;

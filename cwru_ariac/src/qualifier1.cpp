@@ -8,7 +8,6 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "ariac_qual1");
     ros::NodeHandle nh;
     CameraEstimator camera(nh);
-    RobotPlanner robotPlanner(nh);
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
     GlobalPlanner globalPlanner(nh, robotMove);
