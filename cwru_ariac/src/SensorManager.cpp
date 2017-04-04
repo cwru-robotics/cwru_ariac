@@ -6,12 +6,13 @@
 
 SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh_(nodeHandle), spinner(4) {
     spinner.start();
-    updateTimer = nh_.createTimer(ros::Duration(0.02), SensorManager::updateCallback, this);
+    updateTimer = nh_.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
 }
 
 void SensorManager::addCamera(string topic) {
     CameraEstimator newCamera(nh_);
-    cameras.push_back(newCamera);
+//    std::shared_ptr ptr = &newCamera;
+//    cameras.push_back(newCamera);
     updateCounts.resize(cameras.size());
 }
 
@@ -19,7 +20,7 @@ void SensorManager::addLaserScanner(string topic) {
     ROS_WARN("No laser scanner support!");
 }
 
-void SensorManager::updateCallback(const ros::TimerEvent &) {
+void SensorManager::updateCallback(const ros::TimerEvent &event) {
     // implement your code here, it will be executed every 0.02s
     bool cleared = false;
     bool performUpdate = false;

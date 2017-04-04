@@ -44,7 +44,7 @@ private:
     ros::AsyncSpinner spinner;
     ros::Timer updateTimer;
 
-    void updateCallback(const ros::TimerEvent &);
+    void updateCallback(const ros::TimerEvent &event);
 };
 
 
