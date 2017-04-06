@@ -38,7 +38,7 @@ public:
 
 private:
     ros::NodeHandle nh_;
-    vector<CameraEstimator> cameras;
+    vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;
     int globalID;
     ros::AsyncSpinner spinner;

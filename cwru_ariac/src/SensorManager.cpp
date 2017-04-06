@@ -10,9 +10,7 @@ SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh_(nodeHandle), spin
 }
 
 void SensorManager::addCamera(string topic) {
-    CameraEstimator newCamera(nh_);
-//    std::shared_ptr ptr = &newCamera;
-//    cameras.push_back(newCamera);
+    cameras.emplace_back(new CameraEstimator(nh_, topic));
     updateCounts.resize(cameras.size());
 }
 
@@ -25,9 +23,9 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
     bool cleared = false;
     bool performUpdate = false;
     for (int i = 0; i < cameras.size(); ++i) {
-        if (updateCounts[i] != cameras[i].updateCount | performUpdate) {
+        if (updateCounts[i] != cameras[i]->updateCount | performUpdate) {
             performUpdate = true;
-            updateCounts[i] = cameras[i].updateCount;
+            updateCounts[i] = cameras[i]->updateCount;
             if (!cleared) {
                 onConveyor.clear();
                 for (int j = 0; j < onAGV.size(); ++j) {
@@ -39,20 +37,20 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
                 onGround.clear();
                 cleared = true;
             }
-            for (auto p : cameras[i].onGround) {
+            for (auto p : cameras[i]->onGround) {
                 onGround.push_back(p);
             }
-            for (auto p : cameras[i].onConveyor) {
+            for (auto p : cameras[i]->onConveyor) {
                 onGround.push_back(p);
             }
             for (int l = 0; l < onBin.size(); ++l) {
-                for (int m = 0; m < cameras[i].onBin[l].size(); ++m) {
-                    onBin[l].push_back(cameras[i].onBin[l][m]);
+                for (int m = 0; m < cameras[i]->onBin[l].size(); ++m) {
+                    onBin[l].push_back(cameras[i]->onBin[l][m]);
                 }
             }
             for (int n = 0; n < onAGV.size(); ++n) {
-                for (int j = 0; j < cameras[i].onAGV[n].size(); ++j) {
-                    onAGV[n].push_back(cameras[i].onAGV[n][j]);
+                for (int j = 0; j < cameras[i]->onAGV[n].size(); ++j) {
+                    onAGV[n].push_back(cameras[i]->onAGV[n][j]);
                 }
             }
         }
@@ -62,7 +60,7 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
 
 void SensorManager::ForceUpdate() {
     for (int i = 0; i < cameras.size(); ++i) {
-        cameras[i].ForceUpdate();
+        cameras[i]->ForceUpdate();
     }
 }
 
