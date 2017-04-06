@@ -14,8 +14,8 @@
 class Cheater {
 public:
     Cheater(ros::NodeHandle nodeHandle);
-    bool setConveyorVelocity(double velocity);
-    double getConveyorVelocity();
+    bool setConveyorSpeed(double speed);
+    double getConveyorSpeed();
     bool pausePopulation();
     bool resumePopulation();
     bool restartPopulation();
@@ -36,6 +36,7 @@ private:
 
     bool conveyorCalled;
     bool populationCalled;
+    double conveyorMaxSpeed;
 };
 
 

@@ -7,7 +7,7 @@
 
 CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string topic) :
         nh_(nodeHandle), onAGV(totalAGVs), onBin(totalBins) {
-    cameraSubscriber = nh_.subscribe(topic, 1,
+    cameraSubscriber = nh_.subscribe(topic, 10,
                                      &CameraEstimator::cameraCallback, this);
     distanceTolerance = 0.02;
     untraceableTolerance = 0.1;
@@ -33,21 +33,6 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     lastTime.fromSec(currentTime.toSec());
     updateCount++;
     auto models = image_msg->models;
-//    vector<double> distances;
-//    for (int j = 0; j < models.size(); ++j) {
-//        if (defaultParts.find(models[j].type) == defaultParts.end()) {
-//            models.erase(models.begin() + j);
-//            continue;
-//        }
-//        for (int i = j + 1; i < models.size(); ++i) {
-//            double distance = euclideanDistance(models[j].pose.position, models[i].pose.position);
-//            distances.push_back(distance);
-//            if (distance < 0.02) {
-//                models.erase(models.begin() + i);
-//            }
-//        }
-//    }
-//    sort(distances.begin(), distances.end());
     // TODO refactor to: match all exist object first, then all untraceable object then add new object
 //    ROS_INFO("inView: %d, size: %d, dt = %f",(int)inView.size(), (int)image_msg->models.size(), (float)dt);
     for (int i = 0; i < models.size(); ++i) {
@@ -157,7 +142,6 @@ void CameraEstimator::splitLocation() {
         if (jump)
             continue;
         for (int j = 0; j < onBin.size(); ++j) {
-            // TODO
             if (checkBound(part.pose.pose.position, binBoundBox[j])) {
                 part.location = Part::BIN1 + j;
                 onBin[j].push_back(part);
@@ -172,11 +156,11 @@ void CameraEstimator::splitLocation() {
     }
 }
 
-void CameraEstimator::waitForUpdate() {
+void CameraEstimator::ForceUpdate() {
     while (updateCount == checkedCount && ros::ok()){
         //ROS_INFO("Waiting for camera callback...");
         ros::spinOnce();
-        ros::Duration(0.05).sleep();
+        ros::Duration(0.02).sleep();
     }
     checkedCount = updateCount;
 }

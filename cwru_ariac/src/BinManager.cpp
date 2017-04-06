@@ -4,8 +4,10 @@
 
 #include "BinManager.h"
 
-BinManage::BinManage(ros::NodeHandle nodeHandle) {
-    bins = vector<Bin>(totalBins, defaultBin);
+BinManager::BinManager(ros::NodeHandle nodeHandle) {
+    for (int i = 0; i < totalBins; ++i) {
+        bins.push_back(defaultBin);
+    }
     bins[0].name = "Bin4";
     bins[0].priority = 6.0;
     bins[0].pose.pose.position.x = -1.000000;
@@ -59,12 +61,4 @@ BinManage::BinManage(ros::NodeHandle nodeHandle) {
         bin.bound = binBoundBox[index];
     }
     //sort(bins.begin(), bins.end(), [](Bin a, Bin b){ return a.priority > b.priority;});
-}
-
-bool BinManage::initBin(PartList &onBin) {
-
-}
-
-bool BinManage::put(Part part) {
-
 }

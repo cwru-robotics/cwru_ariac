@@ -9,6 +9,7 @@ float64 timeout						 	# time limit for perform any move action, timeout <=0 mea
 
 # type list
 int8 NONE						= 0	 	# unused
+int8 CONVEYOR_FETCH					= 9     # specialized to grab a part from conveyor
 int8 PICK						= 10	# input: planID, sourcePart (from), timeout; output: success, errorCode, robotState
 int8 PLACE						= 11	# input: planID, targetPart (to), timeout; output: success, errorCode, robotState
 int8 MOVE						= 12	# input: planID, sourcePart (from), targetPart (to), timeout; output: success, errorCode, robotState
@@ -24,7 +25,7 @@ int8 TO_PREDEFINED_POSE         = 20    # input: predfinedPoseCode, timeout; out
 int8 AGV1_HOVER_POSE                    =101
 int8 AGV1_CRUISE_POSE                   =102
 int8 AGV2_HOVER_POSE                   =103
-int8 AGV2_CRUISE_POSE                   =103
+int8 AGV2_CRUISE_POSE                   =04
 int8 BIN8_HOVER_POSE                   =104
 int8 BIN8_RETRACT_POSE                   =105
 int8 BIN8_CRUISE_POSE                   =106

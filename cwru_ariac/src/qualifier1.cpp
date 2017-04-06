@@ -8,17 +8,16 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "ariac_qual1");
     ros::NodeHandle nh;
     CameraEstimator camera(nh);
-    RobotPlanner robotPlanner(nh);
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
-    ConveyorManager conveyorManager(nh, robotPlanner, robotMove);
+    GlobalPlanner globalPlanner(nh, robotMove);
     robotMove.disableAsync();
     ROS_INFO("Try to start the competition");
     while(!orderManager.startCompetition());
     ROS_INFO("Competition started");
     string agvName = orderManager.AGVs[0].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
-        camera.waitForUpdate();
+        camera.ForceUpdate();
         if (orderManager.orders.empty()) {
             ROS_INFO("Got no order, waiting...");
             continue;
@@ -30,7 +29,7 @@ int main(int argc, char** argv) {
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 for (auto object: kit.objects) {
                     ROS_INFO("Working on object type: %s", object.type.c_str());
-                    camera.waitForUpdate();
+                    camera.ForceUpdate();
                     PartList all_bins;
                     int bin_cnt = 1;
                     for (auto bin: camera.onBin) {
@@ -44,7 +43,7 @@ int main(int argc, char** argv) {
                     PartList candidates = findPart(all_bins, object.type);
                     ROS_INFO("Found %d parts from bins", (int)candidates.size());
                     while (!candidates.empty()) {
-                        Part best =  conveyorManager.getClosestPart(candidates);
+                        Part best = globalPlanner.getEuclideanBestPart(candidates);
                         Part target = orderManager.toAGVPart(agvName, object);
                         candidates.erase(findPart(candidates, best.id));
                         ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());
@@ -53,7 +52,7 @@ int main(int argc, char** argv) {
                         ROS_INFO_STREAM(target);
                         if (robotMove.move(best, target)) {
                             ROS_INFO("Successfully move part to %s", agvName.c_str());
-                            camera.waitForUpdate();
+                            camera.ForceUpdate();
                             break;
                         }
                         ROS_INFO("Failed to fetch the part, reason: %s", robotMove.getErrorCodeString().c_str());
@@ -79,7 +78,7 @@ int main(int argc, char** argv) {
                             default:
                                 break;
                         }
-                        camera.waitForUpdate();
+                        camera.ForceUpdate();
                     }
                     if (candidates.size() != 0) {
                         ROS_INFO("Complete one object: %s in kit %s, order %s", object.type.c_str(), kit.kit_type.c_str(), order.order_id.c_str());

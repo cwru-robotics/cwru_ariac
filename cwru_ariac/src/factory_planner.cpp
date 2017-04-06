@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     State state = INIT;
     vector<tuple<Part, string, osrf_gear::KitObject>> available;
     while (ros::ok()) {
-        camera.waitForUpdate();
+        camera.ForceUpdate();
         available.clear();
         switch (state) {
             case INIT:
@@ -33,7 +33,9 @@ int main(int argc, char** argv) {
                         RobotState robotState;
                         while (!robot.getRobotState(robotState));
                         double planningTime, executingTime;
-                        if (oracle.move(get<0>(*available.begin()), orderManager.toAGVPart(get<1>(*available.begin()), get<2>(*available.begin())), robotState, planningTime, executingTime)) {
+                        if (oracle.move(get<0>(*available.begin()),
+                                        orderManager.toAGVPart(get<1>(*available.begin()), get<2>(*available.begin())),
+                                        robotState, executingTime, planningTime)) {
                             robot.move(get<0>(*available.begin()), orderManager.toAGVPart(get<1>(*available.begin()), get<2>(*available.begin())), executingTime);
                             state = WAIT;
                         }
@@ -63,14 +65,16 @@ int main(int argc, char** argv) {
                                             continue;
                                         for (auto cPart: conveyorParts) {
                                             double planningTime, executingTime;
-                                            if (oracle.move(cPart, orderManager.toAGVPart(agv.name, object), robotState, planningTime, executingTime)) {
+                                            if (oracle.move(cPart, orderManager.toAGVPart(agv.name, object), robotState,
+                                                            executingTime, planningTime)) {
                                                 cPart.priority = (10 / executingTime) * 3 + 5;
                                                 available.push_back(tuple<Part, string, osrf_gear::KitObject>(cPart, agv.name, object));
                                             }
                                         }
                                         for (auto bPart: binParts) {
                                             double planningTime, executingTime;
-                                            if (oracle.move(bPart, orderManager.toAGVPart(agv.name, object), robotState, planningTime, executingTime)) {
+                                            if (oracle.move(bPart, orderManager.toAGVPart(agv.name, object), robotState,
+                                                            executingTime, planningTime)) {
                                                 bPart.priority = (10 / executingTime) * 1 + 5;
                                                 available.push_back(tuple<Part, string, osrf_gear::KitObject>(bPart, agv.name, object));
                                             }

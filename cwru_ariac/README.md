@@ -8,7 +8,7 @@ Overall structure see here:
           ↓            ↓
      BinManager → GlobalManager ← Parts on AGV and gound
           ↑            ↓
-    PartsSorter   GlobalPlanner ← RobotPlanner
+    PartsSorter   GlobalPlanner ← RobotInterface
                        ↑
                   OrderManager
 ```
@@ -28,7 +28,7 @@ This is configurable in *config/ariac_conf.yaml*, including sensors and initial 
 
 **OrderManager**: start competition, check score, and submit orders (call AGV) (Done, Not tested)
 
-**RobotPlanner**: planning interface for UR10 + extra linear tray (7DOF)
+**RobotInterface**: planning interface for UR10 + extra linear tray (7DOF)
 
 **Cheater**: extra interface for competition control, won't available in real competition (Done, Not tested)
 

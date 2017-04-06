@@ -1,0 +1,13 @@
+arm:
+  type: ur10
+sensors:
+  logical_camera_1:
+    type: logical_camera
+    pose:
+      xyz: [-0.6, -0.55, 2.6]
+      rpy: [0, 'pi/2', 0]
+  logical_camera_2:
+    type: logical_camera
+    pose:
+      xyz: [0.6, 3.1, 2.7]
+      rpy: ['pi/2', 'pi/2', 'pi']

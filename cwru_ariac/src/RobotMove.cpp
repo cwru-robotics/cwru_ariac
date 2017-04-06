@@ -96,7 +96,27 @@ bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
     return finished_before_timeout && goal_success_;        
 }
 
-
+bool RobotMove::fetchPartFromConveyor(Part part, Part destination, double timeout) {
+    RobotMoveGoal goal;
+    goal.type = RobotMoveGoal::CONVEYOR_FETCH;
+    goal.timeout = timeout;
+    goal.sourcePart = part;
+    goal.targetPart = destination;
+    sendGoal(goal);
+    if (!async_mode) {
+        bool finished_before_timeout;
+        if (timeout == 0) {
+            finished_before_timeout = ac.waitForResult();
+        } else {
+            finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+        }
+        if (!finished_before_timeout) {
+            errorCode = RobotMoveResult::TIMEOUT;
+        }
+        return finished_before_timeout && goal_success_;
+    }
+    return true;
+}
 
 bool RobotMove::pick(Part part, double timeout) {
     RobotMoveGoal goal;
@@ -142,6 +162,7 @@ bool RobotMove::place(Part destination, double timeout) {
 
 bool RobotMove::move(Part part, Part destination, double timeout) {
     RobotMoveGoal goal;
+    goal_success_ = false;
     goal.type = RobotMoveGoal::MOVE;
     goal.timeout = timeout;
     goal.sourcePart = part;
@@ -154,6 +175,7 @@ bool RobotMove::move(Part part, Part destination, double timeout) {
         } else {
             finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
         }
+        ros::spinOnce();
         if (!finished_before_timeout) {
             errorCode = RobotMoveResult::TIMEOUT;
         }
@@ -285,7 +307,7 @@ void RobotMove::doneCb(const actionlib::SimpleClientGoalState &state, const Robo
     ROS_INFO("Gripper position is: %f, %f, %f\n",
              currentRobotState.gripperPose.pose.position.x, currentRobotState.gripperPose.pose.position.y,
              currentRobotState.gripperPose.pose.position.z);
-    showJointState(currentRobotState.jointNames, currentRobotState.jointStates);
+//    showJointState(currentRobotState.jointNames, currentRobotState.jointStates);
 }
 
 void RobotMove::feedbackCb(const RobotMoveFeedbackConstPtr &feedback) {
