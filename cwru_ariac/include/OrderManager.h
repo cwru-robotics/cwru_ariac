@@ -13,9 +13,10 @@ public:
 
     vector<AGV> AGVs;
     vector<osrf_gear::Order> orders;
-    unordered_map<string, osrf_gear::Order> orderFinder;
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
+    bool findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part, Part>> &wrongLocationParts, PartList &lostParts, PartList &redundantParts);
+
     bool startCompetition();
     bool submitOrder(string agvName, osrf_gear::Kit kit);
 
@@ -30,7 +31,6 @@ public:
     bool isAGVReady(int agvNumber) {
         return AGVs[agvNumber].state == AGV::READY;
     }
-    double scoreFunction(double TC, double TT);
 
 private:
     ros::NodeHandle nh_;
@@ -50,13 +50,17 @@ private:
     void AGV1StateCallback(const std_msgs::String &state);
     void AGV2StateCallback(const std_msgs::String &state);
     string worldFrame;
-    string AGV1Frame;
     tf::TransformListener tf_listener;
+    tf::Transform tfWorldToTray1_;
+    tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;
+    tf::StampedTransform stfStaticWorldToTray1_;
+    geometry_msgs::PoseStamped stpTray1_;
     string ready_to_deliver_string;
     string delivering_string;
     string returning_string;
     string g_agv1_state_string;
     int assignedID;
+    XformUtils xform_utils_; //instantiate an object of XformUtils
 };
 
 

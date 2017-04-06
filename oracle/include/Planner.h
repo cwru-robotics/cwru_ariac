@@ -10,9 +10,9 @@
 class Planner {
 public:
     Planner(ros::NodeHandle& nodeHandle);
-    bool pick(Part part, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
-    bool place(Part destination, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
-    bool move(Part part, Part destination, double &planningTime = _fakeDouble, double &executingTime = _fakeDouble, int &errorCode = _fakeInt, int &planID = _fakeInt);
+    bool pick(Part part, double &planningTime = _placeHolderDouble, double &executingTime = _placeHolderDouble, int &errorCode = _placeHolderInt, int &planID = _placeHolderInt);
+    bool place(Part destination, double &planningTime = _placeHolderDouble, double &executingTime = _placeHolderDouble, int &errorCode = _placeHolderInt, int &planID = _placeHolderInt);
+    bool move(Part part, Part destination, double &planningTime = _placeHolderDouble, double &executingTime = _placeHolderDouble, int &errorCode = _placeHolderInt, int &planID = _placeHolderInt);
     bool estimateMovingPart(Part part, geometry_msgs::PoseStamped &estimatedPose);
     vector<double> getJointsState();
 

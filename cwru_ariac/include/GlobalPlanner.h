@@ -20,12 +20,14 @@ public:
     PartList sortByArrivalTime(PartList searchRange);
     Part getTargetDistanceBestPart(PartList searchRange, Part target);
     PartList sortByTargetDistance(PartList searchRange, Part target);
-
+    bool estimateMovingPart(Part part, geometry_msgs::PoseStamped &estimatedPose);
 private:
     ros::NodeHandle nh_;
     OraclePlanner *planner_;
     RobotMove *robot_;
     bool allow_planning;
+    double approachTimes;
+    double approachAheadTime;
 };
 
 

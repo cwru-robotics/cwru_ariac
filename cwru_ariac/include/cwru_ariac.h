@@ -12,6 +12,6 @@
 #include <OrderManager.h>
 #include <OraclePlanner.h>
 #include <RobotMove.h>
-#include <RobotPlanner.h>
+#include <RobotInterface.h>
 
 #endif //CWRU_ARIAC_CWRU_ARIAC_H
