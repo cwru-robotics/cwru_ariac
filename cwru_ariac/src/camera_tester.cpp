@@ -29,10 +29,10 @@ int main(int argc, char** argv) {
         }
         cout << "inView size: " << camera.inView.size() << ", onConveyor size: " << camera.onConveyor.size() << endl;
         for (int i = 0; i < camera.onBin.size(); ++i) {
-            cout << "onBin " << i << ": " << camera.onBin[i].size() << endl;
+            cout << "onBin " << i + 1 << ": " << camera.onBin[i].size() << endl;
         }
         for (int i = 0; i < camera.onAGV.size(); ++i) {
-            cout << "onAGV " << i << ": " << camera.onAGV[i].size() << endl;
+            cout << "onAGV " << i + 1 << ": " << camera.onAGV[i].size() << endl;
         }
         cout << "onGround : " << camera.onGround.size() << endl;
     }
