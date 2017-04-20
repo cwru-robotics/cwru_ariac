@@ -48,7 +48,6 @@
 #include <cwru_ariac/Dimension.h>
 #include <cwru_ariac/Grid.h>
 #include <cwru_ariac/Part.h>
-#include <cwru_ariac/Parts.h>
 #include <cwru_ariac/PartType.h>
 #include <cwru_ariac/RobotState.h>
 #include <cwru_ariac/RobotMoveAction.h>
