@@ -1,10 +1,12 @@
 
 #include <SwappingAlgorithm.h>
 
-SwappingAlgorithm::SwappingAlgorithm(ros::NodeHandle nodeHandle) : nh(nodeHandle)
+SwappingAlgorithm::SwappingAlgorithm(ros::NodeHandle nodeHandle, RobotMove robotMove, BinManager binManager) : nh(
+        nodeHandle)
 {
-	ros::init(argc, argv, "swapping_algorithm");
-	
+    robotMovePtr.allocate_shared(robotMove);
+    binManagerPtr.allocate_shared(binManager);
+
 	//Part part_1,part_2,storage;
 	//RobotMove robotMove(nh);
 
@@ -65,8 +67,10 @@ SwappingAlgorithm::SwappingAlgorithm(ros::NodeHandle nodeHandle) : nh(nodeHandle
 
 	return 0;
 }
-	
 
+bool SwappingAlgorithm::swapParts(vector<pair<Part, Part>> action) {
+
+}
 
 void SwappingAlgorithm::parts_location(Part &part_1, Part &part_2){
 	geometry_msgs::PoseStamped [part_1,part_2];

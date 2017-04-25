@@ -27,9 +27,9 @@ public:
     // query for the best location to store a certain type of part, return false when no such part available
     bool advisedLocationForPut(string PartType, Part &partToPut);
     // this function will be called when robot put a part to a bin to inform BinManager the action, this part should be stored inside BinManager for future take action
-    bool put(Part part);
+    void put(Part part);
     // this function will be called when robot take a part from a bin, this part should be removed from BinManager
-    bool take(Part part);
+    void taken(Part part);
     // When there have been a lot of bin in and out operations, bin layout can be messy, so BinManager is allowed to perform a in position rearrangement
     // If allowRearrange sets to true, BinManager can use more aggressive scheme to organize parts, rearrangePriority indicates the necessity of rearrange bins
     // This function returns false if no need to rearrange or no available scheme to rearrange or allowRearrange sets to false
