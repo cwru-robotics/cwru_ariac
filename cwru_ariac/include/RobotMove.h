@@ -36,7 +36,7 @@ public:
     void enableAsync() { async_mode = true; }
     void disableAsync() { async_mode = false; }
 
-private:
+protected:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
     int8_t errorCode;

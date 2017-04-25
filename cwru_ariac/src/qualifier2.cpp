@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     CameraEstimator agv1Camera(nh, "/ariac/logical_camera_2");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
-    GlobalPlanner globalPlanner(nh, robotMove);
+    PlanningUtils planningUtils(nh, robotMove);
     ros::AsyncSpinner spinner(4);
     spinner.start();
     robotMove.disableAsync();
@@ -81,9 +81,9 @@ int main(int argc, char** argv) {
                                 break;
                             }
                             ROS_INFO("Found %d parts from all places", (int)candidates.size());
-//                        Part best = globalPlanner.getEuclideanBestPart(candidates);
+//                        Part best = planningUtils.getEuclideanBestPart(candidates);
                             Part target = orderManager.toAGVPart(agvName, object);
-                            Part best = globalPlanner.getTargetDistanceBestPart(candidates, target);
+                            Part best = planningUtils.getTargetDistanceBestPart(candidates, target);
                             ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());
                             ROS_INFO_STREAM(best);
                             ROS_INFO("moving part to target:");

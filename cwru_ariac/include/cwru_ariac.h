@@ -8,7 +8,7 @@
 #include <BinManager.h>
 #include <CameraEstimator.h>
 #include <Cheater.h>
-#include <GlobalPlanner.h>
+#include <PlanningUtils.h>
 #include <OrderManager.h>
 #include <OraclePlanner.h>
 #include <RobotMove.h>

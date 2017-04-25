@@ -8,7 +8,7 @@ Overall structure see here:
           ↓            ↓
      BinManager → GlobalManager ← Parts on AGV and gound
           ↑            ↓
-    PartsSorter   GlobalPlanner ← RobotInterface
+    PartsSorter   PlanningUtils ← RobotInterface
                        ↑
                   OrderManager
 ```

@@ -36,7 +36,7 @@ public:
     const int AGV2 = 0x10;
     const int AGVS = 0x18;
 
-private:
+protected:
     ros::NodeHandle nh_;
     vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;

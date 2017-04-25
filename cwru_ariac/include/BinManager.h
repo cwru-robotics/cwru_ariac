@@ -38,7 +38,7 @@ public:
     double getRearrangePriority();
     void setAllowRearrange(bool value);
 
-private:
+protected:
     ros::NodeHandle nh_;
     PartList binParts;
     bool allowRearrange;

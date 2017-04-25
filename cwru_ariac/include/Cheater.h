@@ -21,7 +21,7 @@ public:
     bool restartPopulation();
     bool isPopulationEnabled();
 
-private:
+protected:
     ros::NodeHandle nh_;
     ros::Subscriber conveyorStateSubscriber;
     ros::Subscriber populationStateSubscriber;

@@ -2,7 +2,6 @@
 // Created by shipei on 10/19/16.
 //
 
-#include <cwru_ariac/Part.h>
 #include "CameraEstimator.h"
 
 CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string topic) :

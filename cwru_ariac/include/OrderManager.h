@@ -32,7 +32,7 @@ public:
         return AGVs[agvNumber].state == AGV::READY;
     }
 
-private:
+protected:
     ros::NodeHandle nh_;
     ros::Time startTime;
     ros::Subscriber orderSubscriber;

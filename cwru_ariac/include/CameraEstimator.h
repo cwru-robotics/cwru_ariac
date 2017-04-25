@@ -25,7 +25,7 @@ public:
 
     void setAssignedID(int assignedID) { this->assignedID = assignedID; }
 
-private:
+protected:
     ros::NodeHandle nh_;
     ros::Subscriber cameraSubscriber;
     void cameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr & image_msg);

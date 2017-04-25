@@ -282,7 +282,6 @@ protected:
             defaultParts.insert(make_pair(defaultPartsName[i], singlePart));
         }
     }
-public:
 };
 
 #endif //CWRU_ARIAC_ARIACBASE_H
