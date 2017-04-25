@@ -33,6 +33,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     updateCount++;
     auto models = image_msg->models;
     // TODO refactor to: match all exist object first, then all untraceable object then add new object
+    // TODO noise filtering
 //    ROS_INFO("inView: %d, size: %d, dt = %f",(int)inView.size(), (int)image_msg->models.size(), (float)dt);
     for (int i = 0; i < models.size(); ++i) {
         geometry_msgs::PoseStamped inPose;

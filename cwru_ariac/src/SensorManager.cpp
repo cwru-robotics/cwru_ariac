@@ -4,9 +4,11 @@
 
 #include "SensorManager.h"
 
-SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh_(nodeHandle), spinner(4) {
+SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh_(nodeHandle), spinner(4), onAGV(totalAGVs),
+                                                           onBin(totalBins) {
     spinner.start();
     updateTimer = nh_.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
+
 }
 
 void SensorManager::addCamera(string topic) {
@@ -23,9 +25,9 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
     bool cleared = false;
     bool performUpdate = false;
     for (int i = 0; i < cameras.size(); ++i) {
-        if (updateCounts[i] != cameras[i]->updateCount | performUpdate) {
+        if (updateCounts[i] != cameras[i]->getUpdateCount() | performUpdate) {
             performUpdate = true;
-            updateCounts[i] = cameras[i]->updateCount;
+            updateCounts[i] = cameras[i]->getUpdateCount();
             if (!cleared) {
                 onConveyor.clear();
                 for (int j = 0; j < onAGV.size(); ++j) {

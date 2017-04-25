@@ -4,31 +4,36 @@ Overall structure see here:
 ```
           ←←←←←←←CameraEstimator
           ↓            ↓
-          ↓      ConveyorManager
+          ↓      SensorManager ← LaserScanner
           ↓            ↓
-     BinManager → GlobalManager ← Parts on AGV and gound
-          ↑            ↓
-    PartsSorter   PlanningUtils ← RobotInterface
+     BinManager → PlanningUtils
+          ↑     ↗      ↓
+  OraclePlanner → main function ← RobotMove ← RobotInterface
                        ↑
                   OrderManager
 ```
-Since the logical camera is a cheat camera, only a single camera can done the job of the whole competition.
 
-This is configurable in *config/ariac_conf.yaml*, including sensors and initial joint state.
+Sensor is configurable in *config/ariac_conf.yaml*.
 
 ## Modules
 
-**AriacBase**: base of every classes (Done)
+**AriacBase**: The base of every class (Done)
 
-**CameraEstimator**: watching camera updates keep tracking parts (Done, Tested)
+**CameraEstimator**: watching camera updates keep tracking parts, multi-instance of camera is allowed (Tested)
 
-**ConveyorManager**: provide planning interface for parts on Conveyor (Done, Not tested)
+**SensorManager**: Provides interface for both camera and laser scanner, and combine information from different sources (Done, Not tested)
 
-**BinManager**: maintain each bin cells provide temporary location for parts
+**BinManager**: Maintain each bin cells and provide temporary location for parts, can hold its camera and use camera information for the update.
 
-**OrderManager**: start competition, check score, and submit orders (call AGV) (Done, Not tested)
+**OrderManager**: start competition, check score, and submit orders (call AGV) (Tested)
 
-**RobotInterface**: planning interface for UR10 + extra linear tray (7DOF)
+**OraclePlanner**: quick time estimation interface for UR10 + extra linear tray (7DOF)
+
+**RobotMove**: planning + move robot interface for UR10 + extra linear tray (7DOF) (Tested)
+
+**RobotInterface**: low level robot interface for UR10 + extra linear tray (7DOF) (Tested)
+
+**PlanningUtils**: Provides some planning algorithms (Done, Not tested)
 
 **Cheater**: extra interface for competition control, won't available in real competition (Done, Not tested)
 
@@ -36,26 +41,18 @@ This is configurable in *config/ariac_conf.yaml*, including sensors and initial 
 
 ###Before run: 
 
-Run setup script from [cwru_scripts](https://github.com/cwru-robotics/cwru_scripts/blob/master/ariac/ariac.sh)
+Run setup script from [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
 Clone this repository and do `catkin_make` and `catkin_make install`
 
-Start simulator by one of following commands:
+Start simulator:
 
 With all parts on Bins:
 ``
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf1.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
+rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/comp_conf1.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
 ``
 
-With some of parts on Bins:
-``
-rosrun osrf_gear gear.py -f `rospack find osrf_gear`/config/comp_conf2.yaml `rospack find cwru_ariac`/config/ariac_conf.yaml
-``
-
-With no parts on Bins:
-``
-rosrun osrf_gear gear.py -f `rospack find cwru_ariac`/config/ariac_conf.yaml
-``
+Other startup command see [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
 Optional args:
 
@@ -69,4 +66,10 @@ Optional args:
 
 `rosrun cwru_ariac camera_tester [part_id]`: a test for keep tracking a single part, note each part have been assigned a positive integer as its own part id. 
 For example, you can try `rosrun cwru_ariac camera_tester 55` or `rosrun cwru_ariac camera_tester 110 # and start the competition`
-    
+
+`rosrun cwru_ariac robot_move_as_tester`: a tester for robot_move_as in async mode
+
+`rosrun cwru_ariac qualifier1`: qualifier 1a and 1b executable 
+
+`rosrun cwru_ariac qualifier2`: qualifier 2a and 2b executable 
+
