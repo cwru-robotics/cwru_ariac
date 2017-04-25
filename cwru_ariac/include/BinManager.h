@@ -34,15 +34,15 @@ public:
     // If allowRearrange sets to true, BinManager can use more aggressive scheme to organize parts, rearrangePriority indicates the necessity of rearrange bins
     // This function returns false if no need to rearrange or no available scheme to rearrange or allowRearrange sets to false
     // actions is the movements that requires when rearranging the bin, part will be moved from pair.first to pair.second in the order of the vector grows.
-    bool rearrangeBins(vector<pair<Part, Part>> &actions);
-    double getRearrangePriority();
-    void setAllowRearrange(bool value);
+//    bool rearrangeBins(vector<pair<Part, Part>> &actions);
+//    double getRearrangePriority();
+//    void setAllowRearrange(bool value);
 
 protected:
     ros::NodeHandle nh_;
     PartList binParts;
-    bool allowRearrange;
-    double rearrangePriority;
+//    bool allowRearrange;
+//    double rearrangePriority;
 };
 
 

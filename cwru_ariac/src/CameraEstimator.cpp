@@ -51,7 +51,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
                 tf_listener.transformPose(worldFrame, inPose, outPose);
             } catch (tf::TransformException &exception) {
 //                return;
-                ROS_WARN("%s", exception.what());
+//                ROS_WARN("%s", exception.what());
                 tferr = true;
                 ros::Duration(0.05).sleep();
                 ros::spinOnce();
