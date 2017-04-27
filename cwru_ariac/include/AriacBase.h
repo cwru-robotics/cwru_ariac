@@ -92,7 +92,6 @@ const int gridNumber = 60;
 const int totalPartsTypes = 8;
 const int totalAGVs = 2;
 const int totalBins = 8;
-const double averageCost = 1000;
 const string defaultPartsName[totalPartsTypes] = {"piston_rod_part", "gear_part", "pulley_part", "gasket_part",
                                                   "part1", "part2", "part3", "part4"};
 const double defaultPartsSize[totalPartsTypes][2] = {{0.059,0.052}, {0.078425,0.078425}, {0.23392,0.23392}, {0.31442,0.15684},
