@@ -4,7 +4,7 @@
 
 #ifndef CWRU_ARIAC_ROBOTMOVE_H
 #define CWRU_ARIAC_ROBOTMOVE_H
-
+  
 
 #include <AriacBase.h>
 
@@ -19,6 +19,7 @@ public:
     bool place(Part destination, double timeout = 0);
     bool move(Part part, Part destination, double timeout = 0);
     bool fetchPartFromConveyor(Part part,Part destination, double timeout=0);
+    bool flipPart(Part part, double timeout = 0);
     bool setJointValues(vector<double> joints, double timeout = 0);
     bool grasp(double timeout = 0);
     bool release(double timeout = 0);

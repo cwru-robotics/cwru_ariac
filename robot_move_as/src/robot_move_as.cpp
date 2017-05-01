@@ -6,6 +6,7 @@
 
 //define this func in separate file--just to focus on its devel
 #include "fetch_part_from_conveyor_fnc.cpp"
+#include "flip_part_fnc.cpp"
 
 RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string topic) :
         nh(nodeHandle), as(nh, topic, boost::bind(&RobotMoveActionServer::executeCB, this, _1), false),
@@ -226,6 +227,18 @@ void RobotMoveActionServer::release() {
     gripper_client.call(detach_);
 }
 
+
+//given a part pose w/rt world, decide if the part is right-side up or up-side down
+bool RobotMoveActionServer::eval_up_down(geometry_msgs::PoseStamped part_pose_wrt_world) {
+//geometry_msgs::PoseStamped part_pose_wrt_world = part.pose;
+ double qx,qy;
+ qx =  part_pose_wrt_world.pose.orientation.x;
+ qy = part_pose_wrt_world.pose.orientation.y;
+ double sum_sqd = qx*qx+qy*qy;
+ if (sum_sqd>0.5) return DOWN;
+ else  return UP;
+}
+
 RobotState RobotMoveActionServer::calcRobotState() {
     robotState.jointStates = robotInterface.getJointsState();
     robotState.jointNames = robotInterface.getJointsNames();
@@ -330,10 +343,20 @@ bool RobotMoveActionServer::bin_hover_jspace_pose(int8_t bin, Eigen::VectorXd &q
 //w/ gasket, cannot pick up part at part origin, due to hole in center
 //define a desired transform between gripper frame and part frame
 // this should include part thickness as part of any necessary displacement from part origin
+// extend this to return grasp transforms for inverted parts
+//return grasp_transform, which is part pose w/rt gripper for vacuum grasp
 bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &grasp_transform) {
 //Eigen::Affine3d grasp_transform;
-    Eigen::Matrix3d R;
+    bool part_is_up = eval_up_down(part.pose);
+    if (!part_is_up) ROS_WARN("part is inverted");
+    Eigen::Matrix3d R, R_inverted;
     R = Eigen::MatrixXd::Identity(3, 3);
+    R_inverted = R; //rot pi about x--> x is 1,0,0; y = 0, -1, 0; z = 0,0,-1
+    Eigen::Vector3d y_inv,z_inv;
+    y_inv<<0,-1,0;
+    z_inv<<0,0,-1;
+    R_inverted.col(1) = y_inv;
+    R_inverted.col(2) = z_inv;   
     Eigen::Vector3d O_part_wrt_gripper;
     O_part_wrt_gripper << 0, 0, 0; //= Eigen::MatrixXd::Zero(3, 1);
     grasp_transform.linear() = R;
@@ -342,32 +365,69 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
 
     string part_name(part.name); //a C++ string
     if (part_name.compare("gear_part") == 0) {
+      if(part_is_up) {
         O_part_wrt_gripper[2] = -(GEAR_PART_THICKNESS);
         O_part_wrt_gripper[1] = 0.04; // offset to avoid touching dowell
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
+       }
+      else {
+        ROS_WARN("inverted grasp not defined for this part");
+        return false;
+      }
     }
     //piston_rod_part
     if (part_name.compare("piston_rod_part") == 0) {
+       if(part_is_up) {
         O_part_wrt_gripper[2] = -(PISTON_ROD_PART_THICKNESS + 0.003);
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
+       }
+      else {
+        ROS_WARN("inverted grasp not defined for this part");
+        return false;
+      }
     }
     //disk_part
     if (part_name.compare("disk_part") == 0) {
+       if(part_is_up) {
         O_part_wrt_gripper[2] = -(DISK_PART_THICKNESS + 0.005);
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
+       }
+      else {
+        ROS_WARN("inverted grasp not defined for this part");
+        return false;
+      }
     }
     //gasket_part
     if (part_name.compare("gasket_part") == 0) {
+       if(part_is_up) {
         O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS)+0.006; // manual tweak for grasp from conveyor
         //for gasket, CANNOT grab at center!! there is a hole there
         O_part_wrt_gripper[0] = 0.03; // TUNE ME; if negative, then hit
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
+       }
+      else {
+        ROS_WARN("inverted grasp not defined for this part");
+        return false;
+      }
     }
-
+    if (part_name.compare("pulley_part") == 0) {
+       if(part_is_up) {
+        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + 0.005);
+        grasp_transform.translation() = O_part_wrt_gripper;
+        return true;
+       }
+      else {
+        ROS_WARN("using inverted pulley-part grasp transform");
+        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + 0.005);
+        grasp_transform.translation() = O_part_wrt_gripper;
+        grasp_transform.linear() =  R_inverted;
+        return true;
+      }
+    }
     ROS_WARN("get_grasp_transform: part name not recognized: %s", part.name.c_str());
     return false; // don't recognize part, so just return zero
 
@@ -479,6 +539,9 @@ bool RobotMoveActionServer::bin_cruise_jspace_pose(int8_t bin, int8_t agv, Eigen
         return false;
     }
     q_vec[1] = q_rail;
+    if (bin==Part::BIN8) {
+       q_vec[1]-= 0.3;
+     }
     return true;
 }
 
@@ -718,6 +781,8 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
     double dt;
     double timeout = goal->timeout <= 0 ? FLT_MAX : goal->timeout;
     unsigned short int errorCode;
+    bool source_is_up, target_is_up, flip_part;
+
     switch (goal->type) {
         case RobotMoveGoal::NONE:
             ROS_INFO("NONE");
@@ -744,6 +809,23 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             }
             break;
 
+         case RobotMoveGoal::FLIP_PART: // special case to flip a part
+           ROS_INFO("attempting to flip a part");
+            errorCode = flip_part_fnc(goal);
+            result_.errorCode = errorCode;
+            if (errorCode == RobotMoveResult::NO_ERROR) {
+                result_.success = true;
+                result_.robotState = robotState;
+                as.setSucceeded(result_);
+                ROS_INFO("done with part-flip attempt");
+            } else {
+                ROS_INFO("failed to flip part");
+                ROS_INFO("error code: %d", (int) errorCode);
+                result_.robotState = robotState;
+                as.setAborted(result_);
+            }
+            break;
+
         case RobotMoveGoal::MOVE:  //Here is the primary function of this server: pick and place
             ROS_INFO("MOVE");
             ROS_INFO("The part is %s, should be moved from %s to %s, with source pose:", goal->sourcePart.name.c_str(),
@@ -755,6 +837,12 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM(goal->targetPart);
             //ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", timeout);
+            source_is_up = eval_up_down(goal->sourcePart.pose);       
+            target_is_up = eval_up_down(goal->targetPart.pose); 
+            flip_part=false;
+            if (source_is_up && !target_is_up) flip_part = true;
+            if (!source_is_up && target_is_up) flip_part = true;
+            if (flip_part) ROS_WARN("need to flip part");
 
             //special case if fetch from conveyor:
             if (goal->sourcePart.location == Part::CONVEYOR) {
@@ -779,6 +867,20 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
             }
 
+            if (flip_part) {
+               ROS_WARN("attempting part flip");
+               errorCode = flip_part_fnc(goal);
+               ROS_WARN("part-flip rtn code: %d",errorCode);
+                if (errorCode != RobotMoveResult::NO_ERROR) {
+                    ROS_INFO("failed to flip part");
+                    ROS_INFO("error code: %d", (int) errorCode);
+                    result_.success = false;
+                    result_.errorCode = errorCode;
+                    result_.robotState = robotState;
+                    as.setAborted(result_);
+                    return;
+                } 
+            }
 
             //anticipate failure, unless proven otherwise:
             result_.success = false;
