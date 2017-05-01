@@ -4,15 +4,15 @@
 
 #include "SensorManager.h"
 
-SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh_(nodeHandle), spinner(4), onAGV(totalAGVs),
+SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh(nodeHandle), spinner(std::thread::hardware_concurrency()), onAGV(totalAGVs),
                                                            onBin(totalBins) {
     spinner.start();
-    updateTimer = nh_.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
+    updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
 
 }
 
 void SensorManager::addCamera(string topic) {
-    cameras.emplace_back(new CameraEstimator(nh_, topic));
+    cameras.emplace_back(new CameraEstimator(nh, topic));
     updateCounts.resize(cameras.size());
 }
 

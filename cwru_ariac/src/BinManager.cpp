@@ -4,7 +4,7 @@
 
 #include "BinManager.h"
 
-BinManager::BinManager(ros::NodeHandle nodeHandle) {
+BinManager::BinManager(ros::NodeHandle nodeHandle): nh(nodeHandle) {
     for (int i = 0; i < totalBins; ++i) {
         bins.push_back(defaultBin);
     }

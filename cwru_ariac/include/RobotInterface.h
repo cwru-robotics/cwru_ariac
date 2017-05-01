@@ -21,7 +21,7 @@ public:
     bool waitForGripperAttach(double timeout);
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
 
     ros::Publisher joint_trajectory_publisher;
     ros::Subscriber joint_state_subscriber;

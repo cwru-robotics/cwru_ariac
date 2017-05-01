@@ -9,7 +9,7 @@ enum State {NONE = 0, INIT, END, FILL_ORDER, WAIT};
 int main(int argc, char** argv) {
     ros::init(argc, argv, "factory_planner");
     ros::NodeHandle nh;
-    CameraEstimator camera(nh);
+    CameraEstimator camera(nh, "/ariac/logical_camera_1");
     RobotMove robot(nh);
     OraclePlanner oracle(nh);
     OrderManager orderManager(nh);

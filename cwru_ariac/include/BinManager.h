@@ -39,7 +39,7 @@ public:
 //    void setAllowRearrange(bool value);
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     PartList binParts;
 //    bool allowRearrange;
 //    double rearrangePriority;

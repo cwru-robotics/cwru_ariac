@@ -10,7 +10,7 @@
 
 class SensorManager: public AriacBase {
 public:
-    SensorManager(ros::NodeHandle nodeHandle);
+    SensorManager(ros::NodeHandle nh);
 
     PartSet inView;
     PartList onGround;
@@ -49,7 +49,7 @@ public:
     };
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;
     int globalID;
