@@ -199,8 +199,18 @@ int main(int argc, char** argv) {
                 ros::Duration(2.0).sleep();
                 ROS_INFO("Current score: %f", orderManager.getCurrentScore());
                 orderManager.AGVs[useAGV].contains.clear();
+                order.kits.erase(find_if(
+                        order.kits.begin(), order.kits.end(),
+                        [kit](osrf_gear::Kit obj) {
+                            return obj.kit_type == kit.kit_type;
+                        }));
             }
             ROS_INFO("completed one order: %s", order.order_id.c_str());
+            orderManager.orders.erase(find_if(
+                    orderManager.orders.begin(), orderManager.orders.end(),
+                    [order](osrf_gear::Order obj) {
+                        return obj.order_id == order.order_id;
+                    }));
         }
         ROS_INFO("completed all orders; waiting for new order");
     }
