@@ -4,14 +4,14 @@
 
 #include "RobotInterface.h"
 
-RobotInterface::RobotInterface(ros::NodeHandle &nodeHandle): nh_( nodeHandle ){
-    joint_state_subscriber = nh_.subscribe(
+RobotInterface::RobotInterface(ros::NodeHandle &nodeHandle): nh( nodeHandle ){
+    joint_state_subscriber = nh.subscribe(
             "/ariac/joint_states", 10,
             &RobotInterface::jointStateCallback, this);
-    joint_trajectory_publisher = nh_.advertise<trajectory_msgs::JointTrajectory>(
+    joint_trajectory_publisher = nh.advertise<trajectory_msgs::JointTrajectory>(
             "/ariac/arm/command", 10);
-    gripper = nh_.serviceClient<osrf_gear::VacuumGripperControl>("/ariac/gripper/control");
-    gripperStateSubscriber = nh_.subscribe("/ariac/gripper/state", 10, &RobotInterface::gripperStateCallback, this);
+    gripper = nh.serviceClient<osrf_gear::VacuumGripperControl>("/ariac/gripper/control");
+    gripperStateSubscriber = nh.subscribe("/ariac/gripper/state", 10, &RobotInterface::gripperStateCallback, this);
     called = false;
     attached = false;
     while(!called && ros::ok()) {

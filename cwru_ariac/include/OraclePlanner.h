@@ -20,7 +20,7 @@ public:
     double getMaxPlanningTime() {return maxPlanningTime;}
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     ros::ServiceClient oracle;
     double maxPlanningTime;
 };

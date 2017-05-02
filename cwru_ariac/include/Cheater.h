@@ -22,7 +22,7 @@ public:
     bool isPopulationEnabled();
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     ros::Subscriber conveyorStateSubscriber;
     ros::Subscriber populationStateSubscriber;
     ros::ServiceClient conveyorControl;

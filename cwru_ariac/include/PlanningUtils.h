@@ -20,8 +20,11 @@ public:
     Part getTargetDistanceBestPart(PartList searchRange, Part target);
     PartList sortByTargetDistance(PartList searchRange, Part target);
 
+    bool findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part, Part>> &wrongLocationParts, PartList &lostParts, PartList &redundantParts);
+
+
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     RobotMove *robot_;
     bool allow_planning;
     double approachTimes;

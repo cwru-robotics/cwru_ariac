@@ -5,7 +5,7 @@
 
 #include "RobotMove.h"
 
-RobotMove::RobotMove(ros::NodeHandle &nodeHandle, string topic): nh_(nodeHandle), ac(topic, true) {
+RobotMove::RobotMove(ros::NodeHandle &nodeHandle, string topic): nh(nodeHandle), ac(topic, true) {
     ROS_INFO("Waiting for action server to start.");
     ac.waitForServer(); //will wait for infinite time
     time_tolerance = 1.0;
@@ -324,11 +324,11 @@ void RobotMove::doneCb(const actionlib::SimpleClientGoalState &state, const Robo
     goal_success_ = result->success;
     errorCode = result->errorCode;
     currentRobotState = result->robotState;
-    ROS_INFO("Action finished in state [%s]: %s with error code: %d",
-             state.toString().c_str(), goal_success_?"success":"failed", errorCode);
-    ROS_INFO("Gripper position is: %f, %f, %f\n",
-             currentRobotState.gripperPose.pose.position.x, currentRobotState.gripperPose.pose.position.y,
-             currentRobotState.gripperPose.pose.position.z);
+//    ROS_INFO("Action finished in state [%s]: %s with error code: %d",
+//             state.toString().c_str(), goal_success_?"success":"failed", errorCode);
+//    ROS_INFO("Gripper position is: %f, %f, %f\n",
+//             currentRobotState.gripperPose.pose.position.x, currentRobotState.gripperPose.pose.position.y,
+//             currentRobotState.gripperPose.pose.position.z);
 //    showJointState(currentRobotState.jointNames, currentRobotState.jointStates);
 }
 

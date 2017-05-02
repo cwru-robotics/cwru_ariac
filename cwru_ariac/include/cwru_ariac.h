@@ -7,11 +7,12 @@
 
 #include <BinManager.h>
 #include <CameraEstimator.h>
-#include <Cheater.h>
 #include <PlanningUtils.h>
 #include <OrderManager.h>
 #include <OraclePlanner.h>
 #include <RobotMove.h>
 #include <RobotInterface.h>
+#include <SensorManager.h>
+#include <OraclePlanningUtils.h>
 
 #endif //CWRU_ARIAC_CWRU_ARIAC_H

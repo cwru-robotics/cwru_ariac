@@ -38,7 +38,7 @@ public:
     void disableAsync() { async_mode = false; }
 
 protected:
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
     actionlib::SimpleActionClient<cwru_ariac::RobotMoveAction> ac;
     int8_t errorCode;
     bool goal_success_;

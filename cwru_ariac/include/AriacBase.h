@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <thread>
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Dense>
@@ -53,7 +54,8 @@
 #include <cwru_ariac/RobotMoveAction.h>
 #include <cwru_ariac/OracleQuery.h>
 
-#include <ariac_xform_utils/ariac_xform_utils.h>
+#include <IDGenerator.h>
+//#include <ariac_xform_utils/ariac_xform_utils.h>
 
 using namespace std;
 using namespace Eigen;
@@ -62,14 +64,13 @@ using namespace osrf_gear;
 
 // overlaod hash function for Part to use unordered set
 namespace std {
-    template <> struct hash<Part>
-    {
+    template <> struct hash<Part> {
         typedef Part      argument_type;
         typedef std::size_t  result_type;
         result_type operator()(const Part & t) const {
-            std::size_t val { 0 };
-            boost::hash_combine(val,hash<int>{}(t.id));
-            boost::hash_combine(val,hash<string>{}(t.name));
+            std::size_t val = 0;
+            boost::hash_combine(val, hash<int>{}(t.id));
+            boost::hash_combine(val, hash<string>{}(t.name));
             return val;
         }
     };
