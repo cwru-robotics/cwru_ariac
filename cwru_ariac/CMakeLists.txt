@@ -42,6 +42,7 @@ cs_add_executable(qualifier2 src/qualifier2.cpp)
 cs_add_executable(qualifier3 src/qualifier3.cpp)
 cs_add_executable(sensor_manager_tester src/sensor_manager_tester.cpp)
 cs_add_executable(robot_move_as_tester src/robot_move_as_tester.cpp)
+cs_add_executable(robot_move_as_part_flip_tester src/robot_move_as_part_flip_tester.cpp)
 # the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
 target_link_libraries(pose_tuner AriacLib)
@@ -54,6 +55,7 @@ target_link_libraries(qualifier2 AriacLib)
 target_link_libraries(qualifier3 AriacLib)
 target_link_libraries(sensor_manager_tester AriacLib)
 target_link_libraries(robot_move_as_tester AriacLib)
+target_link_libraries(robot_move_as_part_flip_tester AriacLib)
 cs_install()
 cs_export()
     

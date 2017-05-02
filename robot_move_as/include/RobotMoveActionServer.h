@@ -43,6 +43,10 @@ const double PISTON_ROD_PART_THICKNESS=0.0075; //works for qual2
 const double GEAR_PART_THICKNESS = 0.015; // 0.015 works for qual2
 const double DISK_PART_THICKNESS = 0.0247;
 const double GASKET_PART_THICKNESS = 0.0336;
+const double PULLEY_PART_THICKNESS = 0.0728;  //0.7255 = z on bin; 0.7983 on top of another pulley: 0.0728 thickness; origin on bottom
+ 
+const bool UP = true;
+const bool DOWN = false;
 
 //surface heights:
 // had to increase tray height by 0.010 to get drop-off height of tray correct.  Don't know why
@@ -53,7 +57,7 @@ const double BASE_LINK_HEIGHT = 1.0;
 
 const double QUAL2_CONVEYOR_SPEED = -0.2;
 
-const double CONVEYOR_TRACK_FUDGE_TIME = 0.5;
+const double CONVEYOR_TRACK_FUDGE_TIME = 0.0; //0.5;
 const double CONVEYOR_FETCH_QRAIL_MIN = -1.0; // don't go more negative than this
 
 
@@ -114,8 +118,12 @@ private:
     double get_dropoff_offset(Part part);
     double get_surface_height(Part part);
     
+    //"Part" should include part pose w/rt world, so can determine if part is right-side up or up-side down
     bool get_grasp_transform(Part part,Eigen::Affine3d &grasp_transform);
     unsigned short int fetch_from_conveyor(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
+    unsigned short int flip_part_fnc(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
+
+    bool eval_up_down(geometry_msgs::PoseStamped part_pose_wrt_world);
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
     //an Affine3 w/rt base_link frame
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link(Part part, double q_rail);

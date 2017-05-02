@@ -145,6 +145,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     geometry_msgs::PoseStamped outPose,outPose2;
     bool tferr = true;
     inPose.pose = object.pose;
+    ROS_INFO_STREAM("input pose relative to tray: "<<inPose);
     if (agvName == AGVs[0].name) {
         part.location = Part::AGV1;
         inPose.header.frame_id = AGVs[0].frameName;
@@ -179,6 +180,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     return part;
 }
 
+
 void OrderManager::broadcastAGVTF(string frameName, geometry_msgs::Pose AGVPose) {
     static tf::TransformBroadcaster br;
     tf::Transform transform;
@@ -189,3 +191,4 @@ void OrderManager::broadcastAGVTF(string frameName, geometry_msgs::Pose AGVPose)
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", frameName));
 //    ROS_INFO("publishing %s", frameName.c_str());
 }
+
