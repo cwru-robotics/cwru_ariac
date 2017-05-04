@@ -367,7 +367,7 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     if (part_name.compare("gear_part") == 0) {
       if(part_is_up) {
         O_part_wrt_gripper[2] = -(GEAR_PART_THICKNESS);
-        O_part_wrt_gripper[1] = 0.04; // offset to avoid touching dowell
+        O_part_wrt_gripper[1] = GEAR_PART_GRASP_Y_OFFSET; // offset to avoid touching dowell
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
        }
@@ -391,7 +391,7 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     //disk_part
     if (part_name.compare("disk_part") == 0) {
        if(part_is_up) {
-        O_part_wrt_gripper[2] = -(DISK_PART_THICKNESS + 0.005);
+        O_part_wrt_gripper[2] = -(DISK_PART_THICKNESS + DISK_PART_GRASP_Z_OFFSET);
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
        }
@@ -403,9 +403,9 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     //gasket_part
     if (part_name.compare("gasket_part") == 0) {
        if(part_is_up) {
-        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS)+0.006; // manual tweak for grasp from conveyor
+        O_part_wrt_gripper[2] = -(GASKET_PART_THICKNESS)+GASKET_PART_GRASP_Z_OFFSET; // manual tweak for grasp from conveyor
         //for gasket, CANNOT grab at center!! there is a hole there
-        O_part_wrt_gripper[0] = 0.03; // TUNE ME; if negative, then hit
+        O_part_wrt_gripper[0] = GASKET_PART_GRASP_X_OFFSET; // TUNE ME; if negative, then hit
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
        }
@@ -416,13 +416,13 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     }
     if (part_name.compare("pulley_part") == 0) {
        if(part_is_up) {
-        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + 0.005);
+        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + PULLEY_PART_GRASP_Z_OFFSET);
         grasp_transform.translation() = O_part_wrt_gripper;
         return true;
        }
       else {
         ROS_WARN("using inverted pulley-part grasp transform");
-        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + 0.005);
+        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + PULLEY_PART_GRASP_Z_OFFSET);
         grasp_transform.translation() = O_part_wrt_gripper;
         grasp_transform.linear() =  R_inverted;
         return true;
