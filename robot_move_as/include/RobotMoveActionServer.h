@@ -108,6 +108,7 @@ private:
     Eigen::VectorXd q_bin3_cruise_pose_,q_bin3_hover_pose_,q_bin3_retract_pose_;  
     Eigen::VectorXd q_bin2_cruise_pose_,q_bin2_hover_pose_,q_bin2_retract_pose_;  
     Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;
+    Eigen::VectorXd q_bin_pulley_flip_;
     Eigen::Affine3d grasp_transform_;
     Eigen::VectorXd j1;
     

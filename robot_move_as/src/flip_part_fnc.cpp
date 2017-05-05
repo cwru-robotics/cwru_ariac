@@ -157,8 +157,8 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
                 result_.errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
             }
-
-            if (!get_pickup_IK(affine_gripper_regrasp, bin_hover_jspace_pose_, gripper_regrasp_jspace)) {
+            q_bin_pulley_flip_[1] = bin_hover_jspace_pose_[1]; // copy over the track position
+            if (!get_pickup_IK(affine_gripper_regrasp, q_bin_pulley_flip_, gripper_regrasp_jspace)) {
                 ROS_WARN("could not compute IK soln for dropoff pose!");
                 result_.errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
@@ -223,16 +223,40 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             ros::Duration(2.0).sleep(); 
             ROS_INFO("moving to tilt pose3");
             move_to_jspace_pose(gripper_tilted_jspace3);
-            ros::Duration(2.0).sleep(); 
+            ros::Duration(3.0).sleep(); 
 
             //translate gripper back towards grasp x,y,z, only set z higher
             //ROS_INFO("moving to dropoff pose");
             //move_to_jspace_pose(q6dof_dropoff);
             //ros::Duration(2.0).sleep(); 
             
-           
+
             release();  //release gripper
-            ros::Duration(0.5).sleep(); 
+            while (robotInterface.isGripperAttached()) {
+                ros::Duration(0.5).sleep();
+                ROS_INFO("waiting for gripper release");
+            }     
+            
+            ROS_INFO("moving to tilt pose3");
+            move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(3.0).sleep(); 
+            gripper_tilted_jspace3[3]-= 0.2; //pan away from disk
+            move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(3.0).sleep();             
+            
+            gripper_tilted_jspace3[2]-= 0.5; // lift
+            move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(3.0).sleep(); 
+            
+            gripper_tilted_jspace3[3]+= 0.5; //pan towards regrasp pose
+             move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(2.0).sleep();            
+
+            gripper_tilted_jspace3[2]+= 0.2; //pan towards regrasp pose
+             move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(2.0).sleep();   
+            
+            
             move_to_jspace_pose(gripper_regrasp_jspace);
             ros::Duration(2.0).sleep(); 
             
