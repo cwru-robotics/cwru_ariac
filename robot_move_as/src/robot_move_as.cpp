@@ -104,7 +104,7 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     //q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;
     
-    q_bin_pulley_flip_ << 1.9, 1.13, -0.75, 3.2, -1.28, -3, 1.58;
+    q_bin_pulley_flip_ << 1.77, 1.13, -0.68, 3.2, 4.9, -3, 0;
 
     approach_dist_ = 0.05; //arbitrarily set the approach offset value, e.g. 5cm
 

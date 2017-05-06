@@ -141,7 +141,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             Eigen::Vector3d O_dropoff,O_regrasp;
 
             O_dropoff = O_pickup; //affine_vacuum_pickup_pose_wrt_base_link_.translation();
-            O_dropoff[2]+=0.04; //elevation higher than pickup pose
+            O_dropoff[2]+=0.04; //0.04; //elevation higher than pickup pose
             O_dropoff[1]+=0.2;  //should not need this...
             affine_gripper_dropoff.translation() = O_dropoff;
             ROS_INFO_STREAM("O_dropoff: "<<O_dropoff);
@@ -182,14 +182,16 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
+            ROS_INFO("enabling gripper");
+            grab(); //do this early, so grasp at first contact
+            
             //now move to bin pickup pose:
             ROS_INFO("moving to pickup_jspace_pose_ ");
             move_to_jspace_pose(pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
-            ROS_INFO("enabling gripper");
-            grab();
+
             while (!robotInterface.isGripperAttached()) {
                 ros::Duration(0.5).sleep();
                 ROS_INFO("waiting for gripper attachment");
@@ -237,10 +239,8 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
                 ROS_INFO("waiting for gripper release");
             }     
             
-            ROS_INFO("moving to tilt pose3");
-            move_to_jspace_pose(gripper_tilted_jspace3);
-            ros::Duration(3.0).sleep(); 
-            gripper_tilted_jspace3[3]-= 0.2; //pan away from disk
+            ROS_INFO("yaw depart:");
+            gripper_tilted_jspace3[3]-= 0.1; //pan away from disk
             move_to_jspace_pose(gripper_tilted_jspace3);
             ros::Duration(3.0).sleep();             
             
@@ -252,13 +252,47 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
              move_to_jspace_pose(gripper_tilted_jspace3);
             ros::Duration(2.0).sleep();            
 
-            gripper_tilted_jspace3[2]+= 0.2; //pan towards regrasp pose
+            //gripper_tilted_jspace3[2]+= 0.2; //lower
+            // move_to_jspace_pose(gripper_tilted_jspace3);
+            //ros::Duration(2.0).sleep();   
+            
+            //do wrist flip:
+            gripper_tilted_jspace3[4]= q_bin_pulley_flip_[4];
+            gripper_tilted_jspace3[5]= q_bin_pulley_flip_[5];    
+            gripper_tilted_jspace3[6]= q_bin_pulley_flip_[6];    
+ 
+           
+            move_to_jspace_pose(gripper_tilted_jspace3);
+            ros::Duration(2.0).sleep();
+
+            gripper_tilted_jspace3[2]= q_bin_pulley_flip_[2]; // lower              
              move_to_jspace_pose(gripper_tilted_jspace3);
-            ros::Duration(2.0).sleep();   
+            ros::Duration(2.0).sleep();
             
+            //gripper_tilted_jspace3[3]+= q_bin_pulley_flip_[3];  // pan back towards part            
             
-            move_to_jspace_pose(gripper_regrasp_jspace);
-            ros::Duration(2.0).sleep(); 
+            ROS_INFO("enabling gripper");
+            //grab(); //do this early, so grasp at first contact
+            
+            q_bin_pulley_flip_[3]-=0.02;
+            move_to_jspace_pose(q_bin_pulley_flip_); //hard-coded grasp pose in jspace; fix this
+            ros::Duration(2.0).sleep();             
+
+            ROS_INFO("moving into part--trying to grasp");
+            //gripper_tilted_jspace3 = q_bin_pulley_flip_;
+            //gripper_tilted_jspace3[3]+=0.01; // move into part
+            q_bin_pulley_flip_[3]+=0.02;
+            
+            //move_to_jspace_pose(q_bin_pulley_flip_);
+            ros::Duration(2.0).sleep();  
+            
+            //move_to_jspace_pose(q_bin_pulley_flip_);
+            //ros::Duration(2.0).sleep();  
+            
+            //gripper_tilted_jspace3= q_bin_pulley_flip_
+            //ROS_INFO("moving to computed grasp pose");        
+            //move_to_jspace_pose(gripper_regrasp_jspace);
+            //ros::Duration(2.0).sleep(); 
             
 
      errorCode = RobotMoveResult::CANCELLED; //debug--return error
