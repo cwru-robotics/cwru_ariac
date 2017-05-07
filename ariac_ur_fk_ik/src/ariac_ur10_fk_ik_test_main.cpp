@@ -108,10 +108,13 @@ int main(int argc, char **argv) {
     //g_q_vec = q_in;
     
     q_7dof_bin8_approach.resize(7);
-    q_7dof_bin8_approach<<1.5, 0.4, -0.8, 2.15, 4.0, -1.57, 0.50;
+    //q_7dof_bin8_approach<<1.6060321701927283, 1.1997527238484404, -0.5616775356330734, 3.09204146853297, 5.25543748534748, -0.05053081571104778, 1.558133295200455;
+     q_7dof_bin8_approach<<1.642581263511942, 1.1997568080035619, -0.5746198853014306, 2.8616105091711717, 5.228917531483109, -0.2806802483645652, 1.5680916185519953;
     //q_7dof_bin8_approach<<1.85, -0.535, -0.47, 3.14, 3.33, -1.57, 0.50;
     q_6dof_bin8_approach = fwd_solver.map726dof(q_7dof_bin8_approach);
 
+    //hard code a pose of interest:
+    //q_6dof_bin8_approach << 1.6060321701927283, -0.5616775356330734, 3.09204146853297, 5.25543748534748, -0.05053081571104778, 1.558133295200455;
    // Eigen::Affine3d affine_vacuum;
         Eigen::Affine3d A_fwd_DH = fwd_solver.fwd_kin_solve(q_6dof_bin8_approach); //fwd_kin_solve
         // rotate DH frame6 to reconcile with URDF frame7:
