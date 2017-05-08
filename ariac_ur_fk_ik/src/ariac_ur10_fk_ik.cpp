@@ -382,7 +382,8 @@ int UR10IkSolver::ik_solve(Eigen::Affine3d const& desired_hand_pose,  vector<Eig
     q_ik_solns.clear();
     Eigen::Vector3d p_des = desired_hand_pose.translation();
     Eigen::Matrix3d R_des = desired_hand_pose.linear();
-    Eigen::Vector3d b6_des = R_des.col(2); // direction of desired z-vector
+
+
     Eigen::Matrix4d T60,T_hand; //target pose, expressed as a 4x4
     //convert affine to 4x4:
     T_hand = Eigen::MatrixXd::Zero(4, 4);
@@ -391,16 +392,20 @@ int UR10IkSolver::ik_solve(Eigen::Affine3d const& desired_hand_pose,  vector<Eig
     T_hand(3, 3) = 1.0;    
     
     T60 = T_hand*g_A_vacuum_wrt_tool0_.inverse(); // T_hand = T60*A_vacuum_wrt_tool0_;
+//    ROS_INFO_STREAM("T60: "<<std::endl<<T60);
     
     //T60 = Eigen::MatrixXd::Zero(4, 4);
     //T60.block<3, 3>(0, 0) = R_des;
     //T60.block<3, 1>(0, 3) = p_des;
     //T60(3, 3) = 1.0;
+    Eigen::Vector3d b6_des = T60.block<3, 1>(0, 2); //R_des.col(2); // direction of desired z-vector
+  //  ROS_INFO_STREAM("b6_des = "<<b6_des.transpose());
 
     //w_des is origin O5; wrist is not spherical, but z5 and z6 intersect  
     double L6 = DH_d_params[5];
-    Eigen::Vector3d w_des = p_des - L6*b6_des; // desired wrist position w/rt frame0
-    //ROS_INFO("w_des: %f, %f, %f", w_des[0], w_des[1], w_des[2]);
+//    ROS_INFO("L6 = %f",L6);
+    Eigen::Vector3d w_des = p_des +- L6*b6_des; // desired wrist position w/rt frame0; watch out for sign! can be defined in vs out
+//    ROS_INFO("w_des: %f, %f, %f", w_des[0], w_des[1], w_des[2]);
     std::vector<double> q1_solns;
     std::vector<double> q5_solns_1a, q5_solns_1b;
     std::vector<double> q6_solns_1a, q6_solns_1b;
@@ -687,7 +692,7 @@ void UR10IkSolver::compute_q5_solns(Eigen::Vector3d p_des, std::vector<double> q
     q5_solns_1b.clear(); //and to second q1 soln
 
     cq5 = (-p_des[0] * sin(q1a) + p_des[1] * cos(q1a) - DH_d_params[3]) / DH_d_params[5];
-    ROS_INFO("cq5a: %f", cq5);
+//    ROS_INFO("cq5a: %f", cq5);
     if (fabs(cq5) > 1.0) {
         ROS_WARN("no solns for q5a");
     } else {

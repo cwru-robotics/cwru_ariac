@@ -67,6 +67,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_bin6_hover_pose_.resize(7);
     q_bin7_hover_pose_.resize(7);
     q_bin8_hover_pose_.resize(7);
+    
+    q_bin_pulley_flip_.resize(7);
 
     q_des_7dof_.resize(7);
     q_cruise_pose_.resize(7);
@@ -101,6 +103,8 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     //q_bin8_cruise_pose_.resize(7);
     //q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;
+    
+    q_bin_pulley_flip_ << 1.77, 1.13, -0.68, 3.2, 4.9, -3, 0;
 
     approach_dist_ = 0.05; //arbitrarily set the approach offset value, e.g. 5cm
 
@@ -540,7 +544,7 @@ bool RobotMoveActionServer::bin_cruise_jspace_pose(int8_t bin, int8_t agv, Eigen
     }
     q_vec[1] = q_rail;
     if (bin==Part::BIN8) {
-       q_vec[1]-= 0.3;
+       q_vec[1]-= 0.6;  //trouble: hits frame when holding pulley part, so move closer to center of rail
      }
     return true;
 }
