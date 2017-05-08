@@ -544,7 +544,7 @@ bool RobotMoveActionServer::bin_cruise_jspace_pose(int8_t bin, int8_t agv, Eigen
     }
     q_vec[1] = q_rail;
     if (bin==Part::BIN8) {
-       q_vec[1]-= 0.3;
+       q_vec[1]-= 0.6;  //trouble: hits frame when holding pulley part, so move closer to center of rail
      }
     return true;
 }
