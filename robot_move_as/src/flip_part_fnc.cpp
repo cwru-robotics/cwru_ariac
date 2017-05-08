@@ -231,20 +231,22 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             ros::Duration(2.0).sleep(); //TUNE ME!!
             double t_wait=0.0;
             double dt_wait = 0.2;
+            double t_wait_timeout = 5.0;
             bool is_attached=false;
-            while (!is_attached && (t_wait<3.0)) {
+            
+            while (!is_attached && (t_wait<1.0)) {
                 is_attached = robotInterface.isGripperAttached();
                 ros::Duration(0.5).sleep();
-                t_wait+=0.5;
+                t_wait+=0.4;
                 ROS_INFO("waiting for gripper attachment");
             }
   
             if (!is_attached) { 
                ROS_WARN("did not attach; trying lower");
-               pickup_jspace_pose_[2]+= 0.01; // lower via shoulder-lift joint
-               move_to_jspace_pose(pickup_jspace_pose_,3.0);
+               pickup_jspace_pose_[2]+= 0.05; // lower via shoulder-lift joint
+               move_to_jspace_pose(pickup_jspace_pose_,t_wait_timeout);
                t_wait=0.0;
-               while (!is_attached && (t_wait<3.0)) {
+               while (!is_attached && (t_wait<t_wait_timeout)) {
                 is_attached = robotInterface.isGripperAttached();
                 ros::Duration(dt_wait).sleep();
                 t_wait+=dt_wait;
