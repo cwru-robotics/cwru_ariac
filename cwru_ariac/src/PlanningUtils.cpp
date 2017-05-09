@@ -9,6 +9,13 @@ PlanningUtils::PlanningUtils(ros::NodeHandle nodeHandle, RobotMove &robot) :
     allow_planning = false;
 }
 
+bool PlanningUtils::eval_up_down(geometry_msgs::Quaternion orientation) {
+    double qx = orientation.x;
+    double qy = orientation.y;
+    double sum_sqd = qx * qx + qy * qy;
+    return sum_sqd > 0.5;
+}
+
 Part PlanningUtils::getEuclideanBestPart(PartList searchRange) {
     RobotState state;
     robot_->getRobotState(state);
@@ -30,8 +37,13 @@ PartList PlanningUtils::sortByEuclidean(PartList searchRange) {
 
 Part PlanningUtils::getTargetDistanceBestPart(PartList searchRange, Part target) {
     return *min_element(searchRange.begin(), searchRange.end(), [this, target](Part a, Part b) {
-        return euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
-               < euclideanDistance((target.pose.pose.position), (b.pose.pose.position));
+        double distance_a = euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
+                            + (eval_up_down(target.pose.pose.orientation)
+                               == eval_up_down(a.pose.pose.orientation) ? 0 : 100);
+        double distance_b = euclideanDistance((target.pose.pose.position), (b.pose.pose.position))
+                            + (eval_up_down(target.pose.pose.orientation)
+                               == eval_up_down(b.pose.pose.orientation) ? 0 : 100);
+        return distance_a < distance_b;
     });
 }
 
