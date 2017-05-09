@@ -10,7 +10,7 @@
 
 class OraclePlanningUtils : public PlanningUtils {
 
-    OraclePlanningUtils(ros::NodeHandle nodeHandle, OraclePlanner &planner, RobotMove &robot);
+    OraclePlanningUtils(ros::NodeHandle &nodeHandle, OraclePlanner &planner, RobotMove &robot);
 
     Part getArrivalBestPart(PartList searchRange);
 

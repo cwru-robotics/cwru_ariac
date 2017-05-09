@@ -4,7 +4,7 @@
 
 #include "CameraEstimator.h"
 
-CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string topic) :
+CameraEstimator::CameraEstimator(ros::NodeHandle &nodeHandle, string topic) :
         nh(nodeHandle), onAGV(totalAGVs), onBin(totalBins) {
     cameraSubscriber = nh.subscribe(topic, 10,
                                      &CameraEstimator::cameraCallback, this);

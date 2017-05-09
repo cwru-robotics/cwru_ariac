@@ -4,7 +4,7 @@
 
 #include "PlanningUtils.h"
 
-PlanningUtils::PlanningUtils(ros::NodeHandle nodeHandle, RobotMove &robot) :
+PlanningUtils::PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot) :
         nh(nodeHandle), robot_(&robot) {
     allow_planning = false;
 }

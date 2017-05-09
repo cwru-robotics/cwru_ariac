@@ -12,7 +12,7 @@
 class PlanningUtils {
 public:
 
-    PlanningUtils(ros::NodeHandle nodeHandle, RobotMove &robot);
+    PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot);
 
     Part getEuclideanBestPart(PartList searchRange);
     PartList sortByEuclidean(PartList searchRange);

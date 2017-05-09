@@ -4,7 +4,7 @@
 
 #include "OraclePlanningUtils.h"
 
-OraclePlanningUtils::OraclePlanningUtils(ros::NodeHandle nodeHandle, OraclePlanner &planner, RobotMove &robot) :
+OraclePlanningUtils::OraclePlanningUtils(ros::NodeHandle &nodeHandle, OraclePlanner &planner, RobotMove &robot) :
         planner_(&planner), PlanningUtils(nodeHandle, robot) {
     allow_planning = true;
     approachTimes = 5;

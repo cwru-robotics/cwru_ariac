@@ -10,7 +10,7 @@
 
 class SensorManager: public AriacBase {
 public:
-    SensorManager(ros::NodeHandle nh);
+    SensorManager(ros::NodeHandle &nodeHandle);
 
     PartSet inView;
     PartList onGround;

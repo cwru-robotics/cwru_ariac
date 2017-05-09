@@ -4,7 +4,7 @@
 
 #include "QualitySensor.h"
 
-QualitySensor::QualitySensor(ros::NodeHandle nodeHandle): nh(nodeHandle) {
+QualitySensor::QualitySensor(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     sensor1Subscriber = nh.subscribe("/ariac/quality_control_sensor_1", 10, &QualitySensor::sensor1Callback, this);
     sensor2Subscriber = nh.subscribe("/ariac/quality_control_sensor_2", 10, &QualitySensor::sensor2Callback, this);
     updateCount = 0;
