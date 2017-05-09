@@ -38,6 +38,23 @@ Then run:
 
 `rosrun cwru_ariac qualifier2`
 
+### Qualifier 3:
+
+For qual3a:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3a.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
+
+OR, for qual3b:
+
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
+
+Then run:
+
+`rosrun robot_move_as robot_move_as`
+
+`rosrun cwru_ariac qualifier3`
+
+
 ## osrf_gear
 
 Official ARIAC repository
@@ -54,7 +71,8 @@ See: [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
 ## Update ARIAC
 
-The lastest ARIAC version is 1.0.4, we will always keep using the lastest ARIAC version.
+The lastest ARIAC version as of 4/29/17 is 1.1.1
+We will always keep using the lastest ARIAC version.
 
 To check your current ARIAC version, run following command:
 
@@ -67,6 +85,5 @@ sudo apt-get update
 sudo apt-get upgrade ariac
 ```
 
-To check what version of ariac you are running, do:
-`dpkg -s ariac | grep Version`
+
 

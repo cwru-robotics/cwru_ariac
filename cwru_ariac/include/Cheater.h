@@ -13,7 +13,7 @@
 
 class Cheater {
 public:
-    Cheater(ros::NodeHandle nodeHandle);
+    Cheater(ros::NodeHandle &nodeHandle);
     bool setConveyorSpeed(double speed);
     double getConveyorSpeed();
     bool pausePopulation();
@@ -21,8 +21,8 @@ public:
     bool restartPopulation();
     bool isPopulationEnabled();
 
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
     ros::Subscriber conveyorStateSubscriber;
     ros::Subscriber populationStateSubscriber;
     ros::ServiceClient conveyorControl;

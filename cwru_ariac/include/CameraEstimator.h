@@ -7,7 +7,6 @@
 
 #include <AriacBase.h>
 
-
 class CameraEstimator: public AriacBase {
 public:
     double distanceTolerance;
@@ -17,29 +16,25 @@ public:
     PartList onConveyor;
     vector<PartList> onAGV;
     vector<PartList> onBin;
-    CameraEstimator(ros::NodeHandle nodeHandle, string topic = "/ariac/logical_camera_1");
 
+    CameraEstimator(ros::NodeHandle &nodeHandle, string topic);
     void ForceUpdate();
+    int getUpdateCount() { return updateCount; }
+    void setUpdateCount(int updateCount) { this->updateCount = updateCount; }
 
-    int getAssignedID() { return assignedID; }
-
-    void setAssignedID(int assignedID) { this->assignedID = assignedID; }
-
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
     ros::Subscriber cameraSubscriber;
+    IDGenerator idGenerator;
     void cameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr & image_msg);
     void splitLocation();
     tf::TransformListener tf_listener;
     tf::StampedTransform transform;
     ros::Time lastTime;
-    int assignedID;
     int updateCount;
     int checkedCount;
     string worldFrame;
     string cameraFrame;
-
-    friend class SensorManager;
 };
 
 

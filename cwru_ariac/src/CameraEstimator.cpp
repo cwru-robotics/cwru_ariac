@@ -2,16 +2,14 @@
 // Created by shipei on 10/19/16.
 //
 
-#include <cwru_ariac/Part.h>
 #include "CameraEstimator.h"
 
-CameraEstimator::CameraEstimator(ros::NodeHandle nodeHandle, string topic) :
-        nh_(nodeHandle), onAGV(totalAGVs), onBin(totalBins) {
-    cameraSubscriber = nh_.subscribe(topic, 10,
+CameraEstimator::CameraEstimator(ros::NodeHandle &nodeHandle, string topic) :
+        nh(nodeHandle), onAGV(totalAGVs), onBin(totalBins) {
+    cameraSubscriber = nh.subscribe(topic, 10,
                                      &CameraEstimator::cameraCallback, this);
     distanceTolerance = 0.02;
     untraceableTolerance = 0.1;
-    assignedID = 1;
     updateCount = 0;
     checkedCount = 0;
     worldFrame = "/world";
@@ -34,6 +32,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     updateCount++;
     auto models = image_msg->models;
     // TODO refactor to: match all exist object first, then all untraceable object then add new object
+    // TODO noise filtering
 //    ROS_INFO("inView: %d, size: %d, dt = %f",(int)inView.size(), (int)image_msg->models.size(), (float)dt);
     for (int i = 0; i < models.size(); ++i) {
         geometry_msgs::PoseStamped inPose;
@@ -52,7 +51,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
                 tf_listener.transformPose(worldFrame, inPose, outPose);
             } catch (tf::TransformException &exception) {
 //                return;
-                ROS_WARN("%s", exception.what());
+//                ROS_WARN("%s", exception.what());
                 tferr = true;
                 ros::Duration(0.05).sleep();
                 ros::spinOnce();
@@ -99,7 +98,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
             nextPart.linear.y = 0;
             nextPart.linear.z = 0;
             nextPart.traceable = false;
-            nextPart.id = assignedID++;
+            nextPart.id = idGenerator.genId();
         }
         updateView.insert(nextPart);
     }
@@ -133,6 +132,10 @@ void CameraEstimator::splitLocation() {
         bool jump = false;
         for (int j = 0; j < onAGV.size(); ++j) {
             if (checkBound(part.pose.pose.position, agvBoundBox[j])) {
+                if (part.name.compare("kit_tray") == 0) {
+                    jump = true;
+                    break;
+                }
                 part.location = Part::AGV1 + j;
                 onAGV[j].push_back(part);
                 jump = true;

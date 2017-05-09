@@ -20,6 +20,7 @@ int8 GRASP						= 17	# input: timeout; output: success, errorCode
 int8 RELEASE					= 18	# input: timeout; output: success, errorCode
 int8 IS_ATTACHED				= 19	# input: (none); output: success (true means attached)
 int8 TO_PREDEFINED_POSE         = 20    # input: predfinedPoseCode, timeout; output: success, errorCode
+int8 FLIP_PART					= 21     # part-flipper code
 
 # predefined move codes
 int8 AGV1_HOVER_POSE                    =101

@@ -19,8 +19,8 @@ public:
     bool setMaxPlanningTime(double maxPlanningTime, int &errorCode = _placeHolderInt);
     double getMaxPlanningTime() {return maxPlanningTime;}
 
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
     ros::ServiceClient oracle;
     double maxPlanningTime;
 };

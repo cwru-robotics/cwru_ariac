@@ -9,13 +9,12 @@
 
 class OrderManager: public AriacBase {
 public:
-    OrderManager(ros::NodeHandle nodeHandle);
+    OrderManager(ros::NodeHandle &nodeHandle);
 
     vector<AGV> AGVs;
     vector<osrf_gear::Order> orders;
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
-    bool findDroppedParts(PartList searchList, PartList targetList, vector<pair<Part, Part>> &wrongLocationParts, PartList &lostParts, PartList &redundantParts);
 
     bool startCompetition();
     bool submitOrder(string agvName, osrf_gear::Kit kit);
@@ -32,8 +31,8 @@ public:
         return AGVs[agvNumber].state == AGV::READY;
     }
 
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
     ros::Time startTime;
     ros::Subscriber orderSubscriber;
     ros::Subscriber scoreSubscriber;
@@ -42,6 +41,7 @@ private:
     ros::Subscriber AGV2StateSubscriber;
     ros::ServiceClient AGV1Client;
     ros::ServiceClient AGV2Client;
+    IDGenerator idGenerator;
     string competitionState;
     double score;
     void orderCallback(const osrf_gear::Order::ConstPtr &order_msg);
@@ -49,18 +49,11 @@ private:
     void competitionStateCallback(const std_msgs::String::ConstPtr &msg);
     void AGV1StateCallback(const std_msgs::String &state);
     void AGV2StateCallback(const std_msgs::String &state);
+    void broadcastAGVTF(string frameName, geometry_msgs::Pose AGVPose);
+    void broadcastTimerCallback(const ros::TimerEvent &event);
     string worldFrame;
     tf::TransformListener tf_listener;
-    tf::Transform tfWorldToTray1_;
-    tf::StampedTransform stfWorldToTray1_,stfTray1ToPart_,stfWorldToPart_;
-    tf::StampedTransform stfStaticWorldToTray1_;
-    geometry_msgs::PoseStamped stpTray1_;
-    string ready_to_deliver_string;
-    string delivering_string;
-    string returning_string;
-    string g_agv1_state_string;
-    int assignedID;
-    XformUtils xform_utils_; //instantiate an object of XformUtils
+    ros::Timer AGVFrameBroadcastTimer;
 };
 
 

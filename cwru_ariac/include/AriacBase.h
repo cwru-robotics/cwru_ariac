@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <thread>
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Dense>
@@ -48,13 +49,13 @@
 #include <cwru_ariac/Dimension.h>
 #include <cwru_ariac/Grid.h>
 #include <cwru_ariac/Part.h>
-#include <cwru_ariac/Parts.h>
 #include <cwru_ariac/PartType.h>
 #include <cwru_ariac/RobotState.h>
 #include <cwru_ariac/RobotMoveAction.h>
 #include <cwru_ariac/OracleQuery.h>
 
-#include <ariac_xform_utils/ariac_xform_utils.h>
+#include <IDGenerator.h>
+//#include <ariac_xform_utils/ariac_xform_utils.h>
 
 using namespace std;
 using namespace Eigen;
@@ -63,14 +64,13 @@ using namespace osrf_gear;
 
 // overlaod hash function for Part to use unordered set
 namespace std {
-    template <> struct hash<Part>
-    {
+    template <> struct hash<Part> {
         typedef Part      argument_type;
         typedef std::size_t  result_type;
         result_type operator()(const Part & t) const {
-            std::size_t val { 0 };
-            boost::hash_combine(val,hash<int>{}(t.id));
-            boost::hash_combine(val,hash<string>{}(t.name));
+            std::size_t val = 0;
+            boost::hash_combine(val, hash<int>{}(t.id));
+            boost::hash_combine(val, hash<string>{}(t.name));
             return val;
         }
     };
@@ -93,7 +93,6 @@ const int gridNumber = 60;
 const int totalPartsTypes = 8;
 const int totalAGVs = 2;
 const int totalBins = 8;
-const double averageCost = 1000;
 const string defaultPartsName[totalPartsTypes] = {"piston_rod_part", "gear_part", "pulley_part", "gasket_part",
                                                   "part1", "part2", "part3", "part4"};
 const double defaultPartsSize[totalPartsTypes][2] = {{0.059,0.052}, {0.078425,0.078425}, {0.23392,0.23392}, {0.31442,0.15684},
@@ -283,7 +282,6 @@ protected:
             defaultParts.insert(make_pair(defaultPartsName[i], singlePart));
         }
     }
-public:
 };
 
 #endif //CWRU_ARIAC_ARIACBASE_H

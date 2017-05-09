@@ -4,8 +4,8 @@
 
 #include "OraclePlanner.h"
 
-OraclePlanner::OraclePlanner(ros::NodeHandle &nodeHandle): nh_(nodeHandle) {
-    oracle = nh_.serviceClient<cwru_ariac::OracleQuery>("/cwru_ariac/oracle");
+OraclePlanner::OraclePlanner(ros::NodeHandle &nodeHandle): nh(nodeHandle) {
+    oracle = nh.serviceClient<cwru_ariac::OracleQuery>("/cwru_ariac/oracle");
     if (!oracle.exists()) {
         oracle.waitForExistence();
     }

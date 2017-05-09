@@ -39,10 +39,30 @@ using namespace std;
 using namespace Eigen;
 using namespace cwru_ariac;
 
-const double PISTON_ROD_PART_THICKNESS=0.0075; //works for qual2
-const double GEAR_PART_THICKNESS = 0.015; // 0.015 works for qual2
-const double DISK_PART_THICKNESS = 0.0247;
-const double GASKET_PART_THICKNESS = 0.0336;
+//part frame notes:
+// GASKET: frame is centered, but with origin at BOTTOM surface; x-axis points towards pin feature
+// PISTON ROD: frame origin is at BOTTOM surface of part, centered in hole; y-axis points towards opposite end of rod
+// GEAR: origin is at BOTTOM of part (centered), and Y-AXIS points towards pin feature
+//DISK: origin is at BOTTOM of part (centered), pin feature is 45 deg (between x-axis and y_axis)
+const double PISTON_ROD_PART_THICKNESS= 0.007; // wsn modified for qual3; 0.0075; //works for qual2
+const double GEAR_PART_THICKNESS = 0.0124; // modified for qual3; 0.015; // 0.015 works for qual2
+const double DISK_PART_THICKNESS = 0.0247;  //note sure about this one...maybe OK
+const double GASKET_PART_THICKNESS = 0.02; // 0.0336; //wsn change for gear 1.1
+//per  /opt/ros/indigo/share/osrf_gear/models/pulley_part_ariac, pulley-part collision model should be 0.0720 thick
+const double PULLEY_PART_THICKNESS = 0.0728;  //0.7255 = z on bin; 0.7983 on top of another pulley: 0.0728 thickness; origin on bottom
+
+//here are some hand-tuned "kludge" parameters to tweak grasp transforms;
+const double GEAR_PART_GRASP_Y_OFFSET = 0.04;
+const double DISK_PART_GRASP_Z_OFFSET = 0.005;
+const double GASKET_PART_GRASP_Z_OFFSET = 0.0; //0.006;
+const double GASKET_PART_GRASP_X_OFFSET = 0.03;
+const double PULLEY_PART_GRASP_Z_OFFSET = 0.007; //0.01; //0.005;
+
+
+
+ 
+const bool UP = true;
+const bool DOWN = false;
 
 //surface heights:
 // had to increase tray height by 0.010 to get drop-off height of tray correct.  Don't know why
@@ -53,7 +73,7 @@ const double BASE_LINK_HEIGHT = 1.0;
 
 const double QUAL2_CONVEYOR_SPEED = -0.2;
 
-const double CONVEYOR_TRACK_FUDGE_TIME = 0.5;
+const double CONVEYOR_TRACK_FUDGE_TIME = 0.0; //0.5;
 const double CONVEYOR_FETCH_QRAIL_MIN = -1.0; // don't go more negative than this
 
 
@@ -89,6 +109,7 @@ private:
     Eigen::VectorXd q_bin3_cruise_pose_,q_bin3_hover_pose_,q_bin3_retract_pose_;  
     Eigen::VectorXd q_bin2_cruise_pose_,q_bin2_hover_pose_,q_bin2_retract_pose_;  
     Eigen::VectorXd q_bin1_cruise_pose_,q_bin1_hover_pose_,q_bin1_retract_pose_;
+    Eigen::VectorXd q_bin_pulley_flip_;
     Eigen::Affine3d grasp_transform_;
     Eigen::VectorXd j1;
     
@@ -114,8 +135,12 @@ private:
     double get_dropoff_offset(Part part);
     double get_surface_height(Part part);
     
+    //"Part" should include part pose w/rt world, so can determine if part is right-side up or up-side down
     bool get_grasp_transform(Part part,Eigen::Affine3d &grasp_transform);
     unsigned short int fetch_from_conveyor(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
+    unsigned short int flip_part_fnc(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
+
+    bool eval_up_down(geometry_msgs::PoseStamped part_pose_wrt_world);
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
     //an Affine3 w/rt base_link frame
     Eigen::Affine3d affine_vacuum_pickup_pose_wrt_base_link(Part part, double q_rail);
