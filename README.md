@@ -40,11 +40,11 @@ Then run:
 
 For qual3a:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3a.yaml `rospack find cwru_ariac`/config/qual3.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3a.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
 
 OR, for qual3b:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/qual3.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
 
 Then run:
 
