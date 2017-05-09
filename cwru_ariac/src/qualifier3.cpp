@@ -12,6 +12,11 @@ int main(int argc, char** argv) {
     camera.addCamera("/ariac/logical_camera_1");
     camera.addCamera("/ariac/logical_camera_2");
     camera.addCamera("/ariac/logical_camera_3");
+    camera.addCamera("/ariac/logical_camera_4");
+    camera.addCamera("/ariac/logical_camera_5");
+    camera.addCamera("/ariac/logical_camera_6");
+    camera.addCamera("/ariac/logical_camera_7");
+    camera.addCamera("/ariac/logical_camera_8");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
     robotMove.disableAsync();
