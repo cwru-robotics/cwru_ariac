@@ -3,6 +3,7 @@
 //start up qual3; hard-code pose of a large pulley to flip
 
 #include <RobotMove.h>
+int g_select_pulley=0;
 
 //Part g_pick_part,g_place_part;
 void set_part_vals(Part &pick_part,Part &place_part) {
@@ -59,6 +60,8 @@ void set_part_vals_inverted(Part &pick_part,Part &place_part) {
 
 void set_part_vals_flip(Part &pick_part,Part &place_part) {
     geometry_msgs::PoseStamped pick_pose,place_pose;
+    ROS_INFO("enter pulley choice, 0 through 3: ");
+    std::cin>>g_select_pulley;
     pick_pose.header.frame_id="world";
     pick_pose.pose.orientation.x=0;
     pick_pose.pose.orientation.y=0;
@@ -68,6 +71,13 @@ void set_part_vals_flip(Part &pick_part,Part &place_part) {
     pick_pose.pose.position.x = -0.45; //Translation: [-0.369, -0.597, 0.726]
     pick_pose.pose.position.y = 1.145;
     pick_pose.pose.position.z = 0.7255;   
+
+    if (g_select_pulley==1) { pick_pose.pose.position.y = 0.845; }
+    if (g_select_pulley==2) { pick_pose.pose.position.x = -0.15; }
+    if (g_select_pulley==3) { pick_pose.pose.position.x = -0.15;
+      pick_pose.pose.position.y = 0.845;
+    }
+    //(-.45, 0.845); (-0.15,0.845); (-0.15;1.145)
     
     place_pose = pick_pose; //use same frame and orientation; change position  
     place_pose.pose.position.x = 0.26;
