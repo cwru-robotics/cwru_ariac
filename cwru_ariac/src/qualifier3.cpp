@@ -43,11 +43,11 @@ int main(int argc, char** argv) {
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
                     ROS_WARN_ONCE("waiting on %s", agvName.c_str());
-//                    useAGV = useAGV == 1? 0 : 1;
-//                    agvName = orderManager.AGVs[useAGV].name;
-//                    ROS_WARN("Try AGV%d", useAGV + 1);
+                    useAGV = (useAGV == 1 ? 0 : 1);
+                    agvName = orderManager.AGVs[useAGV].name;
+                    ROS_WARN("Try AGV%d", useAGV + 1);
                     camera.ForceUpdate();
-//                    ros::Duration(0.1).sleep();
+                    ros::Duration(0.1).sleep();
                 }
                 ROS_INFO("%s is Ready", agvName.c_str());
                 orderManager.AGVs[useAGV].kitAssigned = kit;
@@ -65,7 +65,10 @@ int main(int argc, char** argv) {
                             ROS_INFO("Got %d parts from camera, try to find such part in all places", (int)allParts.size());
                             PartList candidates = findPart(allParts, object.type);
                             for (auto failed: failedParts) {
-                                candidates.erase(findPart(candidates, failed.id));
+                                auto failedIt = findPart(candidates, failed.id);
+                                if (failedIt != candidates.end()) {
+                                    candidates.erase(failedIt);
+                                }
                             }
                             if (candidates.size() == 0) {
                                 ROS_WARN("No candidate parts to complete object: %s in kit %s, order %s",
@@ -104,10 +107,8 @@ int main(int argc, char** argv) {
                                     }
                                     for (auto lostPart: lost) {
                                         ROS_INFO("add lost parts to kit list for future processing");
-                                        osrf_gear::KitObject add_to_list;
-                                        add_to_list.pose = lostPart.pose.pose;
-                                        add_to_list.type = lostPart.name;
-                                        orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
+                                        orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+                                                orderManager.toKitObject(agvName, lostPart));
                                     }
                                     for (auto redundantPart: redundant) {
                                         ROS_INFO("add redundant parts to future list");
@@ -124,10 +125,8 @@ int main(int argc, char** argv) {
                                     robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE);
                                     robotMove.release();
                                     ROS_INFO("add bad parts to kit list");
-                                    osrf_gear::KitObject add_to_list;
-                                    add_to_list.pose = badPart.pose.pose;
-                                    add_to_list.type = badPart.name;
-                                    orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
+                                    orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+                                            orderManager.toKitObject(agvName, badPart));
                                 }
                                 orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
                                 orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
@@ -154,9 +153,8 @@ int main(int argc, char** argv) {
                                         for (auto lostPart: lost) {
                                             ROS_INFO("add lost parts to kit object list");
                                             osrf_gear::KitObject add_to_list;
-                                            add_to_list.pose = lostPart.pose.pose;
-                                            add_to_list.type = lostPart.name;
-                                            orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
+                                            orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+                                                    orderManager.toKitObject(agvName, lostPart));
                                         }
                                         for (auto redundantPart: redundant) {
                                             ROS_INFO("try to pick the dropped part");
@@ -186,10 +184,8 @@ int main(int argc, char** argv) {
                                             robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE);
                                             robotMove.release();
                                             ROS_INFO("add bad parts to kit list");
-                                            osrf_gear::KitObject add_to_list;
-                                            add_to_list.pose = badPart.pose.pose;
-                                            add_to_list.type = badPart.name;
-                                            orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
+                                            orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+                                                    orderManager.toKitObject(agvName, badPart));
                                         }
                                     } else {
                                         ROS_INFO("failed to find target part");

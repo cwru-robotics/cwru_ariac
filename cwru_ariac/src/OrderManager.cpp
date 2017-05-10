@@ -141,11 +141,9 @@ bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
 }
 Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     Part part;
-    geometry_msgs::PoseStamped inPose;
-    geometry_msgs::PoseStamped outPose,outPose2;
+    geometry_msgs::PoseStamped inPose, outPose;
     bool tferr = true;
     inPose.pose = object.pose;
-    ROS_INFO_STREAM("input pose relative to tray: "<<inPose);
     if (agvName == AGVs[0].name) {
         part.location = Part::AGV1;
         inPose.header.frame_id = AGVs[0].frameName;
@@ -180,6 +178,34 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     return part;
 }
 
+osrf_gear::KitObject OrderManager::toKitObject(string agvName, Part part) {
+    osrf_gear::KitObject kit;
+    kit.type = part.name;
+    geometry_msgs::PoseStamped inPose, outPose;
+    bool tferr = true;
+    inPose.pose = part.pose.pose;
+    inPose.header.frame_id = worldFrame;
+    inPose.header.stamp = ros::Time(0);
+    while (tferr && ros::ok()) {
+        tferr = false;
+        try {
+            inPose.header.stamp = ros::Time(0);
+            if (agvName == AGVs[0].name) {
+                tf_listener.transformPose(AGVs[0].frameName, inPose, outPose);
+            } else {
+                tf_listener.transformPose(AGVs[1].frameName, inPose, outPose);
+            }
+        }
+        catch (tf::TransformException &exception) {
+//            ROS_WARN("%s", exception.what());
+            tferr = true;
+            ros::Duration(0.05).sleep();
+            ros::spinOnce();
+        }
+    }
+    kit.pose = outPose.pose;
+    return kit;
+}
 
 void OrderManager::broadcastAGVTF(string frameName, geometry_msgs::Pose AGVPose) {
     static tf::TransformBroadcaster br;
