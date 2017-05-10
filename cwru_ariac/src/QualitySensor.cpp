@@ -51,6 +51,7 @@ void QualitySensor::sensor1Callback(const osrf_gear::LogicalCameraImage::ConstPt
         }
     }
     AGVbadParts[0].swap(newList);
+    updateCount++;
 }
 
 void QualitySensor::sensor2Callback(const osrf_gear::LogicalCameraImage::ConstPtr &sensor_msg) {
@@ -90,6 +91,7 @@ void QualitySensor::sensor2Callback(const osrf_gear::LogicalCameraImage::ConstPt
         }
     }
     AGVbadParts[1].swap(newList);
+    updateCount++;
 }
 
 void QualitySensor::ForceUpdate() {

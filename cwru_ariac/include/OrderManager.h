@@ -16,6 +16,8 @@ public:
 
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
 
+    osrf_gear::KitObject toKitObject(string agvName, Part part);
+
     bool startCompetition();
     bool submitOrder(string agvName, osrf_gear::Kit kit);
 

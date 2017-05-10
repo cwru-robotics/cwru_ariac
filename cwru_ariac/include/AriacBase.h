@@ -189,12 +189,12 @@ inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
     // set tolerances of part placements on tray (per scoring)
     vector<double> rotA = quatToEuler(A.orientation);
     vector<double> rotB = quatToEuler(B.orientation);
-    bool x = fabs(A.position.x - B.position.x) < 0.03;  // 0.05 (old)
-    bool y = fabs(A.position.y - B.position.y) < 0.03;
-    bool z = fabs(A.position.z - B.position.z) < 0.03;
-    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.05;   // 0.1 (old)
-    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.05;
-    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.05;
+    bool x = fabs(A.position.x - B.position.x) < 0.05;  // 0.03 (old)
+    bool y = fabs(A.position.y - B.position.y) < 0.05;
+    bool z = fabs(A.position.z - B.position.z) < 0.05;
+    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
+    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
+    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.1;
     return x & y & z & row & pitch & yaw;
 }
 
