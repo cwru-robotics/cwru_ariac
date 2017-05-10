@@ -10,8 +10,8 @@
 class QualitySensor {
 public:
     QualitySensor(ros::NodeHandle &nodeHandle);
-    PartList AGV1badParts;
-    PartList AGV2badParts;
+
+    vector<PartList> AGVbadParts;
     void ForceUpdate();
 protected:
     ros::NodeHandle nh;

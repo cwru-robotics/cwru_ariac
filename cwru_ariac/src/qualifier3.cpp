@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
     robotMove.disableAsync();
     robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE);
     PlanningUtils planningUtils(nh, robotMove);
+    QualitySensor qualitySensor(nh);
     ROS_INFO("Trying to start the competition");
     while(!orderManager.startCompetition()) ;
     ROS_INFO("Competition started");
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
                                 PartList lost, redundant;
                                 if (planningUtils.findDroppedParts(camera.onAGV[useAGV], orderManager.AGVs[useAGV].contains, wrong, lost, redundant)) {
                                     ROS_WARN("Found parts not in correct pose");
-                                    for (auto currentTarget:wrong) {
+                                    for (auto currentTarget: wrong) {
                                         ROS_INFO("try to adjust part from:");
                                         ROS_INFO_STREAM(currentTarget.first);
                                         ROS_INFO("to");
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
                                         }
                                     }
                                     for (auto lostPart: lost) {
-                                        ROS_INFO("add lost parts to future list");
+                                        ROS_INFO("add lost parts to kit list for future processing");
                                         osrf_gear::KitObject add_to_list;
                                         add_to_list.pose = lostPart.pose.pose;
                                         add_to_list.type = lostPart.name;
@@ -114,6 +115,19 @@ int main(int argc, char** argv) {
                                     }
                                 } else {
                                     ROS_INFO("all parts in correct pose");
+                                }
+                                ROS_INFO("check bad part");
+                                qualitySensor.ForceUpdate();
+                                for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
+                                    ROS_INFO("Found bad part! Going to discard them");
+                                    robotMove.pick(badPart);
+                                    robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE);
+                                    robotMove.release();
+                                    ROS_INFO("add bad parts to kit list");
+                                    osrf_gear::KitObject add_to_list;
+                                    add_to_list.pose = badPart.pose.pose;
+                                    add_to_list.type = badPart.name;
+                                    orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
                                 }
                                 orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
                                 orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
@@ -163,6 +177,19 @@ int main(int argc, char** argv) {
                                                 extraParts.push_back(redundantPart);
                                                 continue;
                                             }
+                                        }
+                                        ROS_INFO("check bad part");
+                                        qualitySensor.ForceUpdate();
+                                        for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
+                                            ROS_INFO("Found bad part! Going to discard them");
+                                            robotMove.pick(badPart);
+                                            robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE);
+                                            robotMove.release();
+                                            ROS_INFO("add bad parts to kit list");
+                                            osrf_gear::KitObject add_to_list;
+                                            add_to_list.pose = badPart.pose.pose;
+                                            add_to_list.type = badPart.name;
+                                            orderManager.AGVs[useAGV].kitAssigned.objects.push_back(add_to_list);
                                         }
                                     } else {
                                         ROS_INFO("failed to find target part");

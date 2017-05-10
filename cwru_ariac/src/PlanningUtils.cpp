@@ -6,10 +6,10 @@
 
 PlanningUtils::PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot) :
         nh(nodeHandle), robot_(&robot) {
-    allow_planning = false;
+    upsideDownPenalty = 100.0;
 }
 
-bool PlanningUtils::eval_up_down(geometry_msgs::Quaternion orientation) {
+bool PlanningUtils::evalUpDown(geometry_msgs::Quaternion orientation) {
     double qx = orientation.x;
     double qy = orientation.y;
     double sum_sqd = qx * qx + qy * qy;
@@ -38,19 +38,24 @@ PartList PlanningUtils::sortByEuclidean(PartList searchRange) {
 Part PlanningUtils::getTargetDistanceBestPart(PartList searchRange, Part target) {
     return *min_element(searchRange.begin(), searchRange.end(), [this, target](Part a, Part b) {
         double distance_a = euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
-                            + (eval_up_down(target.pose.pose.orientation)
-                               == eval_up_down(a.pose.pose.orientation) ? 0 : 100);
+                            + (evalUpDown(target.pose.pose.orientation)
+                               == evalUpDown(a.pose.pose.orientation) ? 0 : upsideDownPenalty);
         double distance_b = euclideanDistance((target.pose.pose.position), (b.pose.pose.position))
-                            + (eval_up_down(target.pose.pose.orientation)
-                               == eval_up_down(b.pose.pose.orientation) ? 0 : 100);
+                            + (evalUpDown(target.pose.pose.orientation)
+                               == evalUpDown(b.pose.pose.orientation) ? 0 : upsideDownPenalty);
         return distance_a < distance_b;
     });
 }
 
 PartList PlanningUtils::sortByTargetDistance(PartList searchRange, Part target) {
     sort(searchRange.begin(), searchRange.end(), [this, target](Part a, Part b) {
-        return euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
-               < euclideanDistance((target.pose.pose.position), (b.pose.pose.position));
+        double distance_a = euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
+                            + (evalUpDown(target.pose.pose.orientation)
+                               == evalUpDown(a.pose.pose.orientation) ? 0 : upsideDownPenalty);
+        double distance_b = euclideanDistance((target.pose.pose.position), (b.pose.pose.position))
+                            + (evalUpDown(target.pose.pose.orientation)
+                               == evalUpDown(b.pose.pose.orientation) ? 0 : upsideDownPenalty);
+        return distance_a < distance_b;
     });
     return searchRange;
 }
@@ -67,7 +72,7 @@ PlanningUtils::findDroppedParts(PartList searchList, PartList targetList, vector
     wrongLocationParts.clear();
     lostParts.clear();
     redundantParts.clear();
-    PartList not_in_search;
+    PartList notInSearch;
     // part list from camera can contains kit tray, search list should not contains kit tray since it is nto a part
     PartList kit_tray = findPart(searchList, "kit_tray");
     for (auto tray: kit_tray) {
@@ -83,10 +88,10 @@ PlanningUtils::findDroppedParts(PartList searchList, PartList targetList, vector
         }
         if (!ignored) {
             // ROS_INFO("Found part mismatch");
-            not_in_search.push_back(searching);
+            notInSearch.push_back(searching);
         }
     }
-    for (auto matching: not_in_search) {
+    for (auto matching: notInSearch) {
         PartList candidates = findPart(targetList, matching.name);
         if (candidates.empty()) {
             redundantParts.push_back(matching);
@@ -99,8 +104,8 @@ PlanningUtils::findDroppedParts(PartList searchList, PartList targetList, vector
         wrongLocationParts.push_back(pair<Part, Part>(matching, *closest));
         targetList.erase(findPart(targetList, (*closest).id));
     }
-    for (auto p: targetList) {
-        lostParts.push_back(p);
+    for (auto lost: targetList) {
+        lostParts.push_back(lost);
     }
-    return !(not_in_search.empty() && targetList.empty());
+    return !(notInSearch.empty() && targetList.empty());
 }
