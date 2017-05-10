@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     ros::AsyncSpinner spinner(4);
     spinner.start();
     robotMove.disableAsync();
-    robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE);
+    robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE, 0);
     ROS_INFO("Trying to start the competition");
     while(!orderManager.startCompetition()) ;
     ROS_INFO("Competition started");

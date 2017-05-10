@@ -12,9 +12,8 @@ class RobotMove {
 public:
     RobotMove(ros::NodeHandle& nodeHandle, string topic = "/robot_move");
     bool toHome(double timeout = 0);
-    bool toCruisePose(double timeout = 0);
-    bool toAgv1HoverPose(double timeout = 0);
-    bool toPredefinedPose(int8_t goal_code);
+
+    bool toPredefinedPose(int8_t goal_code, double timeout = 0);
     bool pick(Part part, double timeout = 0);
     bool place(Part destination, double timeout = 0);
     bool move(Part part, Part destination, double timeout = 0);

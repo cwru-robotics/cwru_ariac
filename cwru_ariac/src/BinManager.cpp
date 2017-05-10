@@ -4,7 +4,7 @@
 
 #include "BinManager.h"
 
-BinManager::BinManager(ros::NodeHandle nodeHandle): nh(nodeHandle) {
+BinManager::BinManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     for (int i = 0; i < totalBins; ++i) {
         bins.push_back(defaultBin);
     }
@@ -61,4 +61,32 @@ BinManager::BinManager(ros::NodeHandle nodeHandle): nh(nodeHandle) {
         bin.bound = binBoundBox[index];
     }
     //sort(bins.begin(), bins.end(), [](Bin a, Bin b){ return a.priority > b.priority;});
+}
+
+bool BinManager::allLocationsForPut(string partName, PartList &locations) {
+    return true;
+}
+
+bool BinManager::allLocationsForTake(string partName, PartList &locations) {
+    return true;
+}
+
+bool BinManager::advisedLocationForPut(string partName, Part &location) {
+    Part fakePart;
+    fakePart.name = partName;
+    fakePart.id = 20000;
+    fakePart.location = Part::BIN1;
+    fakePart.pose.header.frame_id = "world";
+    fakePart.pose.header.stamp = ros::Time::now();
+    fakePart.pose.pose.position.x = -1.000000;
+    fakePart.pose.pose.position.y = -1.000000;
+    fakePart.pose.pose.position.z = 1.000000;
+    fakePart.pose.pose.orientation.w = 1;
+    fakePart.traceable = true;
+    location = fakePart;
+    return true;
+}
+
+bool BinManager::advisedLocationForTake(string partName, Part &partToTake) {
+    return true;
 }

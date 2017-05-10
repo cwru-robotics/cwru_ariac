@@ -4,9 +4,8 @@
 
 #include "OraclePlanningUtils.h"
 
-OraclePlanningUtils::OraclePlanningUtils(ros::NodeHandle nodeHandle, OraclePlanner &planner, RobotMove &robot) :
-        planner_(&planner), PlanningUtils(nodeHandle, robot) {
-    allow_planning = true;
+OraclePlanningUtils::OraclePlanningUtils(ros::NodeHandle &nodeHandle, OraclePlanner &oraclePlanner, RobotMove &robot) :
+        planner_(&oraclePlanner), PlanningUtils(nodeHandle, robot) {
     approachTimes = 5;
     approachAheadTime = 0.5;
 }
@@ -35,10 +34,6 @@ PartList OraclePlanningUtils::sortByArrivalTime(PartList searchRange) {
 }
 
 bool OraclePlanningUtils::estimateMovingPart(Part part, geometry_msgs::PoseStamped &estimatedPose) {
-    if (!allow_planning) {
-        ROS_ERROR("Not allowed to call sortByArrivalTime without Planner");
-        return false;
-    }
     RobotState state;
     robot_->getRobotState(state);
     Part estimatedPart = part;

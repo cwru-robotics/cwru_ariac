@@ -10,7 +10,7 @@
 
 class BinManager: public AriacBase {
 public:
-    BinManager(ros::NodeHandle nodeHandle);
+    BinManager(ros::NodeHandle &nodeHandle);
     // BinManager should remember all the parts inside all bins and keep update this list
     vector<Bin> bins;
     // init all bins with camera information.
@@ -19,13 +19,13 @@ public:
     void assignCamera(CameraEstimator &camera);
     // query all available locations for perform taking a certain type of part. return false when no available space,
     // locations are converted to a fake Part just like the trick in OrderManager and stores in the PartList
-    bool AllLocationsForTake(string PartType, PartList &locations);
+    bool allLocationsForTake(string partName, PartList &locations);
     // similar to AllLocationsForTake, get candidate locations for put a part to any of bins. Return false when no such part available
-    bool AllLocationsForPut(string PartType, PartList &locations);
+    bool allLocationsForPut(string partName, PartList &locations);
     // query for the best location to take a certain type of part, return false when no available space
-    bool advisedLocationForTake(string PartType, Part &partToTake);
+    bool advisedLocationForTake(string partName, Part &partToTake);
     // query for the best location to store a certain type of part, return false when no such part available
-    bool advisedLocationForPut(string PartType, Part &partToPut);
+    bool advisedLocationForPut(string partName, Part &location);
     // this function will be called when robot put a part to a bin to inform BinManager the action, this part should be stored inside BinManager for future take action
     void put(Part part);
     // this function will be called when robot take a part from a bin, this part should be removed from BinManager

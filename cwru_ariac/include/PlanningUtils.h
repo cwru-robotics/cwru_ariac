@@ -12,7 +12,7 @@
 class PlanningUtils {
 public:
 
-    PlanningUtils(ros::NodeHandle nodeHandle, RobotMove &robot);
+    PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot);
 
     Part getEuclideanBestPart(PartList searchRange);
     PartList sortByEuclidean(PartList searchRange);
@@ -26,11 +26,9 @@ public:
 protected:
     ros::NodeHandle nh;
     RobotMove *robot_;
-    bool allow_planning;
-    double approachTimes;
-    double approachAheadTime;
+    double upsideDownPenalty;
 
-    bool eval_up_down(geometry_msgs::Quaternion orientation);
+    bool evalUpDown(geometry_msgs::Quaternion orientation);
 };
 
 

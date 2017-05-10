@@ -10,7 +10,7 @@
 
 class OraclePlanningUtils : public PlanningUtils {
 
-    OraclePlanningUtils(ros::NodeHandle nodeHandle, OraclePlanner &planner, RobotMove &robot);
+    OraclePlanningUtils(ros::NodeHandle &nodeHandle, OraclePlanner &oraclePlanner, RobotMove &robot);
 
     Part getArrivalBestPart(PartList searchRange);
 
@@ -20,6 +20,8 @@ class OraclePlanningUtils : public PlanningUtils {
 
 protected:
     OraclePlanner *planner_;
+    double approachTimes;
+    double approachAheadTime;
 };
 
 

@@ -184,17 +184,33 @@ inline double unifyAngle(double input) {
     input = fmod(input, M_PI);
     return (input > M_PI/2)? M_PI - input : input;
 }
+
 inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
     // set tolerances of part placements on tray (per scoring)
     vector<double> rotA = quatToEuler(A.orientation);
     vector<double> rotB = quatToEuler(B.orientation);
-    bool x = fabs(A.position.x - B.position.x) < 0.05;  // 0.03 (old)
-    bool y = fabs(A.position.y - B.position.y) < 0.05;
-    bool z = fabs(A.position.z - B.position.z) < 0.05;
-    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
-    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
-    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.1;
+    bool x = fabs(A.position.x - B.position.x) < 0.03;  // 0.05 (old)
+    bool y = fabs(A.position.y - B.position.y) < 0.03;
+    bool z = fabs(A.position.z - B.position.z) < 0.03;
+    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.05;   // 0.1 (old)
+    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.05;
+    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.05;
     return x & y & z & row & pitch & yaw;
+}
+
+inline bool isSamePart(Part A, Part B) {
+    bool name = (A.name == B.name);
+    bool x = true;  // ignore linear (moving speed) if not traceable
+    bool y = true;
+    bool z = true;
+    bool location = true;// (A.location == B.location);
+    if (A.traceable && B.traceable) {
+        x = fabs(A.linear.x - B.linear.x) < 0.03;  // 0.03 (old)
+        y = fabs(A.linear.y - B.linear.y) < 0.03;
+        z = fabs(A.linear.z - B.linear.z) < 0.03;
+    }
+    bool pose = matchPose(A.pose.pose, B.pose.pose);
+    return name & location & x & y & z & pose;
 }
 
 // this class is used to storage some basic information of the competition and common algorithms.

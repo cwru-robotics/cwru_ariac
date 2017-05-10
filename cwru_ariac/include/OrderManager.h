@@ -9,7 +9,7 @@
 
 class OrderManager: public AriacBase {
 public:
-    OrderManager(ros::NodeHandle nodeHandle);
+    OrderManager(ros::NodeHandle &nodeHandle);
 
     vector<AGV> AGVs;
     vector<osrf_gear::Order> orders;

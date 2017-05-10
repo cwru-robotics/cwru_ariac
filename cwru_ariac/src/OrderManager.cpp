@@ -4,7 +4,7 @@
 
 #include "OrderManager.h"
 
-OrderManager::OrderManager(ros::NodeHandle nodeHandle): nh(nodeHandle){
+OrderManager::OrderManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     orderSubscriber = nh.subscribe(
             "/ariac/orders", 10, &OrderManager::orderCallback, this);
     scoreSubscriber = nh.subscribe(

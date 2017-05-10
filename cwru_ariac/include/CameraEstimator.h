@@ -17,7 +17,7 @@ public:
     vector<PartList> onAGV;
     vector<PartList> onBin;
 
-    CameraEstimator(ros::NodeHandle nodeHandle, string topic);
+    CameraEstimator(ros::NodeHandle &nodeHandle, string topic);
     void ForceUpdate();
     int getUpdateCount() { return updateCount; }
     void setUpdateCount(int updateCount) { this->updateCount = updateCount; }

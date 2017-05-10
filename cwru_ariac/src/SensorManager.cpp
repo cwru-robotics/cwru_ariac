@@ -4,8 +4,10 @@
 
 #include "SensorManager.h"
 
-SensorManager::SensorManager(ros::NodeHandle nodeHandle) : nh(nodeHandle), spinner(std::thread::hardware_concurrency()), onAGV(totalAGVs),
-                                                           onBin(totalBins) {
+SensorManager::SensorManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle),
+                                                            spinner(std::thread::hardware_concurrency()),
+                                                            onAGV(totalAGVs),
+                                                            onBin(totalBins) {
     spinner.start();
     updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
 

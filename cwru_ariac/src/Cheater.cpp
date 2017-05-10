@@ -4,7 +4,7 @@
 
 #include "Cheater.h"
 
-Cheater::Cheater(ros::NodeHandle nodeHandle) : nh(nodeHandle) {
+Cheater::Cheater(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     conveyorStateSubscriber = nh.subscribe(
             "/ariac/conveyor/state", 10,
             &Cheater::conveyorStateCallback, this);
