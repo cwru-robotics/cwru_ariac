@@ -43,9 +43,9 @@ int main(int argc, char** argv) {
                 ROS_INFO("size of kit: %d",(int)kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
                     ROS_WARN_ONCE("waiting on %s", agvName.c_str());
-                    useAGV = (useAGV == 1 ? 0 : 1);
-                    agvName = orderManager.AGVs[useAGV].name;
-                    ROS_WARN("Try AGV%d", useAGV + 1);
+//                    useAGV = (useAGV == 1 ? 0 : 1);
+//                    agvName = orderManager.AGVs[useAGV].name;
+//                    ROS_WARN("Try AGV%d", useAGV + 1);
                     camera.ForceUpdate();
                     ros::Duration(0.1).sleep();
                 }
@@ -117,6 +117,13 @@ int main(int argc, char** argv) {
                                 } else {
                                     ROS_INFO("all parts in correct pose");
                                 }
+                                orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
+                                orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
+                                        orderManager.AGVs[useAGV].kitAssigned.objects.begin(), orderManager.AGVs[useAGV].kitAssigned.objects.end(),
+                                        [object](osrf_gear::KitObject obj) {
+                                            return obj.type == object.type && matchPose(obj.pose, object.pose);
+                                        }));
+                                break;
                                 ROS_INFO("check bad part");
                                 qualitySensor.ForceUpdate();
                                 for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
@@ -128,13 +135,6 @@ int main(int argc, char** argv) {
                                     orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
                                             orderManager.toKitObject(agvName, badPart));
                                 }
-                                orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
-                                orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
-                                        orderManager.AGVs[useAGV].kitAssigned.objects.begin(), orderManager.AGVs[useAGV].kitAssigned.objects.end(),
-                                        [object](osrf_gear::KitObject obj) {
-                                            return obj.type == object.type && matchPose(obj.pose, object.pose);
-                                        }));
-                                break;
                             }
                             ROS_INFO("Failed to transfer the part, reason: %s", robotMove.getErrorCodeString().c_str());
                             switch (robotMove.getErrorCode()) {
@@ -152,7 +152,6 @@ int main(int argc, char** argv) {
                                         ROS_INFO("Found parts not in correct position");
                                         for (auto lostPart: lost) {
                                             ROS_INFO("add lost parts to kit object list");
-                                            osrf_gear::KitObject add_to_list;
                                             orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
                                                     orderManager.toKitObject(agvName, lostPart));
                                         }
