@@ -10,7 +10,7 @@
 
 class SensorManager: public AriacBase {
 public:
-    SensorManager(ros::NodeHandle nodeHandle);
+    SensorManager(ros::NodeHandle &nodeHandle);
 
     PartSet inView;
     PartList onGround;
@@ -29,15 +29,27 @@ public:
     PartList combineLocations(int locationCode, PartList extras);
 
     // location code
-    const int GROUND = 0x01;
-    const int CONVEYOR = 0x02;
-    const int BINS = 0x04;
-    const int AGV1 = 0x08;
-    const int AGV2 = 0x10;
-    const int AGVS = 0x18;
+    enum {
+        GROUND = 0x01
+    };
+    enum {
+        CONVEYOR = 0x02
+    };
+    enum {
+        BINS = 0x04
+    };
+    enum {
+        AGV1 = 0x08
+    };
+    enum {
+        AGV2 = 0x10
+    };
+    enum {
+        AGVS = 0x18
+    };
 
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
     vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;
     int globalID;

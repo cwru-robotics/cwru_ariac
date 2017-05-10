@@ -7,10 +7,10 @@
 int main(int argc, char** argv) {
     ros::init(argc, argv, "ariac_qual1");
     ros::NodeHandle nh;
-    CameraEstimator camera(nh);
+    CameraEstimator camera(nh, "/ariac/logical_camera_1");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
-    GlobalPlanner globalPlanner(nh, robotMove);
+    PlanningUtils planningUtils(nh, robotMove);
     robotMove.disableAsync();
     ROS_INFO("Try to start the competition");
     while(!orderManager.startCompetition());
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
                     PartList candidates = findPart(all_bins, object.type);
                     ROS_INFO("Found %d parts from bins", (int)candidates.size());
                     while (!candidates.empty()) {
-                        Part best = globalPlanner.getEuclideanBestPart(candidates);
+                        Part best = planningUtils.getEuclideanBestPart(candidates);
                         Part target = orderManager.toAGVPart(agvName, object);
                         candidates.erase(findPart(candidates, best.id));
                         ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());

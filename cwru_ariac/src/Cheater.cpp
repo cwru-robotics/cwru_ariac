@@ -4,15 +4,15 @@
 
 #include "Cheater.h"
 
-Cheater::Cheater(ros::NodeHandle nodeHandle) : nh_(nodeHandle) {
-    conveyorStateSubscriber = nh_.subscribe(
+Cheater::Cheater(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
+    conveyorStateSubscriber = nh.subscribe(
             "/ariac/conveyor/state", 10,
             &Cheater::conveyorStateCallback, this);
-    populationStateSubscriber = nh_.subscribe(
+    populationStateSubscriber = nh.subscribe(
             "/ariac/population/state", 10,
             &Cheater::populationStateCallback, this);
-    conveyorControl = nh_.serviceClient<osrf_gear::ConveyorBeltControl>("/ariac/conveyor/control");
-    populationControl = nh_.serviceClient<osrf_gear::PopulationControl>("/ariac/population/control");
+    conveyorControl = nh.serviceClient<osrf_gear::ConveyorBeltControl>("/ariac/conveyor/control");
+    populationControl = nh.serviceClient<osrf_gear::PopulationControl>("/ariac/population/control");
     conveyorCalled = false;
     populationCalled = false;
     while(!conveyorCalled || !populationCalled && ros::ok()) {

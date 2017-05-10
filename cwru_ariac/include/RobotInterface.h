@@ -20,8 +20,8 @@ public:
     bool isGripperAttached();
     bool waitForGripperAttach(double timeout);
 
-private:
-    ros::NodeHandle nh_;
+protected:
+    ros::NodeHandle nh;
 
     ros::Publisher joint_trajectory_publisher;
     ros::Subscriber joint_state_subscriber;
