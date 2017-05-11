@@ -426,7 +426,7 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
        }
       else {
         ROS_WARN("using inverted pulley-part grasp transform");
-        O_part_wrt_gripper[2] = -(PULLEY_PART_THICKNESS + PULLEY_PART_GRASP_Z_OFFSET);
+        O_part_wrt_gripper[2] = -PULLEY_PART_GRASP_Z_OFFSET-PULLEY_PART_GRASP_Z_OFFSET; //-(PULLEY_PART_THICKNESS + PULLEY_PART_GRASP_Z_OFFSET);
         grasp_transform.translation() = O_part_wrt_gripper;
         grasp_transform.linear() =  R_inverted;
         return true;
@@ -669,7 +669,21 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
     Eigen::Vector3d Oe;
     Oe = affine_part_wrt_world.translation();
 
+    //what is the height of the surface on which we want to place the part?
     Oe[2] = get_surface_height(part); //assumes part frame should be flush with target surface
+    bool part_is_up = eval_up_down(part.pose);    
+        //HACK ADJUSTMENT FOR INVERTED PULLEY:
+    // to place an inverted pulley on a surface, its origin should be PULLEY_PART_THICKNESS above the surface;
+    string part_name(part.name); //a C++ string
+    if (part_name.compare("pulley_part") == 0) {
+      if (!part_is_up) {
+           ROS_WARN("part is inverted");
+           Oe[2] += PULLEY_PART_THICKNESS+PULLEY_PART_GRASP_Z_OFFSET;
+      }
+    }
+
+
+    
     affine_part_wrt_world.translation() = Oe;
     ROS_WARN("I will instead use  part dropoff pose w/rt world of: ");
     xformUtils_.printAffine(affine_part_wrt_world);
@@ -786,6 +800,10 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
     double timeout = goal->timeout <= 0 ? FLT_MAX : goal->timeout;
     unsigned short int errorCode;
     bool source_is_up, target_is_up, flip_part;
+                double t_wait=0.0;
+            double dt_wait = 0.2;
+            double t_wait_timeout = 5.0;
+            bool is_attached=false;
 
     switch (goal->type) {
         case RobotMoveGoal::NONE:
@@ -988,7 +1006,45 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
             //now move to bin pickup pose:
-            ROS_INFO("moving to pickup_jspace_pose_ ");
+            ROS_INFO("enabling gripper");
+            grab(); //do this early, so grasp at first contact
+            
+            //now move to bin pickup pose:
+            ROS_INFO_STREAM("moving to pickup_jspace_pose_ "<<pickup_jspace_pose_);
+            move_to_jspace_pose(pickup_jspace_pose_); // try to pick up part
+            ros::Duration(2.0).sleep(); //TUNE ME!!
+
+            
+            while (!is_attached && (t_wait<1.0)) {
+                is_attached = robotInterface.isGripperAttached();
+                ros::Duration(0.5).sleep();
+                t_wait+=0.4;
+                ROS_INFO("waiting for gripper attachment");
+            }
+  
+            if (!is_attached) { 
+               ROS_WARN("did not attach; trying lower");
+               pickup_jspace_pose_[2]+= 0.05; // lower via shoulder-lift joint
+               move_to_jspace_pose(pickup_jspace_pose_,t_wait_timeout);
+               t_wait=0.0;
+               while (!is_attached && (t_wait<t_wait_timeout)) {
+                is_attached = robotInterface.isGripperAttached();
+                ros::Duration(dt_wait).sleep();
+                t_wait+=dt_wait;
+                ROS_INFO("waiting for gripper attachment");
+               }
+            }
+            if(!is_attached) {
+                ROS_WARN("could not grasp part; giving up");             
+                result_.errorCode = RobotMoveResult::GRIPPER_FAULT;
+                
+                result_.success = false;
+                result_.robotState = robotState;
+                as.setAborted(result_);
+                return;
+            }
+            ROS_INFO("part is attached to gripper");            
+/*            ROS_INFO("moving to pickup_jspace_pose_ ");
             move_to_jspace_pose(pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
@@ -1004,7 +1060,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             // ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s got the part", robotInterface.isGripperAttached()? "still": "did not");
             //enable gripper
-
+*/
             ROS_INFO("moving to bin hover pose");
             move_to_jspace_pose(bin_hover_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
