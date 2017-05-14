@@ -21,8 +21,11 @@ int main(int argc, char **argv) {
     sensorManager.addCamera("/ariac/logical_camera_2");
     sensorManager.addCamera("/ariac/logical_camera_3");
     sensorManager.addCamera("/ariac/logical_camera_4");
+    sensorManager.addCamera("/ariac/logical_camera_5");
+    sensorManager.addCamera("/ariac/logical_camera_6");
+    sensorManager.addCamera("/ariac/logical_camera_7");
     while (ros::ok()) {
-//        sensorManager.ForceUpdate();
+//        sensorManager.forceUpdate();
         auto part_list = sensorManager.combineLocations(
                 SensorManager::CONVEYOR + SensorManager::AGVS + SensorManager::BINS + SensorManager::GROUND);
         auto part = findPart(part_list, index);

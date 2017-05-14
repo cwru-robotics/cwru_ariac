@@ -94,7 +94,7 @@ void QualitySensor::sensor2Callback(const osrf_gear::LogicalCameraImage::ConstPt
     updateCount++;
 }
 
-void QualitySensor::ForceUpdate() {
+void QualitySensor::forceUpdate() {
     while (updateCount == checkedCount && ros::ok()){
         ros::spinOnce();
         ros::Duration(0.02).sleep();

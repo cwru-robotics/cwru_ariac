@@ -8,14 +8,16 @@ SensorManager::SensorManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle),
                                                             spinner(std::thread::hardware_concurrency()),
                                                             onAGV(totalAGVs),
                                                             onBin(totalBins) {
-    spinner.start();
-    updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
-
+    updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this, false, false);
+    inUpdate = false;
 }
 
 void SensorManager::addCamera(string topic) {
+    stopUpdate();
+    while (inUpdate);
     cameras.emplace_back(new CameraEstimator(nh, topic));
     updateCounts.resize(cameras.size());
+    startUpdate();
 }
 
 void SensorManager::addLaserScanner(string topic) {
@@ -23,48 +25,84 @@ void SensorManager::addLaserScanner(string topic) {
 }
 
 void SensorManager::updateCallback(const ros::TimerEvent &event) {
-    // implement your code here, it will be executed every 0.02s
+    // implement your code here, it will be executed at 50Hz
     bool cleared = false;
     bool performUpdate = false;
+    int process = 10;
+    inUpdate = true;
     for (int i = 0; i < cameras.size(); ++i) {
-        if (updateCounts[i] != cameras[i]->getUpdateCount() | performUpdate) {
-            performUpdate = true;
-            updateCounts[i] = cameras[i]->getUpdateCount();
-            if (!cleared) {
-                onConveyor.clear();
-                for (int j = 0; j < onAGV.size(); ++j) {
-                    onAGV[j].clear();
+        cameras[i]->lock();
+        try {
+            if (updateCounts[i] != cameras[i]->getUpdateCount() | performUpdate) {
+                performUpdate = true;
+                updateCounts[i] = cameras[i]->getUpdateCount();
+                process = 20;
+                if (!cleared) {
+                    process = 30;
+                    onGround.clear();
+                    cleared = true;
+                    process = 40;
+                    onConveyor.clear();
+                    process = 50;
+                    for (int j = 0; j < onAGV.size(); ++j) {
+                        process++;
+                        onAGV[j].clear();
+                    }
+                    process = 60;
+                    for (int k = 0; k < onBin.size(); ++k) {
+                        process++;
+                        onBin[k].clear();
+                    }
                 }
-                for (int k = 0; k < onBin.size(); ++k) {
-                    onBin[k].clear();
+                process = 70;
+                for (auto p : cameras[i]->onGround) {
+                    onGround.push_back(p);
                 }
-                onGround.clear();
-                cleared = true;
-            }
-            for (auto p : cameras[i]->onGround) {
-                onGround.push_back(p);
-            }
-            for (auto p : cameras[i]->onConveyor) {
-                onGround.push_back(p);
-            }
-            for (int l = 0; l < onBin.size(); ++l) {
-                for (int m = 0; m < cameras[i]->onBin[l].size(); ++m) {
-                    onBin[l].push_back(cameras[i]->onBin[l][m]);
+                process = 80;
+                for (auto p : cameras[i]->onConveyor) {
+                    process++;
+                    onConveyor.push_back(p);
+                }
+                process = 900;
+                for (int l = 0; l < onBin.size(); ++l) {
+                    process += 10;
+                    for (int m = 0; m < cameras[i]->onBin[l].size(); ++m) {
+                        process++;
+                        onBin[l].push_back(cameras[i]->onBin[l][m]);
+                    }
+                }
+                process = 1000;
+                for (int n = 0; n < onAGV.size(); ++n) {
+                    process += 10;
+                    for (int j = 0; j < cameras[i]->onAGV[n].size(); ++j) {
+                        process++;
+                        onAGV[n].push_back(cameras[i]->onAGV[n][j]);
+                    }
                 }
             }
-            for (int n = 0; n < onAGV.size(); ++n) {
-                for (int j = 0; j < cameras[i]->onAGV[n].size(); ++j) {
-                    onAGV[n].push_back(cameras[i]->onAGV[n][j]);
-                }
-            }
+        } catch (const std::bad_alloc e) {
+            ROS_ERROR("Error: %s, when update camera %d at process %d", e.what(), i + 1, process);
         }
+        cameras[i]->unlock();
     }
     // TODO: merge redundant parts
+    inUpdate = false;
 }
 
-void SensorManager::ForceUpdate() {
+void SensorManager::startUpdate() {
+    while (!spinner.canStart());
+    spinner.start();
+    updateTimer.start();
+}
+
+void SensorManager::stopUpdate() {
+    spinner.stop();
+    updateTimer.stop();
+}
+
+void SensorManager::forceUpdate() {
     for (int i = 0; i < cameras.size(); ++i) {
-        cameras[i]->ForceUpdate();
+        cameras[i]->forceUpdate();
     }
 }
 

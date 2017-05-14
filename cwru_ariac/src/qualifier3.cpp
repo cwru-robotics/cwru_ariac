@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
     int useAGV = 0;
     string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
-        camera.ForceUpdate();
         if (orderManager.orders.empty()) {
-            ROS_INFO("Got no order, waiting...");
+            ROS_INFO_THROTTLE(0.5, "Got no order, waiting...");
+            ros::Duration(0.02).sleep();
             continue;
         }
         ROS_INFO("Got %d orders", (int) orderManager.orders.size());
@@ -41,12 +41,11 @@ int main(int argc, char **argv) {
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d", (int) kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
-                    ROS_WARN_ONCE("waiting on %s", agvName.c_str());
+                    ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
 //                    useAGV = (useAGV == 1 ? 0 : 1);
 //                    agvName = orderManager.AGVs[useAGV].name;
-//                    ROS_WARN("Try AGV%d", useAGV + 1);
-                    camera.ForceUpdate();
-                    ros::Duration(0.1).sleep();
+//                    ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
+                    ros::Duration(0.02).sleep();
                 }
                 ROS_INFO("%s is Ready", agvName.c_str());
                 orderManager.AGVs[useAGV].kitAssigned = kit;
@@ -54,11 +53,14 @@ int main(int argc, char **argv) {
                 orderManager.AGVs[useAGV].kitCompleted.objects.clear();
                 while (!orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
                     for (auto object : orderManager.AGVs[useAGV].kitAssigned.objects) {
+                        cout << "=============================================================================" << endl;
                         ROS_INFO("Working on object type: %s", object.type.c_str());
+                        ROS_INFO("Remain objects for this kit: %d",
+                                 (int) orderManager.AGVs[useAGV].kitAssigned.objects.size());
                         bool succeed = false;
                         PartList failedParts;
                         while (ros::ok() && !succeed) {
-                            camera.ForceUpdate();
+                            camera.forceUpdate();
                             PartList allParts = camera.combineLocations(SensorManager::CONVEYOR + SensorManager::BINS
                                                                         + SensorManager::GROUND, extraParts);
                             ROS_INFO("Got %d parts from camera, try to find such part in all places",
@@ -88,7 +90,7 @@ int main(int argc, char **argv) {
                                 orderManager.AGVs[useAGV].contains.push_back(target);
                                 succeed = true;
                                 ROS_INFO("Recheck part pose");
-                                camera.ForceUpdate();
+                                camera.forceUpdate();
                                 vector<pair<Part, Part>> wrong;
                                 PartList lost, redundant;
                                 PartList compareSource = camera.onAGV[useAGV];
@@ -126,52 +128,6 @@ int main(int argc, char **argv) {
                                         [object](osrf_gear::KitObject obj) {
                                             return obj.type == object.type && matchPose(obj.pose, object.pose);
                                         }));
-                                ROS_INFO("checking bad parts...");
-                                qualitySensor.ForceUpdate();
-                                if (!qualitySensor.AGVbadParts[useAGV].empty()) {
-                                    ROS_WARN("Found bad part! Going to discard them");
-                                    for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
-                                        ROS_INFO("Working on bad part:");
-                                        ROS_INFO_STREAM(badPart);
-                                        if (robotMove.pick(badPart)) {
-                                            if (robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE)) {
-                                                if (robotMove.release()) {
-                                                    ROS_INFO("Successfully removed bad part from tray");
-                                                    ROS_INFO("add bad parts to kit list to fill them");
-                                                    auto kitObject = orderManager.toKitObject(agvName, badPart);
-                                                    orderManager.AGVs[useAGV].kitAssigned.objects.push_back(kitObject);
-                                                    orderManager.AGVs[useAGV].kitCompleted.objects.erase(find_if(
-                                                            orderManager.AGVs[useAGV].kitCompleted.objects.begin(),
-                                                            orderManager.AGVs[useAGV].kitCompleted.objects.end(),
-                                                            [kitObject](osrf_gear::KitObject obj) {
-                                                                return obj.type == kitObject.type &&
-                                                                       matchPose(obj.pose, kitObject.pose);
-                                                            }));
-                                                    orderManager.AGVs[useAGV].contains.erase(find_if(
-                                                            orderManager.AGVs[useAGV].contains.begin(),
-                                                            orderManager.AGVs[useAGV].contains.end(),
-                                                            [badPart](Part part) {
-                                                                return isSamePart(badPart, part);
-                                                            }));
-                                                    continue;
-                                                } else {
-                                                    ROS_WARN("Failed to release the gripper, reason: %s",
-                                                             robotMove.getErrorCodeString().c_str());
-                                                }
-                                            } else {
-                                                ROS_WARN("Failed to move robot to AGV1_CRUISE_POSE, reason: %s",
-                                                         robotMove.getErrorCodeString().c_str());
-                                            }
-                                        } else {
-                                            ROS_WARN("Failed to pick the bad part, reason: %s",
-                                                     robotMove.getErrorCodeString().c_str());
-                                        }
-                                        ROS_WARN("Not able to discard bad part, ignore the error");
-                                    }
-                                } else {
-                                    ROS_INFO("bad part check passed!");
-                                }
-                                break;
                             } else {
                                 ROS_INFO("Failed to transfer the part, reason: %s",
                                          robotMove.getErrorCodeString().c_str());
@@ -181,8 +137,8 @@ int main(int argc, char **argv) {
                                         break;
                                     case RobotMoveResult::PART_DROPPED: {
                                         ROS_INFO("Checking dropped part location");
-                                        camera.ForceUpdate();
-                                        vector <pair<Part, Part>> wrong;
+                                        camera.forceUpdate();
+                                        vector<pair<Part, Part>> wrong;
                                         PartList lost, redundant;
                                         if (planningUtils.findDroppedParts(camera.onAGV[useAGV],
                                                                            orderManager.AGVs[useAGV].contains, wrong,
@@ -214,57 +170,6 @@ int main(int argc, char **argv) {
                                                     extraParts.push_back(redundantPart);
                                                 }
                                             }
-                                            ROS_INFO("checking bad parts...");
-                                            qualitySensor.ForceUpdate();
-                                            if (!qualitySensor.AGVbadParts[useAGV].empty()) {
-                                                ROS_WARN("Found bad part! Going to discard them");
-                                                for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
-                                                    ROS_INFO("Working on bad part:");
-                                                    ROS_INFO_STREAM(badPart);
-                                                    if (robotMove.pick(badPart)) {
-                                                        if (robotMove.toPredefinedPose(
-                                                                RobotMoveGoal::AGV1_CRUISE_POSE)) {
-                                                            if (robotMove.release()) {
-                                                                ROS_INFO("Successfully removed bad part from tray");
-                                                                ROS_INFO("add bad parts to kit list to fill them");
-                                                                auto kitObject = orderManager.toKitObject(agvName,
-                                                                                                          badPart);
-                                                                orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
-                                                                        kitObject);
-                                                                orderManager.AGVs[useAGV].kitCompleted.objects.erase(
-                                                                        find_if(
-                                                                                orderManager.AGVs[useAGV].kitCompleted.objects.begin(),
-                                                                                orderManager.AGVs[useAGV].kitCompleted.objects.end(),
-                                                                                [kitObject](osrf_gear::KitObject obj) {
-                                                                                    return obj.type == kitObject.type &&
-                                                                                           matchPose(obj.pose,
-                                                                                                     kitObject.pose);
-                                                                                }));
-                                                                orderManager.AGVs[useAGV].contains.erase(find_if(
-                                                                        orderManager.AGVs[useAGV].contains.begin(),
-                                                                        orderManager.AGVs[useAGV].contains.end(),
-                                                                        [badPart](Part part) {
-                                                                            return isSamePart(badPart, part);
-                                                                        }));
-                                                                continue;
-                                                            } else {
-                                                                ROS_WARN("Failed to release the gripper, reason: %s",
-                                                                         robotMove.getErrorCodeString().c_str());
-                                                            }
-                                                        } else {
-                                                            ROS_WARN(
-                                                                    "Failed to move robot to AGV1_CRUISE_POSE, reason: %s",
-                                                                    robotMove.getErrorCodeString().c_str());
-                                                        }
-                                                    } else {
-                                                        ROS_WARN("Failed to pick the bad part, reason: %s",
-                                                                 robotMove.getErrorCodeString().c_str());
-                                                    }
-                                                    ROS_WARN("Not able to discard bad part");
-                                                }
-                                            } else {
-                                                ROS_INFO("bad part check passed!");
-                                            }
                                         } else {
                                             ROS_INFO("failed to find target part");
                                         }
@@ -289,6 +194,51 @@ int main(int argc, char **argv) {
                                     default:
                                         break;
                                 }
+                            }
+                            ROS_INFO("checking bad parts...");
+                            qualitySensor.forceUpdate();
+                            if (!qualitySensor.AGVbadParts[useAGV].empty()) {
+                                ROS_WARN("Found bad part! Going to discard them");
+                                for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
+                                    ROS_INFO("Working on bad part:");
+                                    ROS_INFO_STREAM(badPart);
+                                    if (robotMove.pick(badPart)) {
+                                        if (robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE)) {
+                                            if (robotMove.release()) {
+                                                ROS_INFO("Successfully removed bad part from tray");
+                                                ROS_INFO("add bad parts to kit list to fill them");
+                                                auto kitObject = orderManager.toKitObject(agvName, badPart);
+                                                orderManager.AGVs[useAGV].kitAssigned.objects.push_back(kitObject);
+                                                orderManager.AGVs[useAGV].kitCompleted.objects.erase(
+                                                        find_if(orderManager.AGVs[useAGV].kitCompleted.objects.begin(),
+                                                                orderManager.AGVs[useAGV].kitCompleted.objects.end(),
+                                                                [kitObject](osrf_gear::KitObject obj) {
+                                                                    return obj.type == kitObject.type &&
+                                                                           matchPose(obj.pose, kitObject.pose);
+                                                                }));
+                                                orderManager.AGVs[useAGV].contains.erase(
+                                                        find_if(orderManager.AGVs[useAGV].contains.begin(),
+                                                                orderManager.AGVs[useAGV].contains.end(),
+                                                                [badPart](Part part) {
+                                                                    return isSamePart(badPart, part);
+                                                                }));
+                                                continue;
+                                            } else {
+                                                ROS_WARN("Failed to release the gripper, reason: %s",
+                                                         robotMove.getErrorCodeString().c_str());
+                                            }
+                                        } else {
+                                            ROS_WARN("Failed to move robot to AGV1_CRUISE_POSE, reason: %s",
+                                                     robotMove.getErrorCodeString().c_str());
+                                        }
+                                    } else {
+                                        ROS_WARN("Failed to pick the bad part, reason: %s",
+                                                 robotMove.getErrorCodeString().c_str());
+                                    }
+                                    ROS_WARN("Not able to discard bad part");
+                                }
+                            } else {
+                                ROS_INFO("bad part check passed!");
                             }
                         }
                         if (succeed) {

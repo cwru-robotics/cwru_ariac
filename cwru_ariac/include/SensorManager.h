@@ -8,7 +8,7 @@
 #include <AriacBase.h>
 #include <CameraEstimator.h>
 
-class SensorManager: public AriacBase {
+class SensorManager : public AriacBase {
 public:
     SensorManager(ros::NodeHandle &nodeHandle);
 
@@ -22,11 +22,15 @@ public:
 
     void addLaserScanner(string topic);
 
-    void ForceUpdate();
+    void forceUpdate();
 
     PartList combineLocations(int locationCode);
 
     PartList combineLocations(int locationCode, PartList extras);
+
+    void startUpdate();
+
+    void stopUpdate();
 
     // location code
     enum {
@@ -52,9 +56,9 @@ protected:
     ros::NodeHandle nh;
     vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;
-    int globalID;
     ros::AsyncSpinner spinner;
     ros::Timer updateTimer;
+    bool inUpdate;
 
     void updateCallback(const ros::TimerEvent &event);
 };
