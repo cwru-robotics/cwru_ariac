@@ -49,6 +49,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
     Eigen::VectorXd q_edge_dropoff_ref;
     q_edge_dropoff_ref.resize(7);
     q_edge_dropoff_ref<<1.77, 1.20, -0.62, 2.94, 5.14, -0.20, 1.57; //ref pose for IK assistance for edge-dropoff pose
+    bool is_attached=false;
 
     cwru_ariac::Part part = goal->sourcePart;
             ROS_INFO("The part is %s, should be fetched from location code %s ", part.name.c_str(),
@@ -131,7 +132,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             //if (!get_pickup_IK(cart_grasp_pose_wrt_base_link,approx_jspace_pose,&q_vec_soln);
             if (!get_pickup_IK(affine_vacuum_pickup_pose_wrt_base_link_, bin_hover_jspace_pose_, pickup_jspace_pose_)) {
                 ROS_WARN("could not compute IK soln for pickup pose!");
-                result_.errorCode = RobotMoveResult::UNREACHABLE;
+                errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
             } 
             ROS_INFO_STREAM("pickup_jspace_pose_: " << pickup_jspace_pose_.transpose());
@@ -141,7 +142,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             if (!compute_approach_IK(affine_vacuum_pickup_pose_wrt_base_link_, pickup_jspace_pose_, approach_dist_,
                                      approach_pickup_jspace_pose_)) {
                 ROS_WARN("could not compute IK soln for pickup approach pose!");
-                result_.errorCode = RobotMoveResult::UNREACHABLE;
+                errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
             }
             ROS_INFO_STREAM("approach_pickup_jspace_pose_: " << approach_pickup_jspace_pose_.transpose());
@@ -188,7 +189,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
            //try more targeted reference pose for dropoff
             if (!get_pickup_IK(affine_gripper_dropoff, q_edge_dropoff_ref, gripper_tilted_jspace3)) {
                 ROS_WARN("could not compute IK soln for dropoff pose!");
-                result_.errorCode = RobotMoveResult::UNREACHABLE;
+                errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
             }
             ROS_INFO_STREAM("jspace dropoff: "<<std::endl<<gripper_tilted_jspace3.transpose());
@@ -200,7 +201,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             q_bin_pulley_flip_[1] = bin_hover_jspace_pose_[1]; // copy over the track position
             if (!get_pickup_IK(affine_gripper_regrasp, q_bin_pulley_flip_, gripper_regrasp_jspace)) {
                 ROS_WARN("could not compute IK soln for regrasp pose!");
-                result_.errorCode = RobotMoveResult::UNREACHABLE;
+                errorCode = RobotMoveResult::UNREACHABLE;
                 return errorCode;
             }
 
@@ -216,6 +217,20 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             //at this point, have already confired bin ID is good
             //ros::Duration(2.0).sleep(); //TUNE ME!!
 
+            errorCode = pick_part_fnc(goal);
+            if(errorCode!=RobotMoveResult::NO_ERROR) {
+                return errorCode;
+            }        
+            //if here, then part is grasped and held at bin hover pose
+            //check if part is still attached
+            if (!robotInterface.isGripperAttached()) {
+                ROS_WARN("dropped part!");
+                errorCode = RobotMoveResult::PART_DROPPED; //debug--return error
+                return errorCode;
+            }     
+            
+ /*         // the following is dead code--encapsulated in pick_part_fnc()
+  
             //now move to pickup approach pose:
             ROS_INFO("moving to approach_pickup_jspace_pose_ ");
             move_to_jspace_pose(approach_pickup_jspace_pose_,1.0); //so far, so good, so move to cruise pose in front of bin
@@ -228,36 +243,37 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             //now move to bin pickup pose:
             ROS_INFO_STREAM("moving to pickup_jspace_pose_ "<<pickup_jspace_pose_);
             move_to_jspace_pose(pickup_jspace_pose_); // try to pick up part
-            ros::Duration(2.0).sleep(); //TUNE ME!!
-            double t_wait=0.0;
-            double dt_wait = 0.2;
-            double t_wait_timeout = 5.0;
-            bool is_attached=false;
+
+            errorCode = grasp_fnc(3.0); //use the grasp fnc; timeout set for 3 sec
+            //ROS_INFO("got grasp error code %d",(int) errorCode);
             
-            while (!is_attached && (t_wait<1.0)) {
-                is_attached = robotInterface.isGripperAttached();
-                ros::Duration(0.5).sleep();
-                t_wait+=0.4;
-                ROS_INFO("waiting for gripper attachment");
-            }
-  
-            if (!is_attached) { 
-               ROS_WARN("did not attach; trying lower");
-               pickup_jspace_pose_[2]+= 0.05; // lower via shoulder-lift joint
-               move_to_jspace_pose(pickup_jspace_pose_,t_wait_timeout);
-               t_wait=0.0;
-               while (!is_attached && (t_wait<t_wait_timeout)) {
+            if(errorCode!=RobotMoveResult::NO_ERROR) { //if not successful, try moving to attach
+               ROS_WARN("did not attach; trying lower for up to 5 sec");
+               pickup_jspace_pose_[2]+= 0.1; // crude move...lower via shoulder-lift joint
+               bool is_attached=false;
+               double t_wait_timeout=5.0;
+               double t_wait=0.0;
+               double dt_wait = 0.2;
+               move_to_jspace_pose(pickup_jspace_pose_,t_wait_timeout); //5 sec is a slow move
+               while ((!is_attached) && (t_wait<t_wait_timeout)) {
                 is_attached = robotInterface.isGripperAttached();
                 ros::Duration(dt_wait).sleep();
-                t_wait+=dt_wait;
+                t_wait+=dt_wait; //keep testing attachment state; halt move as soon as attached
                 ROS_INFO("waiting for gripper attachment");
-               }
-            }
-            if(!is_attached) {
-                ROS_WARN("could not grasp part; giving up");             
-                result_.errorCode = RobotMoveResult::GRIPPER_FAULT;
+               }                
+               if(!is_attached) {
+                ROS_WARN("could not grasp part; giving up");   
+                release_fnc(1.0);
+                //move to safe pose
+                ROS_INFO("moving to bin_hover_jspace_pose_ ");
+                move_to_jspace_pose(bin_hover_jspace_pose_, 1.0); 
+                ros::Duration(1.0).sleep(); //make sure sleep is consistent w/ specified move time; min 1 sec                
+                errorCode = RobotMoveResult::GRIPPER_FAULT;
                 return errorCode;
-            }
+               }                
+            }                    
+
+            //if here, part is now grasped
             ROS_INFO("part is attached to gripper");
 
             // ros::Duration(2.0).sleep(); //TUNE ME!!
@@ -268,7 +284,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             move_to_jspace_pose(bin_hover_jspace_pose_,1.0); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
             ros::Duration(1.0).sleep(); //TUNE ME!!
-
+*/
             //if here, part is grasped and held at hover pose;
             // now need trajectory to flip it...
             // thoughts:  for bin, try:
@@ -286,25 +302,14 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             move_to_jspace_pose(gripper_tilted_jspace2,1.0);
             ros::Duration(1.0).sleep(); 
             ROS_INFO("moving to tilt pose3 for resetting part on edge");
-            move_to_jspace_pose(gripper_tilted_jspace3);
-            ros::Duration(3.0).sleep(); 
-            //ROS_INFO("pausing for 5 sec to check xforms");
-            //ros::Duration(5.0).sleep();   
-//DEBUG!   
-            //   ROS_INFO("Debug halt");
-            //    result_.errorCode = RobotMoveResult::UNREACHABLE;
-            //    return errorCode;
-            //translate gripper back towards grasp x,y,z, only set z higher
-            //ROS_INFO("moving to dropoff pose");
-            //move_to_jspace_pose(q6dof_dropoff);
-            //ros::Duration(2.0).sleep(); 
-            
-
-            release();  //release gripper
-            while (robotInterface.isGripperAttached()) {
-                ros::Duration(0.5).sleep();
-                ROS_INFO("waiting for gripper release");
-            }     
+            move_to_jspace_pose(gripper_tilted_jspace3,2.0);
+            ros::Duration(3.0).sleep(); //wait extra settling time
+   
+            //release the gripper
+            errorCode= release_fnc(5.0); //wait up to max of 5 sec for release
+            if(errorCode!=RobotMoveResult::NO_ERROR) {        
+                return errorCode;
+            }
             
             ROS_INFO("yaw depart:");
             gripper_tilted_jspace3[3]-= 0.1; //pan away from disk
@@ -351,45 +356,61 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
               ROS_INFO("moving into part--trying to grasp");          
            // q_bin_pulley_flip_[3]; //-=0.02;
             ROS_INFO_STREAM("move to gripper_regrasp_jspace: "<<std::endl<<gripper_regrasp_jspace.transpose());
-            move_to_jspace_pose(gripper_regrasp_jspace); //computed grasp pose in jspace
-            ros::Duration(2.0).sleep();             
+            move_to_jspace_pose(gripper_regrasp_jspace,2.0); //computed grasp pose in jspace
+            
+            //try to grasp at computed regrasp pose
+            errorCode = grasp_fnc(3.0); //use the grasp fnc; timeout set for 3 sec
+            if (errorCode== RobotMoveResult::NO_ERROR) is_attached=true;
 
+            
+            //ros::Duration(2.5).sleep();             
+            //NOT using 
 
             //gripper_tilted_jspace3 = q_bin_pulley_flip_;
             //gripper_tilted_jspace3[3]+=0.01; // move into part
             //q_bin_pulley_flip_[3]+=0.02;
             //move_to_jspace_pose(q_bin_pulley_flip_); 
             //ros::Duration(2.0).sleep();   
-            
+/*
              t_wait=0.0;
              is_attached=false;
-            while (!is_attached && (t_wait<3.0)) {
+             while (!is_attached && (t_wait<3.0)) {
                 is_attached = robotInterface.isGripperAttached();
                 ros::Duration(0.5).sleep();
                 t_wait+=0.5;
                 ROS_INFO("waiting for gripper attachment");
             }
+             
+            }
+*/
 
-            if(!is_attached) {
-              ROS_WARN("timed out waiting for attachment");
-            //knock the part over;
-            release();  //release gripper
-            gripper_regrasp_jspace[3]-=0.3; //yaw to knock part over
-            move_to_jspace_pose(gripper_regrasp_jspace,1.0);
-            ros::Duration(1.0).sleep(); 
-              //undo the wrist flip
-            ROS_INFO("moving to tilt pose2");
-            move_to_jspace_pose(gripper_tilted_jspace2,1.0);
-            ros::Duration(1.0).sleep(); 
-            ROS_INFO("moving to tilt pose1");
-            move_to_jspace_pose(gripper_tilted_jspace,1.0);
-            ros::Duration(1.0).sleep(); 
-            ROS_INFO("moving to bin cruise pose");
-            move_to_jspace_pose(bin_cruise_jspace_pose_,1.0);
-            ros::Duration(1.0).sleep(); 
-            ROS_WARN("returning dropped-part to invoke regrasp");
-              errorCode = RobotMoveResult::PART_DROPPED; //debug--return error
-              return errorCode;
+            if (errorCode!= RobotMoveResult::NO_ERROR) { //here if grasp failed
+              ROS_WARN("timed out waiting for attachment; try moving into part");
+              //knock the part over;
+              //release();  //release gripper
+              gripper_regrasp_jspace[3]-=0.3; //yaw to knock part over
+              move_to_jspace_pose(gripper_regrasp_jspace,3.0);
+              errorCode = grasp_fnc(3.0); //use the grasp fnc; timeout set for 3 sec
+              if (errorCode!= RobotMoveResult::NO_ERROR) {
+                  errorCode= release_fnc(5.0); //wait up to max of 5 sec for release
+              }
+              else is_attached=true;
+            }
+
+            if (!is_attached) {
+                ROS_INFO("part attachment failed; tried to knock part over; retracting gripper");
+                ROS_INFO("moving to tilt pose2");
+                move_to_jspace_pose(gripper_tilted_jspace2,1.0);
+                ros::Duration(1.0).sleep(); 
+                ROS_INFO("moving to tilt pose1");
+                move_to_jspace_pose(gripper_tilted_jspace,1.0);
+                ros::Duration(1.0).sleep(); 
+                ROS_INFO("moving to bin cruise pose");
+                move_to_jspace_pose(bin_cruise_jspace_pose_,1.0);
+                ros::Duration(1.0).sleep(); 
+                ROS_WARN("returning dropped-part to invoke regrasp");
+                errorCode = RobotMoveResult::PART_DROPPED; //debug--return error
+                return errorCode;
             }
 
             ROS_INFO("part is attached to gripper; lifting part");
@@ -404,7 +425,7 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
            // ROS_INFO("moving to tilt pose1");
             //move_to_jspace_pose(gripper_tilted_jspace);
             //ros::Duration(2.0).sleep(); 
-            O_pickup[1]+=0.047; //to account for offset of regrasp
+            O_pickup[1]+=0.047; //magic number to account for y-offset of regrasp
             affine_vacuum_pickup_pose_wrt_base_link_.translation()= O_pickup;
             if (!compute_approach_IK(affine_vacuum_pickup_pose_wrt_base_link_, pickup_jspace_pose_, approach_dist_,
                                      approach_pickup_jspace_pose_)) {
@@ -414,26 +435,15 @@ unsigned short int RobotMoveActionServer:: flip_part_fnc(const cwru_ariac::Robot
             move_to_jspace_pose(approach_pickup_jspace_pose_); //so far, so good, so move to cruise pose in front of bin
             //at this point, have already confired bin ID is good
             ros::Duration(2.0).sleep(); //TUNE ME!!
-            release();  //release gripper
-            while (robotInterface.isGripperAttached()) {
-                ros::Duration(0.5).sleep();
-                ROS_INFO("waiting for gripper release");
-            }    
-            //move_to_jspace_pose(q_bin_pulley_flip_);
-            //ros::Duration(2.0).sleep();  
-            
-            //move_to_jspace_pose(q_bin_pulley_flip_);
-            //ros::Duration(2.0).sleep();  
-            
-            //gripper_tilted_jspace3= q_bin_pulley_flip_
-            //ROS_INFO("moving to computed grasp pose");        
-            //move_to_jspace_pose(gripper_regrasp_jspace);
-            //ros::Duration(2.0).sleep(); 
+            release_fnc(1.0);
+            if (errorCode!= RobotMoveResult::NO_ERROR) {
+                return errorCode;
+            }
 
      //say part is dropped to invoke regrasp
       ROS_WARN("flipped part, but returning dropped-part to invoke regrasp");
-     errorCode = RobotMoveResult::PART_DROPPED; //debug--return error
-    return errorCode;
+      errorCode = RobotMoveResult::PART_DROPPED; //debug--return error
+      return errorCode;
     }
 
    else {

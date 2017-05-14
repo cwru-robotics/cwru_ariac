@@ -139,6 +139,10 @@ private:
     bool get_grasp_transform(Part part,Eigen::Affine3d &grasp_transform);
     unsigned short int fetch_from_conveyor(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
     unsigned short int flip_part_fnc(const cwru_ariac::RobotMoveGoalConstPtr& goal); 
+    unsigned short int grasp_fnc(double timeout=2.0);  //default timeout; rtns error code
+    unsigned short int release_fnc(double timeout=2.0); //default timeout for release
+    unsigned short int pick_part_fnc(const cwru_ariac::RobotMoveGoalConstPtr& goal); //rtns err code; used within other fncs
+    
 
     bool eval_up_down(geometry_msgs::PoseStamped part_pose_wrt_world);
     //given rail displacement, and given Part description (including name and pose info) compute where the gripper should be, as
@@ -160,6 +164,7 @@ private:
     bool attached_;
     bool isGripperAttached();
     bool waitForGripperAttach(double timeout);
+  
     ros::ServiceClient gripper_client;
     osrf_gear::VacuumGripperState currentGripperState_;
     osrf_gear::VacuumGripperControl attach_;
