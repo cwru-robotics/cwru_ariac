@@ -28,7 +28,7 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
     // implement your code here, it will be executed at 50Hz
     bool cleared = false;
     bool performUpdate = false;
-    int process = 10;
+    int errorCode = 0;
     inUpdate = true;
     for (int i = 0; i < cameras.size(); ++i) {
         cameras[i]->lock();
@@ -36,52 +36,56 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
             if (updateCounts[i] != cameras[i]->getUpdateCount() | performUpdate) {
                 performUpdate = true;
                 updateCounts[i] = cameras[i]->getUpdateCount();
-                process = 20;
+                errorCode = 1;
                 if (!cleared) {
-                    process = 30;
+                    errorCode = 2;
                     onGround.clear();
                     cleared = true;
-                    process = 40;
+                    errorCode = 3;
                     onConveyor.clear();
-                    process = 50;
+                    errorCode = 40;
                     for (int j = 0; j < onAGV.size(); ++j) {
-                        process++;
+                        errorCode++;
                         onAGV[j].clear();
                     }
-                    process = 60;
+                    errorCode = 50;
                     for (int k = 0; k < onBin.size(); ++k) {
-                        process++;
+                        errorCode++;
                         onBin[k].clear();
                     }
                 }
-                process = 70;
+                errorCode = 60;
                 for (auto p : cameras[i]->onGround) {
+                    errorCode++;
                     onGround.push_back(p);
                 }
-                process = 80;
+                errorCode = 70;
                 for (auto p : cameras[i]->onConveyor) {
-                    process++;
+                    errorCode++;
                     onConveyor.push_back(p);
                 }
-                process = 900;
+                errorCode = 800;
                 for (int l = 0; l < onBin.size(); ++l) {
-                    process += 10;
+                    errorCode += 10;
                     for (int m = 0; m < cameras[i]->onBin[l].size(); ++m) {
-                        process++;
+                        errorCode++;
                         onBin[l].push_back(cameras[i]->onBin[l][m]);
                     }
                 }
-                process = 1000;
+                errorCode = 900;
                 for (int n = 0; n < onAGV.size(); ++n) {
-                    process += 10;
+                    errorCode += 10;
                     for (int j = 0; j < cameras[i]->onAGV[n].size(); ++j) {
-                        process++;
+                        errorCode++;
                         onAGV[n].push_back(cameras[i]->onAGV[n][j]);
                     }
                 }
             }
         } catch (const std::bad_alloc e) {
-            ROS_ERROR("Error: %s, when update camera %d at process %d", e.what(), i + 1, process);
+            ROS_ERROR("Error: %s, when update camera %d, at step %d", e.what(), i + 1, errorCode);
+            ROS_ERROR(
+                    "Please report this error and check your memory page in your system monitor, hit enter to continue...");
+            getchar();
         }
         cameras[i]->unlock();
     }
