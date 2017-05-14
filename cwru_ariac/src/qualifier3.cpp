@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
                                         }));
                                 ROS_INFO("checking bad parts...");
                                 qualitySensor.ForceUpdate();
-                                if (!qualitySensor.AGVbadParts.empty()) {
+                                if (!qualitySensor.AGVbadParts[useAGV].empty()) {
                                     ROS_WARN("Found bad part! Going to discard them");
                                     for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
                                         ROS_INFO("Working on bad part:");
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
                                             }
                                             ROS_INFO("checking bad parts...");
                                             qualitySensor.ForceUpdate();
-                                            if (!qualitySensor.AGVbadParts.empty()) {
+                                            if (!qualitySensor.AGVbadParts[useAGV].empty()) {
                                                 ROS_WARN("Found bad part! Going to discard them");
                                                 for (auto badPart: qualitySensor.AGVbadParts[useAGV]) {
                                                     ROS_INFO("Working on bad part:");
