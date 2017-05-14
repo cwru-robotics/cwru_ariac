@@ -169,6 +169,10 @@ inline std::vector<double> quatToEuler(geometry_msgs::Quaternion orientation) {
 inline double euclideanDistance(geometry_msgs::Point positionA, geometry_msgs::Point positionB) {
     return sqrt(pow(positionA.x - positionB.x, 2) + pow(positionA.y - positionB.y, 2) + pow(positionA.z - positionB.z, 2));
 }
+
+inline double euclideanDistance2D(geometry_msgs::Point positionA, geometry_msgs::Point positionB) {
+    return sqrt(pow(positionA.x - positionB.x, 2) + pow(positionA.y - positionB.y, 2));
+}
 //inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
 //    return (boundBox.Xmin <= position.x && position.x <= boundBox.Xmax) && (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax) && (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
 //}
@@ -191,7 +195,8 @@ inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
     vector<double> rotB = quatToEuler(B.orientation);
     bool x = fabs(A.position.x - B.position.x) < 0.05;  // 0.03 (old)
     bool y = fabs(A.position.y - B.position.y) < 0.05;
-    bool z = fabs(A.position.z - B.position.z) < 0.05;
+    // IGNORE Z COMPONENT!!! wsn, 5/13
+    bool z = true; //fabs(A.position.z - B.position.z) < 0.05;
     bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
     bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
     bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.1;
