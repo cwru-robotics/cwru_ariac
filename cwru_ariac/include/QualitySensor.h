@@ -12,7 +12,8 @@ public:
     QualitySensor(ros::NodeHandle &nodeHandle);
 
     vector<PartList> AGVbadParts;
-    void ForceUpdate();
+
+    void forceUpdate();
 protected:
     ros::NodeHandle nh;
     ros::Subscriber sensor1Subscriber;

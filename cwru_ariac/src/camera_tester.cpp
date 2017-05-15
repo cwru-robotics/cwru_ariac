@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     CameraEstimator camera(nh, "/ariac/logical_camera_1");
     while (ros::ok()) {
-        camera.ForceUpdate();
+        camera.forceUpdate();
         auto part = findPart(camera.inView, index);
         if (part != camera.inView.end()) {
             cout << "Id: " << part->id << endl

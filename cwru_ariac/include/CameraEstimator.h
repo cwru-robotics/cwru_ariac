@@ -18,7 +18,14 @@ public:
     vector<PartList> onBin;
 
     CameraEstimator(ros::NodeHandle &nodeHandle, string topic);
-    void ForceUpdate();
+
+    void forceUpdate();
+
+    void lock() { updateLock = true; }
+
+    void unlock() { updateLock = false; }
+
+    bool getLockState() { return updateLock; }
     int getUpdateCount() { return updateCount; }
     void setUpdateCount(int updateCount) { this->updateCount = updateCount; }
 
@@ -35,6 +42,7 @@ protected:
     int checkedCount;
     string worldFrame;
     string cameraFrame;
+    bool updateLock;
 };
 
 
