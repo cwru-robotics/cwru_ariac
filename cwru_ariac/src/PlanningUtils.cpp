@@ -9,13 +9,6 @@ PlanningUtils::PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot) :
     upsideDownPenalty = 100.0;
 }
 
-bool PlanningUtils::evalUpDown(geometry_msgs::Quaternion orientation) {
-    double qx = orientation.x;
-    double qy = orientation.y;
-    double sum_sqd = qx * qx + qy * qy;
-    return sum_sqd > 0.5;
-}
-
 Part PlanningUtils::getEuclideanBestPart(PartList searchRange) {
     RobotState state;
     robot_->getRobotState(state);

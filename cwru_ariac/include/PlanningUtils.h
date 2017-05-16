@@ -27,8 +27,6 @@ protected:
     ros::NodeHandle nh;
     RobotMove *robot_;
     double upsideDownPenalty;
-
-    bool evalUpDown(geometry_msgs::Quaternion orientation);
 };
 
 

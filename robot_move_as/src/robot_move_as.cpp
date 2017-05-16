@@ -1237,6 +1237,13 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     ROS_INFO("moving to agv1 cruise pose");
                     traj_ = jspace_pose_to_traj(q_agv1_cruise_pose_);
                     break;                    
+                 case RobotMoveGoal::AGV2_HOVER_POSE:
+                    traj_ = jspace_pose_to_traj(q_agv2_hover_pose_);
+                    break;
+                case RobotMoveGoal::AGV2_CRUISE_POSE:
+                    ROS_INFO("moving to agv2 cruise pose");
+                    traj_ = jspace_pose_to_traj(q_agv2_cruise_pose_);
+                    break;  
                     
                 case RobotMoveGoal::BIN8_CRUISE_POSE:
                     traj_ = jspace_pose_to_traj(q_bin8_cruise_pose_);

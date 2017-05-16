@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     ROS_INFO("Trying to start the competition");
     while (!orderManager.startCompetition());
     ROS_INFO("Competition started");
-    int useAGV = 0;
+    int useAGV = 1; //0; change to 1 to force using agv2
     string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         if (orderManager.orders.empty()) {
@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
                 ROS_INFO("size of kit: %d", (int) kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
                     ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
-//                    useAGV = (useAGV == 1 ? 0 : 1);
-//                    agvName = orderManager.AGVs[useAGV].name;
-//                    ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
+                    useAGV = (useAGV == 1 ? 0 : 1);
+                    agvName = orderManager.AGVs[useAGV].name;
+                    ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
                     ros::Duration(0.02).sleep();
                 }
                 ROS_INFO("%s is Ready", agvName.c_str());
@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
                                     }
                                     for (auto lostPart: lost) {
                                         ROS_INFO("add lost parts to kit list for future processing");
+                                        ROS_INFO_STREAM(lostPart);
                                         orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
                                                 orderManager.toKitObject(agvName, lostPart));
                                     }
@@ -203,7 +204,13 @@ int main(int argc, char **argv) {
                                     ROS_INFO("Working on bad part:");
                                     ROS_INFO_STREAM(badPart);
                                     if (robotMove.pick(badPart)) {
-                                        if (robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE)) {
+                                        bool moveResult = false;
+                                        if (useAGV == 0) {
+                                            moveResult = robotMove.toPredefinedPose(RobotMoveGoal::AGV1_CRUISE_POSE);
+                                        } else {
+                                            moveResult = robotMove.toPredefinedPose(RobotMoveGoal::AGV2_CRUISE_POSE);
+                                        }
+                                        if (moveResult) {
                                             if (robotMove.release()) {
                                                 ROS_INFO("Successfully removed bad part from tray");
                                                 ROS_INFO("add bad parts to kit list to fill them");

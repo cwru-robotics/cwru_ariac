@@ -75,7 +75,7 @@ void QualitySensor::sensor2Callback(const osrf_gear::LogicalCameraImage::ConstPt
         }
         Part newPart;
         newPart.name = model.type;
-        newPart.location = Part::AGV1;
+        newPart.location = Part::AGV2;
         newPart.traceable = false;
         newPart.pose = outPose;
         bool exist = false;
