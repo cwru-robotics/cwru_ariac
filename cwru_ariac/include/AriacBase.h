@@ -184,23 +184,48 @@ inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
     return x & y & z;
 }
 
+inline bool evalUpDown(geometry_msgs::Quaternion orientation) {
+    double qx = orientation.x;
+    double qy = orientation.y;
+    double sum_sqd = qx * qx + qy * qy;
+    return sum_sqd > 0.5;
+}
+
 inline double unifyAngle(double input) {
-    input = fmod(input, M_PI);
-    return (input > M_PI/2)? M_PI - input : input;
+    input = fmod(input, M_PI * 2);
+    return (input > M_PI )? input-2*M_PI : input; //assumes fmod always returns non-negative value
+}
+
+inline double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
+    double quat_z = quaternion.z;
+    double quat_w = quaternion.w;
+    double phi = 2.0 * atan2(quat_z, quat_w); // cheap conversion from quaternion to heading for planar motion
+    return phi;
 }
 
 inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
     // set tolerances of part placements on tray (per scoring)
-    vector<double> rotA = quatToEuler(A.orientation);
-    vector<double> rotB = quatToEuler(B.orientation);
-    bool x = fabs(A.position.x - B.position.x) < 0.05;  // 0.03 (old)
-    bool y = fabs(A.position.y - B.position.y) < 0.05;
+//    vector<double> rotA = quatToEuler(A.orientation);
+//    vector<double> rotB = quatToEuler(B.orientation);
+    bool distance = fabs(euclideanDistance2D(A.position, B.position)) < 0.025;  // 0.03 (old)
+    
     // IGNORE Z COMPONENT!!! wsn, 5/13
-    bool z = true; //fabs(A.position.z - B.position.z) < 0.05;
-    bool row = unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
-    bool pitch = unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
-    bool yaw = unifyAngle(fabs(rotA[2] - rotB[2])) < 0.1;
-    return x & y & z & row & pitch & yaw;
+//    bool z = true; //fabs(A.position.z - B.position.z) < 0.05;
+//    bool roll = true; //unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
+//    bool pitch = true; //unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
+    bool yaw = unifyAngle(fabs(convertPlanarQuat2Phi(A.orientation) - convertPlanarQuat2Phi(A.orientation))) < 0.08;
+    bool upDown = (evalUpDown(A.orientation) == evalUpDown(B.orientation));
+//    bool quat_x = true; //fabs(A.orientation.x - A.orientation.x) < 0.1;
+//    bool quat_y = true; //fabs(A.orientation.y - A.orientation.y) < 0.1;
+//    bool quat_z = fabs(A.orientation.z - A.orientation.z) < 0.1;
+//    bool quat_w = fabs(A.orientation.w - A.orientation.w) < 0.1;
+    if (!(distance & upDown & yaw)) {
+        ROS_WARN("match pose failed, upDown eval: %s, A: %s, B: %s", upDown? "true":"false", evalUpDown(A.orientation)? "up":"down", evalUpDown(B.orientation)? "up":"down");
+        ROS_WARN_STREAM("Pose A:" << A);
+        ROS_WARN_STREAM("Pose B:" << B);
+        ROS_WARN("A yaw:%f, B yaw:%f", convertPlanarQuat2Phi(A.orientation), convertPlanarQuat2Phi(A.orientation));
+    }
+    return distance & upDown & yaw;// roll & pitch & yaw;
 }
 
 inline bool isSamePart(Part A, Part B) {
@@ -240,6 +265,13 @@ protected:
         agvBoundBox[0].Xmax = 0.7;
         agvBoundBox[0].Ymax = 3.9;
         agvBoundBox[0].Zmax = 0.9;
+        
+        agvBoundBox[1].Xmin = 0.0;
+        agvBoundBox[1].Ymin = -3.9;
+        agvBoundBox[1].Zmin = 0.5;
+        agvBoundBox[1].Xmax = 0.7;
+        agvBoundBox[1].Ymax = -2.7;
+        agvBoundBox[1].Zmax = 0.9;
 
         conveyorBoundBox.Xmin = 0.9;
         conveyorBoundBox.Ymin = -4.8;

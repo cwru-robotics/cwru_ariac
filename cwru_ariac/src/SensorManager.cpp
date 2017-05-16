@@ -83,9 +83,9 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
             }
         } catch (const std::bad_alloc e) {
             ROS_ERROR("Error: %s, when update camera %d, at step %d", e.what(), i + 1, errorCode);
-            ROS_ERROR(
-                    "Please report this error and check your memory page in your system monitor, hit enter to continue...");
-            getchar();
+            //ROS_ERROR(
+            //        "Please report this error and check your memory page in your system monitor, hit enter to continue...");
+            //getchar();
         }
         cameras[i]->unlock();
     }
@@ -105,9 +105,11 @@ void SensorManager::stopUpdate() {
 }
 
 void SensorManager::forceUpdate() {
+    inUpdate = true;
     for (int i = 0; i < cameras.size(); ++i) {
         cameras[i]->forceUpdate();
     }
+    while(inUpdate);
 }
 
 PartList SensorManager::combineLocations(int locationCode) {
