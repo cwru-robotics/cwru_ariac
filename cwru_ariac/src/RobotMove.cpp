@@ -40,60 +40,25 @@ bool RobotMove::toHome(double timeout) {
     return true;
 }
 
-bool RobotMove::toCruisePose(double timeout) {
-    ROS_INFO("requesting move to cruise pose");
-    RobotMoveGoal goal;
-    goal.timeout = timeout;
-    goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
-    goal.predfinedPoseCode = RobotMoveGoal::AGV1_CRUISE_POSE;
-    sendGoal(goal);
-    if (!async_mode) {
-        bool finished_before_timeout;
-        if (timeout == 0) {
-            finished_before_timeout = ac.waitForResult();
-        } else {
-            finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
-        }
-        if (!finished_before_timeout) {
-            errorCode = RobotMoveResult::TIMEOUT;
-        }
-        return finished_before_timeout && goal_success_;
-    }
-    return true;
-}
-
-bool RobotMove::toAgv1HoverPose(double timeout) {
-    ROS_INFO("requesting move to agv1 hover pose");
-    RobotMoveGoal goal;
-    goal.timeout = timeout;
-    goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
-    goal.predfinedPoseCode = RobotMoveGoal::AGV1_HOVER_POSE;
-    sendGoal(goal);
-    if (!async_mode) {
-        bool finished_before_timeout;
-        if (timeout == 0) {
-            finished_before_timeout = ac.waitForResult();
-        } else {
-            finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
-        }
-        if (!finished_before_timeout) {
-            errorCode = RobotMoveResult::TIMEOUT;
-        }
-        return finished_before_timeout && goal_success_;
-    }
-    return true;
-}
-
-bool RobotMove::toPredefinedPose(int8_t predefined_pose_code) {
+bool RobotMove::toPredefinedPose(int8_t predefined_pose_code, double timeout) {
     ROS_INFO("requesting move to  pose code %d",predefined_pose_code);
     RobotMoveGoal goal;
     goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
     goal.predfinedPoseCode = predefined_pose_code;
     sendGoal(goal);
-    bool finished_before_timeout = ac.waitForResult();
-    if (!finished_before_timeout)
-        errorCode = RobotMoveResult::TIMEOUT;
-    return finished_before_timeout && goal_success_;        
+    if (!async_mode) {
+        bool finished_before_timeout;
+        if (timeout == 0) {
+            finished_before_timeout = ac.waitForResult();
+        } else {
+            finished_before_timeout = ac.waitForResult(ros::Duration(timeout + time_tolerance));
+        }
+        if (!finished_before_timeout) {
+            errorCode = RobotMoveResult::TIMEOUT;
+        }
+        return finished_before_timeout && goal_success_;
+    }
+    return true;
 }
 
 bool RobotMove::fetchPartFromConveyor(Part part, Part destination, double timeout) {

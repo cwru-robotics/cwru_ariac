@@ -80,8 +80,8 @@ bool BinManager::advisedLocationForPut(string partName, Part &location) {
     fakePart.pose.header.stamp = ros::Time::now();
     fakePart.pose.pose.position.x = -1.000000;
     fakePart.pose.pose.position.y = -1.000000;
-    fakePart.pose.pose.position.z = 1.000000;
-    fakePart.pose.pose.orientation.w = 1;
+    fakePart.pose.pose.position.z = 0.755;
+    fakePart.pose.pose.orientation.z = 1;
     fakePart.traceable = true;
     location = fakePart;
     return true;

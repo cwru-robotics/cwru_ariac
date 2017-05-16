@@ -14,10 +14,14 @@ CameraEstimator::CameraEstimator(ros::NodeHandle &nodeHandle, string topic) :
     checkedCount = 0;
     worldFrame = "/world";
     cameraFrame = topic.substr(topic.find_last_of("/")) + "_frame";
+    updateLock = false;
     //tf_listener.waitForTransform(cameraFrame, worldFrame, ros::Time(0), ros::Duration(2.0));
 }
 
 void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr &image_msg) {
+    if (updateLock) {
+        return;
+    }
     PartSet updateView;
     ros::Time currentTime = ros::Time::now();
     double dt = currentTime.toSec() - lastTime.toSec();
@@ -53,7 +57,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
 //                return;
 //                ROS_WARN("%s", exception.what());
                 tferr = true;
-                ros::Duration(0.05).sleep();
+                ros::Duration(0.02).sleep();
                 ros::spinOnce();
             }
         }
@@ -159,11 +163,11 @@ void CameraEstimator::splitLocation() {
     }
 }
 
-void CameraEstimator::ForceUpdate() {
+void CameraEstimator::forceUpdate() {
     while (updateCount == checkedCount && ros::ok()){
         //ROS_INFO("Waiting for camera callback...");
         ros::spinOnce();
-        ros::Duration(0.02).sleep();
+        ros::Duration(0.01).sleep();
     }
     checkedCount = updateCount;
 }

@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     State state = INIT;
     vector<tuple<Part, string, osrf_gear::KitObject>> available;
     while (ros::ok()) {
-        camera.ForceUpdate();
+        camera.forceUpdate();
         available.clear();
         switch (state) {
             case INIT:

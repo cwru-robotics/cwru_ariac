@@ -26,11 +26,7 @@ public:
 protected:
     ros::NodeHandle nh;
     RobotMove *robot_;
-    bool allow_planning;
-    double approachTimes;
-    double approachAheadTime;
-
-    bool eval_up_down(geometry_msgs::Quaternion orientation);
+    double upsideDownPenalty;
 };
 
 
