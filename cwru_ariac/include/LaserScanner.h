@@ -92,7 +92,7 @@ protected:
 	std::vector<bool> vec_part_on_belt;
 	float belt_depth_ = 1.6; 
 	double tolerance_ = 0.005; 
-	laser_scanner::BeltImage part_;
+	// laser_scanner::BeltImage part_;
 	int item_count = 0;
 	std::vector<float> row_z;
 	std::vector<float> row_z_prev_0; 
