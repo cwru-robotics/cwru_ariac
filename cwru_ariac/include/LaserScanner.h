@@ -14,8 +14,10 @@
 #include "std_msgs/String.h"
 #include <std_msgs/Bool.h> 
 #include <vector> 
+
 // #include <laser_scanner/BeltImage.h>
 // #include <laser_scanner/Row.h>
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -92,7 +94,9 @@ protected:
 	std::vector<bool> vec_part_on_belt;
 	float belt_depth_ = 1.6; 
 	double tolerance_ = 0.005; 
+
 	// laser_scanner::BeltImage part_;
+
 	int item_count = 0;
 	std::vector<float> row_z;
 	std::vector<float> row_z_prev_0; 

@@ -7,8 +7,10 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <vector> 
+
 // #include <laser_scanner/BeltImage.h>
 // #include <laser_scanner/Row.h>
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -46,7 +48,9 @@ using namespace std;
 	double tolerance_ = 0.005;
 	std::vector<bool> vec_part_on_belt_l1(3);
 	std::vector<bool> vec_part_on_belt_l2(3);
+
 	// laser_scanner::BeltImage part_;
+
 	int item_count_l1 = 0;
 	int item_count_l2 = 0;
 
@@ -77,7 +81,9 @@ double scanner_dist = 1.0; // DIFFERENT CONFIG HAS DIFFERNT DISTANCE BETWEEN THE
 double temp_speed = 0.0;
 
 void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
+
 	// laser_scanner::Row row;
+
 
     	part_on_belt_l1 = false;
 
@@ -166,7 +172,9 @@ void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
 
 
 void laser_2_Callback(const sensor_msgs::LaserScan& laser_scan) {
+
 	// laser_scanner::Row row;
+
 
     	part_on_belt_l2 = false;
 

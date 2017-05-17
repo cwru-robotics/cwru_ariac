@@ -36,7 +36,9 @@ LaserScanner::LaserScanner(ros::NodeHandle &nodeHandle):nh(nodeHandle){
 		
 	ROS_INFO("subscribers ready.."); 
 	
+
 		cout << "\n\033[0;31mDo you wish to output images and related .csv files? Press 1 if you do, otherwise press 0: \033[0m";
+
 		cin >> output_flag;
 
 	ROS_INFO("Laser Scanner activated..");
@@ -147,8 +149,10 @@ vector<float> LaserScanner::uni_vec(const vector<float>& vec_0, const vector<flo
 
 }
 
+
 // RN Feedback 17/5/17
 // Actually Eigen Lib has the cross() function. 
+
 vector<float> LaserScanner::cross_product(const vector<float>& vec_1, const vector<float>& vec_2){
 	float u1 = vec_1[0];
 	float u2 = vec_1[1];
@@ -375,7 +379,9 @@ void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
 	z_tallest = 0;
 	
 	// IN ORDER TO AVOID THE WHITE EDGE CAUSING ANY TROUBLES
+
 	// Set a smaller search window based on part type (size) and the detected centre location.
+
 	int window_lt = 0;
 	int window_rt = 0;
 	int z_cap = 255; // restrict the depth of the pt must be under this value
@@ -552,7 +558,9 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 			
 	}
 
+
 	// search for the centre of the circular window that contains the square part of the piston rod
+
 	for (int i = 5; i < (mat_ht - 5); i++) {
 
 		for (int j = 5; j < (mat_wd - 5); j++) {
@@ -696,7 +704,9 @@ void LaserScanner::type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
 void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
     updateCount_cb_scan++;
 
+
     // laser_scanner::Row row;
+
 
 // ROS_INFO("INSIDE LASER CB"); //TODO delete
 
@@ -758,8 +768,10 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
             	z_ = ping_dist_*cos(phi_);  //convert from polar to height above belt
 		if (z_ >1) {z_ = belt_depth_;}
 		if (z_ <0.1) {z_ = 1;}
+
 	    	// row.z.push_back(z_);  //add current height to row
 		// row_z.push_back(z_);
+
 
 
 	    	if (z_ < (belt_depth_ - tolerance_)){ //if something is measured at a height higher than the belt
@@ -783,10 +795,12 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 
 	if (part_on_belt_ || vec_part_on_belt[1] || vec_part_on_belt[0]){    //if there is a part on the belt or there was a part 1 or 2 steps ago
 		ROS_INFO("part on belt..");
+
         	// row.stamp = ros::Time::now().toSec();    //mark the current time in seconds
 		// part_.part.push_back(row);    //append xy array to service message
        		// part_.height = belt_depth_; //say the distance from the belt to the scanner
 		// part_.part_on_belt = true;
+
 		
     		//Initialise the vector for triple confirmation
 		vec_part_on_belt[0] = vec_part_on_belt[1]; //vec[0] stores the 2 steps back state
@@ -878,7 +892,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 					cv::Size size(101,y_pixel_number);
 					resize(image,image_resized,size);
 
-				
+
 					if (output_flag == 1){
 					    	cv::imshow("original", image);
 					    	cv::waitKey(10);
