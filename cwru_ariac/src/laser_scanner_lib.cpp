@@ -696,7 +696,7 @@ void LaserScanner::type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
 void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
     updateCount_cb_scan++;
 
-    laser_scanner::Row row;
+    // laser_scanner::Row row;
 
 // ROS_INFO("INSIDE LASER CB"); //TODO delete
 
@@ -758,8 +758,8 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
             	z_ = ping_dist_*cos(phi_);  //convert from polar to height above belt
 		if (z_ >1) {z_ = belt_depth_;}
 		if (z_ <0.1) {z_ = 1;}
-	    	row.z.push_back(z_);  //add current height to row
-		row_z.push_back(z_);
+	    	// row.z.push_back(z_);  //add current height to row
+		// row_z.push_back(z_);
 
 
 	    	if (z_ < (belt_depth_ - tolerance_)){ //if something is measured at a height higher than the belt
@@ -783,7 +783,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 
 	if (part_on_belt_ || vec_part_on_belt[1] || vec_part_on_belt[0]){    //if there is a part on the belt or there was a part 1 or 2 steps ago
 		ROS_INFO("part on belt..");
-        	row.stamp = ros::Time::now().toSec();    //mark the current time in seconds
+        	// row.stamp = ros::Time::now().toSec();    //mark the current time in seconds
 		// part_.part.push_back(row);    //append xy array to service message
        		// part_.height = belt_depth_; //say the distance from the belt to the scanner
 		// part_.part_on_belt = true;
