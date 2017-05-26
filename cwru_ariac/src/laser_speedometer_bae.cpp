@@ -7,10 +7,8 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <vector> 
-
 // #include <laser_scanner/BeltImage.h>
 // #include <laser_scanner/Row.h>
-
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -30,7 +28,7 @@ using namespace std;
 	float ping_dist_l2= 0.0;
 	int ping_index_min_l1 = -1;
 	int ping_index_min_l2 = -1;
-	int ping_index_max_ = -1; 
+	int ping_index_max_ = 399; 
 	int center_index_ = -1;
 	double phi_ = 0.0;
 	double phi_temp;
@@ -48,9 +46,7 @@ using namespace std;
 	double tolerance_ = 0.005;
 	std::vector<bool> vec_part_on_belt_l1(3);
 	std::vector<bool> vec_part_on_belt_l2(3);
-
 	// laser_scanner::BeltImage part_;
-
 	int item_count_l1 = 0;
 	int item_count_l2 = 0;
 
@@ -81,9 +77,7 @@ double scanner_dist = 1.0; // DIFFERENT CONFIG HAS DIFFERNT DISTANCE BETWEEN THE
 double temp_speed = 0.0;
 
 void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
-
 	// laser_scanner::Row row;
-
 
     	part_on_belt_l1 = false;
 
@@ -97,7 +91,7 @@ void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
 		center_index_ = (int) ((0.0 -angle_min_)/angle_increment_); //index of center of arc
 		ping_index_min_l1 = 0;	//set starting index
 		//ping_index_max_ = (int) (angle_max_ - angle_min_)/angle_increment_;	//set maximum index //THIS WILL CREATE CHAOS
-		ping_index_max_ = 100;
+		ping_index_max_ = 399;
 		float belt_depth_temp = 0;
 		int n2 = 1;
 		for (int n = center_index_-5; n<center_index_+5; n++){
@@ -172,9 +166,7 @@ void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
 
 
 void laser_2_Callback(const sensor_msgs::LaserScan& laser_scan) {
-
 	// laser_scanner::Row row;
-
 
     	part_on_belt_l2 = false;
 
@@ -188,7 +180,7 @@ void laser_2_Callback(const sensor_msgs::LaserScan& laser_scan) {
 		center_index_ = (int) ((0.0 -angle_min_)/angle_increment_); //index of center of arc
 		ping_index_min_l2 = 0;	//set starting index
 		//ping_index_max_ = (int) (angle_max_ - angle_min_)/angle_increment_;	//set maximum index //THIS WILL CREATE CHAOS
-		ping_index_max_ = 100;
+		ping_index_max_ = 399;
 		float belt_depth_temp = 0;
 		int n2 = 1;
 		for (int n = center_index_-5; n<center_index_+5; n++){
@@ -266,7 +258,8 @@ int main(int argc, char **argv) {
 	ros::Publisher pub_speed = nh.advertise<std_msgs::Float64>("/ariac/belt_speed", 1);
 	std_msgs::Float64 current_speed;
 	current_speed.data = 0;
-	ROS_INFO("laser Speedometer activated..");
+
+	cout << "\033[1;34mLaser Speedometer activated..\033[0m\n";
 
 	//scan_publisher_ = pub;
 	//laser_scanner::BeltImage beltimage;
