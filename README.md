@@ -71,7 +71,7 @@ See: [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
 ## Update ARIAC
 
-The lastest ARIAC version as of 4/29/17 is 1.1.1
+The lastest ARIAC version as of 5/18/17 is 1.1.2
 We will always keep using the lastest ARIAC version.
 
 To check your current ARIAC version, run following command:

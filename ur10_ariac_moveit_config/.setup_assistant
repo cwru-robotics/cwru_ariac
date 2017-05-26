@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: ur10_ariac_moveit_config
+    relative_path: urdf/gear.urdf.xacro
+  SRDF:
+    relative_path: config/gear.srdf
+  CONFIG:
+    author_name: Shipei Tian
+    author_email: sxt437@case.edu
+    generated_timestamp: 1495063185

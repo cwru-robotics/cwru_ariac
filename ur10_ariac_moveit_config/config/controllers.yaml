@@ -1,6 +1,6 @@
 controller_list:
-  - name: ""
-    action_ns: ariac/arm/follow_joint_trajectory
+  - name: ariac/arm
+    action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     joints:
       - linear_arm_actuator_joint
