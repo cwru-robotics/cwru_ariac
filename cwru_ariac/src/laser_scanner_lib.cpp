@@ -256,6 +256,16 @@ void LaserScanner::integrate_info(const int& part_id, const vector<float>& origi
 	latest_part = part;
 
 
+	cout << "part.id: " << part.id << endl
+	     << "part.name: " << part.name << endl
+	     << "part.traceable: " << part.traceable << endl
+	     << "part.location: " << part.location << endl
+	     << "part.linear.x: " << part.linear.x << endl
+	     << "part.linear.y: " << part.linear.y << endl
+	     << "part.linear.z: " << part.linear.z << endl
+	     << "part.pose.header.stamp: " << part.pose.header.stamp << endl
+	     << "part.pose.pose: " << part.pose.pose << endl;
+
 	ROS_INFO("Publishing to /ariac/latest_conveyor_part");
 
 	vec_x.clear();
@@ -317,7 +327,7 @@ void LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 	// Calculate Time Stamp
 
 	t_stamp = t_0 + (t_1 - t_0)*i_avg/mat_ht;
-	ROS_INFO("Origin time stamp: %f",t_stamp);
+	// ROS_INFO("Origin time stamp: %f",t_stamp);
 	ros::Duration delta_t = ros::Duration( (t_1 - t_0)*i_avg/mat_ht);
 	ros_t_stamp = ros_t_0 + delta_t;
 
@@ -493,7 +503,7 @@ void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
 }
 
 
-void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& pin_pixel, vector<int>& origin_pixel) {
+void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& pin_pixel, vector<int>& origin_pixel) {
 
 	origin.clear();
 	origin_pixel.clear();
@@ -526,20 +536,20 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 
 	// Target area match
 	int target_match;
-	target_match = (400/scan_width_)*(400/scan_width_)*(0.052*0.059 + (0.0556-0.052)*0.031);
+	target_match = (mat_wd/scan_width_)*(mat_wd/scan_width_)*(0.052*0.059 + (0.0556-0.052)*0.031);
 	int pin_centre_dist_match;
-	pin_centre_dist_match = (0.04258)*(400/scan_width_);
+	pin_centre_dist_match = (0.04258)*(mat_wd/scan_width_);
 	// 0.04258 is the calculated dist between the geometry centre to the origin of this part
 
 	// calculate the suqare search region based on the geometry centre (in this case, the pin) coordinate.
 	int square_l;
-	square_l = (400*0.17/scan_width_)*0.5; // mat_wd is actually equal to 400.
+	square_l = (mat_wd*0.17/scan_width_)*0.5; // mat_wd is actually equal to 400.
 	int square_lt;
 	square_lt = pin_pixel[0] - square_l/2;
 	if (square_lt < 0) square_lt = 5;
 	int square_rt;
 	square_rt = pin_pixel[0] + square_l/2;
-	if (square_rt > 400) square_lt = 395;
+	if (square_rt > mat_wd) square_lt = mat_wd-5;
 	int square_up;
 	square_up = pin_pixel[1] - square_l/2;
 	if (square_up < 0) square_up = 5;
@@ -568,8 +578,6 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 		width_delta.push_back( temp );
 
 	}
-
-	ROS_INFO("TIME DEBUG 1");
 
 	// search for the centre of the circular window that contains the square part of the piston rod
 	// for (int i = 5; i < (mat_ht - 5); i++) {
@@ -619,7 +627,9 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 			// MK2 penalty function Current
 			pin_centre_dist = sqrt((j-pin_pixel[0])*(j-pin_pixel[0])+(i-pin_pixel[1])*(i-pin_pixel[1]));
 
-			pin_centre_penalty = -90*pin_centre_dist; // the weight of this penalty is 100, which is a tested number
+			// pin_centre_penalty = -0*pin_centre_dist; // the weight of this penalty is 100, which is a tested number
+
+			pin_centre_penalty = 40*(pin_centre_dist-pin_centre_dist_match)*(pin_centre_dist-pin_centre_dist_match);
 
 			//current_penalty = abs(part_pt_count - target_match) + pin_centre_penalty;
 			current_penalty = -part_pt_count + pin_centre_penalty;
@@ -636,11 +646,11 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 
 	}
 
-	ROS_INFO("TIME DEBUG 2");
-
 	// x = laser_profiler_2_origin[0] + scan_width_*(winner_j - 50)/101 ; // j: scan img width along world x axis
 	x = laser_profiler_2_origin[0] + scan_width_*(winner_j - mat_wd/2)/mat_wd ;
-	y = laser_profiler_2_origin[1] - 0.06 + scan_width_*(winner_i - mat_wd/2)/mat_wd ; // i: scan img height along world x axis
+	// y = laser_profiler_2_origin[1] - 0.06 + scan_height*(winner_i - mat_ht/2)/mat_ht ; // i: scan img height along world x axis
+	// y = laser_profiler_2_origin[1] + scan_height*(winner_i - mat_ht/2)/mat_ht ; // i: scan img height along world x axis
+	y = laser_profiler_2_origin[1] - 0.06;
 	// z = laser_profiler_2_origin[2] - belt_depth_ + (ht_avg * part_z_max)/255;
 	z = laser_profiler_2_origin[2] - belt_depth_ + 0.0075;
 	origin.push_back(x);
@@ -855,7 +865,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 			ros_time_0 = ros_time0_0;
 
 		} else if ((vec_part_on_belt[0] == true && vec_part_on_belt[1]== true && vec_part_on_belt[2]== true)||(vec_part_on_belt[0] == true && vec_part_on_belt[1]== true && vec_part_on_belt[2]== false)) {
-				ROS_INFO("saving rows in between");
+				// ROS_INFO("saving rows in between");
 				image_z.push_back(row_z);
 
 			} else if (vec_part_on_belt[0] == true && vec_part_on_belt[1]== false && vec_part_on_belt[2]== false){
@@ -999,7 +1009,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 
 						// New Mk2 functions
 						type_b_asymmetric(image_resized, scan_height_, pin_origin, pin_pixel, part_id);
-						type_b_stamped_center(image_resized, time_0, time_1, t_stamp, ros_time_0, ros_time_1, ros_t_stamp, origin, pin_pixel, origin_pixel);
+						type_b_stamped_center(image_resized, scan_height_, time_0, time_1, t_stamp, ros_time_0, ros_time_1, ros_t_stamp, origin, pin_pixel, origin_pixel);
 
 
 

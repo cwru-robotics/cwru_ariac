@@ -57,7 +57,7 @@ public:
 	// MK2 current
 	void type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float>& pin_origin, vector<int>& pin_pixel, int part_id);
 
-	void type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& pin_pixel, vector<int>& origin_pixel);
+	void type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& pin_pixel, vector<int>& origin_pixel);
 
 
 	void ForceUpdate();
