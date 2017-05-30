@@ -15,6 +15,9 @@ find_package(Eigen REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(${EIGEN_DEFINITIONS})
 
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 catkin_simple()
 
 # example boost usage
@@ -28,7 +31,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 cs_add_library(AriacLib
         src/OraclePlanner.cpp src/RobotInterface.cpp src/CameraEstimator.cpp src/BinManager.cpp
         src/OrderManager.cpp src/Cheater.cpp src/PlanningUtils.cpp src/RobotMove.cpp src/SensorManager.cpp
-        src/OraclePlanningUtils.cpp src/QualitySensor.cpp)
+        src/OraclePlanningUtils.cpp src/QualitySensor.cpp src/laser_scanner_lib.cpp)
 
 # Executables: uncomment the following and edit arguments to compile new nodes
 # may add more of these lines for more nodes from the same package
@@ -42,11 +45,14 @@ cs_add_executable(qualifier2 src/qualifier2.cpp)
 cs_add_executable(qualifier3 src/qualifier3.cpp)
 cs_add_executable(sensor_manager_tester src/sensor_manager_tester.cpp)
 cs_add_executable(robot_move_as_tester src/robot_move_as_tester.cpp)
-cs_add_executable(robot_move_as_part_flip_tester src/robot_move_as_part_flip_tester.cpp)
 cs_add_executable(robot_move_as_pick_part_tester src/robot_move_as_pick_part_tester.cpp)
+cs_add_executable(robot_move_as_part_flip_tester src/robot_move_as_part_flip_tester.cpp)
+cs_add_executable(laser_speedometer_bae src/laser_speedometer_bae.cpp)
+cs_add_executable(laser_scanner_test src/laser_scanner_test.cpp)
 
 # the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
+target_link_libraries(AriacLib ${OpenCV_LIBRARIES})
 target_link_libraries(pose_tuner AriacLib)
 target_link_libraries(camera_tester AriacLib)
 target_link_libraries(pick_and_place_demo AriacLib)
@@ -59,6 +65,8 @@ target_link_libraries(sensor_manager_tester AriacLib)
 target_link_libraries(robot_move_as_tester AriacLib)
 target_link_libraries(robot_move_as_part_flip_tester AriacLib)
 target_link_libraries(robot_move_as_pick_part_tester AriacLib)
+target_link_libraries(laser_scanner_test  AriacLib ${OpenCV_LIBRARIES})
+target_link_libraries(laser_speedometer_bae AriacLib ${OpenCV_LIBRARIES})
 cs_install()
 cs_export()
     

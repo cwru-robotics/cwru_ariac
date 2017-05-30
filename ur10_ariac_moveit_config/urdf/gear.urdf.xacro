@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+       name="gear" >
+
+  <!-- include the arm xacro -->
+  <xacro:include filename="$(find osrf_gear)/launch/ur10/ur10.urdf.xacro" />
+  <xacro:property name="wrist_link" value="wrist_3_link" />
+
+  <!-- linear arm actuator -->
+  <xacro:include filename="$(find osrf_gear)/launch/linear_arm_actuator/linear_arm_actuator.urdf.xacro" />
+
+  <xacro:create_linear_arm_actuator base_link="base_link" />
+
+  <!-- world link -->
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link="linear_arm_actuator" />
+    <origin xyz="0.3 0.0 0.9" rpy="0.0 0.0 0.0" />
+  </joint>
+
+</robot>

@@ -28,7 +28,7 @@ OrderManager::OrderManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     agv1.state = AGV::READY;
     agv1.priority = 2.0;
     agv1.basePose.pose.position.x = 0.3;
-    agv1.basePose.pose.position.y = 3.15;
+    agv1.basePose.pose.position.y = 3.15;   // try 3.3?
     agv1.basePose.pose.position.z = 0.755;
     agv1.basePose.pose.orientation.x = 0.0;
     agv1.basePose.pose.orientation.y = 0.0;
@@ -40,12 +40,12 @@ OrderManager::OrderManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     agv2.state = AGV::READY;
     agv2.priority = 1.0;
     agv2.basePose.pose.position.x = 0.3;
-    agv2.basePose.pose.position.y = -3.15;
+    agv2.basePose.pose.position.y = -3.15;  // try -3.3?
     agv2.basePose.pose.position.z = 0.755;
     agv2.basePose.pose.orientation.x = 0.0;
     agv2.basePose.pose.orientation.y = 0.0;
-    agv2.basePose.pose.orientation.z = 1.0;
-    agv2.basePose.pose.orientation.w = 0.0;
+    agv2.basePose.pose.orientation.z = 0.0;
+    agv2.basePose.pose.orientation.w = 1.0;
     agv2.bound = agvBoundBox[1];
 
     AGVs.push_back(agv1);
