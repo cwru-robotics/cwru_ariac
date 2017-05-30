@@ -1,0 +1,610 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 84
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /MotionPlanning1
+        - /MotionPlanning1/Scene Geometry1
+        - /MotionPlanning1/Scene Robot1
+        - /MotionPlanning1/Planning Request1
+        - /MotionPlanning1/Planning Metrics1
+        - /MotionPlanning1/Planned Path1
+      Splitter Ratio: 0.742560029
+    Tree Height: 332
+  - Class: rviz/Help
+    Name: Help
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.0299999993
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Enabled: true
+      Move Group Namespace: ""
+      MoveIt_Goal_Tolerance: 0
+      MoveIt_Planning_Attempts: 10
+      MoveIt_Planning_Time: 5
+      MoveIt_Use_Constraint_Aware_IK: true
+      MoveIt_Warehouse_Host: 127.0.0.1
+      MoveIt_Warehouse_Port: 33829
+      MoveIt_Workspace:
+        Center:
+          X: 0
+          Y: 0
+          Z: 0
+        Size:
+          X: 2
+          Y: 2
+          Z: 2
+      Name: MotionPlanning
+      Planned Path:
+        Color Enabled: false
+        Interrupt Display: false
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          ee_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          forearm_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          linear_arm_actuator:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          shoulder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          upper_arm_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          world:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          wrist_1_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          wrist_2_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          wrist_3_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Loop Animation: false
+        Robot Alpha: 0.5
+        Robot Color: 150; 50; 150
+        Show Robot Collision: false
+        Show Robot Visual: true
+        Show Trail: false
+        State Display Time: 0.05 s
+        Trajectory Topic: move_group/display_planned_path
+      Planning Metrics:
+        Payload: 1
+        Show Joint Torques: false
+        Show Manipulability: false
+        Show Manipulability Index: false
+        Show Weight Limit: false
+        TextHeight: 0.0799999982
+      Planning Request:
+        Colliding Link Color: 255; 0; 0
+        Goal State Alpha: 1
+        Goal State Color: 250; 128; 0
+        Interactive Marker Size: 0
+        Joint Violation Color: 255; 0; 255
+        Planning Group: arm
+        Query Goal State: true
+        Query Start State: false
+        Show Workspace: false
+        Start State Alpha: 1
+        Start State Color: 0; 255; 0
+      Planning Scene Topic: move_group/monitored_planning_scene
+      Robot Description: robot_description
+      Scene Geometry:
+        Scene Alpha: 1
+        Scene Color: 50; 230; 50
+        Scene Display Time: 0.200000003
+        Show Scene Geometry: true
+        Voxel Coloring: Z-Axis
+        Voxel Rendering: Occupied Voxels
+      Scene Robot:
+        Attached Body Color: 150; 50; 150
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          ee_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          forearm_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          linear_arm_actuator:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          shoulder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          upper_arm_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          world:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          wrist_1_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          wrist_2_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          wrist_3_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Robot Alpha: 0.5
+        Show Robot Collision: false
+        Show Robot Visual: true
+      Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ee_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        forearm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        linear_arm_actuator:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        shoulder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        upper_arm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wrist_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        agv1_load_point_frame:
+          Value: true
+        agv2_load_point_frame:
+          Value: true
+        base:
+          Value: true
+        base_link:
+          Value: true
+        belt_frame:
+          Value: true
+        bin1_frame:
+          Value: true
+        bin2_frame:
+          Value: true
+        bin3_frame:
+          Value: true
+        bin4_frame:
+          Value: true
+        bin5_frame:
+          Value: true
+        bin6_frame:
+          Value: true
+        bin7_frame:
+          Value: true
+        bin8_frame:
+          Value: true
+        ee_link:
+          Value: true
+        forearm_link:
+          Value: true
+        laser_profiler_1_frame:
+          Value: true
+        laser_profiler_2_frame:
+          Value: true
+        linear_arm_actuator:
+          Value: true
+        logical_camera_1_agv1_frame:
+          Value: true
+        logical_camera_1_frame:
+          Value: true
+        logical_camera_1_kit_tray_1_frame:
+          Value: true
+        logical_camera_2_agv2_frame:
+          Value: true
+        logical_camera_2_frame:
+          Value: true
+        logical_camera_2_kit_tray_2_frame:
+          Value: true
+        logical_camera_3_frame:
+          Value: true
+        logical_camera_3_pulley_part_1_frame:
+          Value: true
+        logical_camera_3_pulley_part_2_frame:
+          Value: true
+        logical_camera_3_pulley_part_3_frame:
+          Value: true
+        logical_camera_3_pulley_part_4_frame:
+          Value: true
+        logical_camera_4_frame:
+          Value: true
+        logical_camera_5_frame:
+          Value: true
+        logical_camera_5_gear_part_10_frame:
+          Value: true
+        logical_camera_5_gear_part_11_frame:
+          Value: true
+        logical_camera_5_gear_part_12_frame:
+          Value: true
+        logical_camera_5_gear_part_13_frame:
+          Value: true
+        logical_camera_5_gear_part_14_frame:
+          Value: true
+        logical_camera_5_gear_part_15_frame:
+          Value: true
+        logical_camera_5_gear_part_16_frame:
+          Value: true
+        logical_camera_5_gear_part_1_frame:
+          Value: true
+        logical_camera_5_gear_part_2_frame:
+          Value: true
+        logical_camera_5_gear_part_3_frame:
+          Value: true
+        logical_camera_5_gear_part_4_frame:
+          Value: true
+        logical_camera_5_gear_part_5_frame:
+          Value: true
+        logical_camera_5_gear_part_6_frame:
+          Value: true
+        logical_camera_5_gear_part_7_frame:
+          Value: true
+        logical_camera_5_gear_part_8_frame:
+          Value: true
+        logical_camera_5_gear_part_9_frame:
+          Value: true
+        logical_camera_6_frame:
+          Value: true
+        logical_camera_6_piston_rod_part_1_frame:
+          Value: true
+        logical_camera_6_piston_rod_part_2_frame:
+          Value: true
+        logical_camera_6_piston_rod_part_3_frame:
+          Value: true
+        logical_camera_6_piston_rod_part_4_frame:
+          Value: true
+        logical_camera_7_agv1_frame:
+          Value: true
+        logical_camera_7_frame:
+          Value: true
+        logical_camera_7_kit_tray_1_frame:
+          Value: true
+        quality_control_sensor_1_frame:
+          Value: true
+        quality_control_sensor_2_frame:
+          Value: true
+        shoulder_link:
+          Value: true
+        tool0:
+          Value: true
+        upper_arm_link:
+          Value: true
+        vacuum_gripper_link:
+          Value: true
+        world:
+          Value: true
+        wrist_1_link:
+          Value: true
+        wrist_2_link:
+          Value: true
+        wrist_3_link:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          agv1_load_point_frame:
+            {}
+          agv2_load_point_frame:
+            {}
+          belt_frame:
+            {}
+          bin1_frame:
+            {}
+          bin2_frame:
+            {}
+          bin3_frame:
+            {}
+          bin4_frame:
+            {}
+          bin5_frame:
+            {}
+          bin6_frame:
+            {}
+          bin7_frame:
+            {}
+          bin8_frame:
+            {}
+          laser_profiler_1_frame:
+            {}
+          laser_profiler_2_frame:
+            {}
+          linear_arm_actuator:
+            base_link:
+              base:
+                {}
+              shoulder_link:
+                upper_arm_link:
+                  forearm_link:
+                    wrist_1_link:
+                      wrist_2_link:
+                        wrist_3_link:
+                          ee_link:
+                            {}
+                          tool0:
+                            {}
+                          vacuum_gripper_link:
+                            {}
+          logical_camera_1_frame:
+            logical_camera_1_agv1_frame:
+              logical_camera_1_kit_tray_1_frame:
+                {}
+          logical_camera_2_frame:
+            logical_camera_2_agv2_frame:
+              logical_camera_2_kit_tray_2_frame:
+                {}
+          logical_camera_3_frame:
+            logical_camera_3_pulley_part_1_frame:
+              {}
+            logical_camera_3_pulley_part_2_frame:
+              {}
+            logical_camera_3_pulley_part_3_frame:
+              {}
+            logical_camera_3_pulley_part_4_frame:
+              {}
+          logical_camera_4_frame:
+            {}
+          logical_camera_5_frame:
+            logical_camera_5_gear_part_10_frame:
+              {}
+            logical_camera_5_gear_part_11_frame:
+              {}
+            logical_camera_5_gear_part_12_frame:
+              {}
+            logical_camera_5_gear_part_13_frame:
+              {}
+            logical_camera_5_gear_part_14_frame:
+              {}
+            logical_camera_5_gear_part_15_frame:
+              {}
+            logical_camera_5_gear_part_16_frame:
+              {}
+            logical_camera_5_gear_part_1_frame:
+              {}
+            logical_camera_5_gear_part_2_frame:
+              {}
+            logical_camera_5_gear_part_3_frame:
+              {}
+            logical_camera_5_gear_part_4_frame:
+              {}
+            logical_camera_5_gear_part_5_frame:
+              {}
+            logical_camera_5_gear_part_6_frame:
+              {}
+            logical_camera_5_gear_part_7_frame:
+              {}
+            logical_camera_5_gear_part_8_frame:
+              {}
+            logical_camera_5_gear_part_9_frame:
+              {}
+          logical_camera_6_frame:
+            logical_camera_6_piston_rod_part_1_frame:
+              {}
+            logical_camera_6_piston_rod_part_2_frame:
+              {}
+            logical_camera_6_piston_rod_part_3_frame:
+              {}
+            logical_camera_6_piston_rod_part_4_frame:
+              {}
+          logical_camera_7_frame:
+            logical_camera_7_agv1_frame:
+              logical_camera_7_kit_tray_1_frame:
+                {}
+          quality_control_sensor_1_frame:
+            {}
+          quality_control_sensor_2_frame:
+            {}
+      Update Interval: 0
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz/XYOrbit
+      Distance: 6.43122911
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.0599999987
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: -0.245105267
+        Y: 0.851778865
+        Z: -9.68574909e-07
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.0500000007
+      Name: Current View
+      Near Clip Distance: 0.00999999978
+      Pitch: 0.654796898
+      Target Frame: world
+      Value: XYOrbit (rviz)
+      Yaw: 3.17857623
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1028
+  Help:
+    collapsed: false
+  Hide Left Dock: false
+  Hide Right Dock: false
+  MotionPlanning:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b8000003befc0200000006fb000000100044006900730070006c0061007900730100000028000001e1000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000020f000001d7000001cc00ffffff00000466000003be00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Views:
+    collapsed: false
+  Width: 1828
+  X: 92
+  Y: 24

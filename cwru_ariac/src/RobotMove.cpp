@@ -41,7 +41,7 @@ bool RobotMove::toHome(double timeout) {
 }
 
 bool RobotMove::toPredefinedPose(int8_t predefined_pose_code, double timeout) {
-    ROS_INFO("requesting move to  pose code %d",predefined_pose_code);
+    ROS_INFO("requesting move to pose code %d", predefined_pose_code);
     RobotMoveGoal goal;
     goal.type = RobotMoveGoal::TO_PREDEFINED_POSE;
     goal.predfinedPoseCode = predefined_pose_code;
