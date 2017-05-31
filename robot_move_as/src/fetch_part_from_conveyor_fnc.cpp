@@ -7,7 +7,7 @@ unsigned short int RobotMoveActionServer:: fetch_from_conveyor(const cwru_ariac:
             ROS_INFO("part info: ");
             ROS_INFO_STREAM(part);
     //HACK FOR QUAL2b:  xxxxxxxxxxxxxxxxxxxxxxxxx
-    part.linear.y =QUAL2_CONVEYOR_SPEED;
+    //part.linear.y =QUAL2_CONVEYOR_SPEED; 
     double start_time = ros::Time::now().toSec();
     double part_header_time = part.pose.header.stamp.toSec();
     double dt = start_time-part_header_time;
