@@ -19,17 +19,11 @@ public:
     vector<PartList> onBin;
 
     void addCamera(string topic);
-
     void addLaserScanner(string topic);
-
     void forceUpdate();
-
     PartList combineLocations(int locationCode);
-
     PartList combineLocations(int locationCode, PartList extras);
-
     void startUpdate();
-
     void stopUpdate();
 
     // location code

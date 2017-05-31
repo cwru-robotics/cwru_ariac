@@ -22,6 +22,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     if (updateLock) {
         return;
     }
+    inUpdate = true;
     PartSet updateView;
     ros::Time currentTime = ros::Time::now();
     double dt = currentTime.toSec() - lastTime.toSec();
@@ -111,6 +112,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
 //    }
     inView.swap(updateView);
     splitLocation();
+    inUpdate = false;
 }
 void CameraEstimator::splitLocation() {
     onConveyor.clear();
@@ -127,7 +129,7 @@ void CameraEstimator::splitLocation() {
 //            if (!part.traceable){
 //                part.traceable = true;
 //                part.linear.x = 0;
-//                part.linear.y = -0.05;
+//                part.linear.y = -0.2;
 //                part.linear.z = 0;
 //            }
             onConveyor.push_back(part);

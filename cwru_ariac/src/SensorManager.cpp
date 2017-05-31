@@ -14,7 +14,6 @@ SensorManager::SensorManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle),
 
 void SensorManager::addCamera(string topic) {
     stopUpdate();
-    while (inUpdate);
     cameras.emplace_back(new CameraEstimator(nh, topic));
     updateCounts.resize(cameras.size());
     startUpdate();
@@ -31,7 +30,7 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
     int errorCode = 0;
     inUpdate = true;
     for (int i = 0; i < cameras.size(); ++i) {
-        cameras[i]->lock();
+        cameras[i]->stopUpdate();
         try {
             if (updateCounts[i] != cameras[i]->getUpdateCount() | performUpdate) {
                 performUpdate = true;
@@ -87,7 +86,7 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
             //        "Please report this error and check your memory page in your system monitor, hit enter to continue...");
             //getchar();
         }
-        cameras[i]->unlock();
+        cameras[i]->startUpdate();
     }
     // TODO: merge redundant parts
     inUpdate = false;
@@ -100,6 +99,7 @@ void SensorManager::startUpdate() {
 }
 
 void SensorManager::stopUpdate() {
+    while (inUpdate);
     spinner.stop();
     updateTimer.stop();
 }

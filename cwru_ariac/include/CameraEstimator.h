@@ -21,13 +21,13 @@ public:
 
     void forceUpdate();
 
-    void lock() { updateLock = true; }
+    void stopUpdate() {
+        while (inUpdate);
+        updateLock = true;
+    }
 
-    void unlock() { updateLock = false; }
-
-    bool getLockState() { return updateLock; }
+    void startUpdate() { updateLock = false; }
     int getUpdateCount() { return updateCount; }
-    void setUpdateCount(int updateCount) { this->updateCount = updateCount; }
 
 protected:
     ros::NodeHandle nh;
@@ -43,6 +43,7 @@ protected:
     string worldFrame;
     string cameraFrame;
     bool updateLock;
+    bool inUpdate;
 };
 
 
