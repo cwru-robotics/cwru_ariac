@@ -16,7 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <thread>
+#include <chrono>
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Dense>
@@ -55,12 +55,9 @@
 #include <cwru_ariac/OracleQuery.h>
 
 #include <IDGenerator.h>
-//#include <ariac_xform_utils/ariac_xform_utils.h>
 
 using namespace std;
-using namespace Eigen;
 using namespace cwru_ariac;
-using namespace osrf_gear;
 
 // overlaod hash function for Part to use unordered set
 namespace std {
@@ -113,10 +110,6 @@ template<typename T> inline PartList findPart(T& parts, string type) {
     return result;
 }
 
-template<typename T> inline typename T::iterator findBin(T& bins, int id) {
-    string name = "Bin" + id;
-    return findBin(bins, name);
-}
 template<typename T> inline typename T::iterator findBin(T& bins, string name) {
     return find_if(bins.begin(), bins.end(), [name](Bin bin){return bin.name == name;});
 }
@@ -173,9 +166,6 @@ inline double euclideanDistance(geometry_msgs::Point positionA, geometry_msgs::P
 inline double euclideanDistance2D(geometry_msgs::Point positionA, geometry_msgs::Point positionB) {
     return sqrt(pow(positionA.x - positionB.x, 2) + pow(positionA.y - positionB.y, 2));
 }
-//inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
-//    return (boundBox.Xmin <= position.x && position.x <= boundBox.Xmax) && (boundBox.Ymin <= position.y && position.y <= boundBox.Ymax) && (boundBox.Zmin <= position.z && position.z <= boundBox.Zmax);
-//}
 
 inline bool checkBound(geometry_msgs::Point position, BoundBox boundBox) {
     bool x = (boundBox.Xmin <= position.x && position.x <= boundBox.Xmax);
@@ -219,12 +209,12 @@ inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
 //    bool quat_y = true; //fabs(A.orientation.y - A.orientation.y) < 0.1;
 //    bool quat_z = fabs(A.orientation.z - A.orientation.z) < 0.1;
 //    bool quat_w = fabs(A.orientation.w - A.orientation.w) < 0.1;
-    if (!(distance & upDown & yaw)) {
-        ROS_WARN("match pose failed, upDown eval: %s, A: %s, B: %s", upDown? "true":"false", evalUpDown(A.orientation)? "up":"down", evalUpDown(B.orientation)? "up":"down");
-        ROS_WARN_STREAM("Pose A:" << A);
-        ROS_WARN_STREAM("Pose B:" << B);
-        ROS_WARN("A yaw:%f, B yaw:%f", convertPlanarQuat2Phi(A.orientation), convertPlanarQuat2Phi(A.orientation));
-    }
+//    if (!(distance & upDown & yaw)) {
+//        ROS_WARN("match pose failed, upDown eval: %s, A: %s, B: %s", upDown? "true":"false", evalUpDown(A.orientation)? "up":"down", evalUpDown(B.orientation)? "up":"down");
+//        ROS_WARN_STREAM("Pose A:" << A);
+//        ROS_WARN_STREAM("Pose B:" << B);
+//        ROS_WARN("A yaw:%f, B yaw:%f", convertPlanarQuat2Phi(A.orientation), convertPlanarQuat2Phi(A.orientation));
+//    }
     return distance & upDown & yaw;// roll & pitch & yaw;
 }
 
@@ -241,6 +231,16 @@ inline bool isSamePart(Part A, Part B) {
     }
     bool pose = matchPose(A.pose.pose, B.pose.pose);
     return name & location & x & y & z & pose;
+}
+
+inline double speedFilter(double currentPosition, double lastPosition, double lastSpeed, double dt) {
+    const double gain = 0.1;        // tune this
+    if (lastSpeed != 0) {
+        double newSpeed = (currentPosition - lastPosition) / dt;
+        newSpeed = lastSpeed + gain * (newSpeed - lastSpeed);
+        return newSpeed;
+    }
+    return (currentPosition - lastPosition) / dt;
 }
 
 // this class is used to storage some basic information of the competition and common algorithms.

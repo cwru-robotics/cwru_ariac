@@ -5,11 +5,13 @@
 #include "SensorManager.h"
 
 SensorManager::SensorManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle),
-                                                            spinner(std::thread::hardware_concurrency()),
+                                                            spinner(0),
                                                             onAGV(totalAGVs),
                                                             onBin(totalBins) {
-    updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this, false, false);
+    updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
     inUpdate = false;
+    updateLock = false;
+    spinner.start();
 }
 
 void SensorManager::addCamera(string topic) {
@@ -25,10 +27,13 @@ void SensorManager::addLaserScanner(string topic) {
 
 void SensorManager::updateCallback(const ros::TimerEvent &event) {
     // implement your code here, it will be executed at 50Hz
+    if (updateLock) {
+        return;
+    }
+    inUpdate = true;
     bool cleared = false;
     bool performUpdate = false;
     int errorCode = 0;
-    inUpdate = true;
     for (int i = 0; i < cameras.size(); ++i) {
         cameras[i]->stopUpdate();
         try {
@@ -82,9 +87,6 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
             }
         } catch (const std::bad_alloc e) {
             ROS_ERROR("Error: %s, when update camera %d, at step %d", e.what(), i + 1, errorCode);
-            //ROS_ERROR(
-            //        "Please report this error and check your memory page in your system monitor, hit enter to continue...");
-            //getchar();
         }
         cameras[i]->startUpdate();
     }
@@ -93,15 +95,12 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
 }
 
 void SensorManager::startUpdate() {
-    while (!spinner.canStart());
-    spinner.start();
-    updateTimer.start();
+    updateLock = false;
 }
 
 void SensorManager::stopUpdate() {
+    updateLock = true;
     while (inUpdate);
-    spinner.stop();
-    updateTimer.stop();
 }
 
 void SensorManager::forceUpdate() {
@@ -113,6 +112,7 @@ void SensorManager::forceUpdate() {
 }
 
 PartList SensorManager::combineLocations(int locationCode) {
+    stopUpdate();
     PartList parts;
     if (locationCode & GROUND) {
         for (auto p : onGround) {
@@ -141,6 +141,7 @@ PartList SensorManager::combineLocations(int locationCode) {
             parts.push_back(p);
         }
     }
+    startUpdate();
     return parts;
 }
 

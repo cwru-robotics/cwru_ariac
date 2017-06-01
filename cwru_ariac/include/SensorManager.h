@@ -53,7 +53,7 @@ protected:
     ros::AsyncSpinner spinner;
     ros::Timer updateTimer;
     bool inUpdate;
-
+    bool updateLock;
     void updateCallback(const ros::TimerEvent &event);
 };
 

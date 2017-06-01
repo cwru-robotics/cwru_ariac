@@ -23,9 +23,8 @@ catkin_simple()
 # example boost usage
 find_package(Boost REQUIRED COMPONENTS system thread)
 
-# C++0x support - not quite the same as final C++11!
-# use carefully;  can interfere with point-cloud library
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+# C++11 support; use carefully, can interfere with point-cloud library
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Libraries: uncomment the following and edit arguments to create a new library
 cs_add_library(AriacLib

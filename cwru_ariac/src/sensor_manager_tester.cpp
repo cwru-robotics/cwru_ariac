@@ -5,6 +5,7 @@
 #include <SensorManager.h>
 
 int main(int argc, char **argv) {
+//    double speed_acc = 0;
     int index;
     if (argv[1] != NULL) {
         index = atoi(argv[1]);
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
     sensorManager.addCamera("/ariac/logical_camera_5");
     sensorManager.addCamera("/ariac/logical_camera_6");
     sensorManager.addCamera("/ariac/logical_camera_7");
+//    auto start = chrono::steady_clock::now();
     while (ros::ok()) {
 //        sensorManager.forceUpdate();
         auto part_list = sensorManager.combineLocations(
@@ -32,10 +34,14 @@ int main(int argc, char **argv) {
         if (part != part_list.end()) {
             cout << "Id: " << part->id << endl
                  << "Name: " << part->name << endl
-                 << "Traceable: " << (part->traceable ? "yes" : "no")
+                 << "Traceable: " << (part->traceable ? "yes" : "no") << endl
                  << "Location: " << locationToName(part->location) << endl;
             ROS_INFO_STREAM("Pose:\n" << part->pose);
             ROS_INFO_STREAM("Linear:\n" << part->linear);
+//            auto end = chrono::steady_clock::now();
+//            double diff = chrono::duration_cast<chrono::seconds>(end - start).count();
+//            speed_acc += abs(part->linear.x) + abs(part->linear.y) + abs(part->linear.z);
+//            cout << "total speed error: " << speed_acc << ", " << (speed_acc / diff) * 1000 << " err/1000s" << endl;
         } else {
             cout << "Id: " << atoi(argv[1]) << " is out of view" << endl;
         }
@@ -47,7 +53,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < sensorManager.onAGV.size(); ++i) {
             cout << "onAGV " << i + 1 << ": " << sensorManager.onAGV[i].size() << endl;
         }
-        cout << "onGround : " << sensorManager.onGround.size() << endl;
-        ros::Duration(1).sleep();
+        cout << "onGround: " << sensorManager.onGround.size() << endl;
+        ros::Duration(0.5).sleep();
     }
 }

@@ -17,7 +17,7 @@ RobotInterface::RobotInterface(ros::NodeHandle &nodeHandle): nh( nodeHandle ){
     while(!called && ros::ok()) {
         //ROS_INFO("Waiting for joint feedback...");
         ros::spinOnce();
-        ros::Duration(0.05).sleep();
+        ros::Duration(0.02).sleep();
     }
     if (!gripper.exists()) {
         gripper.waitForExistence();
@@ -82,7 +82,7 @@ vector<double> RobotInterface::getJointsState() {
     while(!called && ros::ok()) {
         //ROS_INFO("Waiting for joint feedback...");
         ros::spinOnce();
-        ros::Duration(0.1).sleep();
+        ros::Duration(0.02).sleep();
     }
     vector<double> joints;
     joints.resize(current_joint_states.name.size(), 0.0);
@@ -97,7 +97,7 @@ vector<string> RobotInterface::getJointsNames() {
         while(!called && ros::ok()) {
             //ROS_INFO("Waiting for joint feedback...");
             ros::spinOnce();
-            ros::Duration(0.1).sleep();
+            ros::Duration(0.02).sleep();
         }
     }
     vector<string> names = current_joint_states.name;

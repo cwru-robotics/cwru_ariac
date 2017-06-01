@@ -38,7 +38,6 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     auto models = image_msg->models;
     // TODO refactor to: match all exist object first, then all untraceable object then add new object
     // TODO noise filtering
-//    ROS_INFO("inView: %d, size: %d, dt = %f",(int)inView.size(), (int)image_msg->models.size(), (float)dt);
     for (int i = 0; i < models.size(); ++i) {
         geometry_msgs::PoseStamped inPose;
         geometry_msgs::PoseStamped outPose;
@@ -68,9 +67,12 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
         for (auto part:inView) {
             distance = euclideanDistance(nextPart.pose.pose.position, part.pose.pose.position);
             if ((distance < distanceTolerance) && (nextPart.name == part.name)) {
-                nextPart.linear.x = (nextPart.linear.x + (nextPart.pose.pose.position.x - part.pose.pose.position.x)/dt)/2;
-                nextPart.linear.y = (nextPart.linear.y + (nextPart.pose.pose.position.y - part.pose.pose.position.y)/dt)/2;
-                nextPart.linear.z = (nextPart.linear.z + (nextPart.pose.pose.position.z - part.pose.pose.position.z)/dt)/2;
+                nextPart.linear.x = speedFilter(nextPart.pose.pose.position.x, part.pose.pose.position.x, part.linear.x,
+                                                dt);
+                nextPart.linear.y = speedFilter(nextPart.pose.pose.position.y, part.pose.pose.position.y, part.linear.y,
+                                                dt);
+                nextPart.linear.z = speedFilter(nextPart.pose.pose.position.z, part.pose.pose.position.z, part.linear.z,
+                                                dt);
                 nextPart.traceable = true;
                 nextPart.id = part.id;
                 inView.erase(part);
@@ -84,9 +86,12 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
                 distance = euclideanDistance(nextPart.pose.pose.position, part.pose.pose.position);
                 if ((!part.traceable) && (distance < untraceableTolerance) && (nextPart.name == part.name)) {
                     if ((distance < untraceableTolerance) && (nextPart.name == part.name)) {
-                        nextPart.linear.x = (nextPart.pose.pose.position.x - part.pose.pose.position.x)/dt;
-                        nextPart.linear.y = (nextPart.pose.pose.position.y - part.pose.pose.position.y)/dt;
-                        nextPart.linear.z = (nextPart.pose.pose.position.z - part.pose.pose.position.z)/dt;
+                        nextPart.linear.x = speedFilter(nextPart.pose.pose.position.x, part.pose.pose.position.x, 0,
+                                                        dt);
+                        nextPart.linear.y = speedFilter(nextPart.pose.pose.position.y, part.pose.pose.position.y, 0,
+                                                        dt);
+                        nextPart.linear.z = speedFilter(nextPart.pose.pose.position.z, part.pose.pose.position.z, 0,
+                                                        dt);
                         nextPart.traceable = true;
                         nextPart.id = part.id;
                         inView.erase(part);
@@ -114,6 +119,7 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     splitLocation();
     inUpdate = false;
 }
+
 void CameraEstimator::splitLocation() {
     onConveyor.clear();
     for (int j = 0; j < onAGV.size(); ++j) {

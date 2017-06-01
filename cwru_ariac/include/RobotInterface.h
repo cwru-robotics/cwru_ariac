@@ -2,8 +2,8 @@
 // Created by shipei on 10/18/16.
 //
 
-#ifndef CWRU_ARIAC_ROBOTPLANNER_H
-#define CWRU_ARIAC_ROBOTPLANNER_H
+#ifndef CWRU_ARIAC_ROBOTINTERFACE_H
+#define CWRU_ARIAC_ROBOTINTERFACE_H
 
 #include <AriacBase.h>
 
@@ -41,4 +41,4 @@ protected:
 };
 
 
-#endif //CWRU_ARIAC_ROBOTPLANNER_H
+#endif //CWRU_ARIAC_ROBOTINTERFACE_H
