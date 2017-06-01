@@ -4,15 +4,50 @@ sensors:
   logical_camera_1:
     type: logical_camera
     pose:
-      xyz: [-0.6, -0.18, 3.16]
+      xyz: [0.31, 3.18, 1.49]
       rpy: [0, 'pi/2', 0]
   logical_camera_2:
     type: logical_camera
     pose:
-      xyz: [0.6, 3.1, 2.7]
-      rpy: ['pi/2', 'pi/2', 'pi']
+      xyz: [0.31, -3.18, 1.49]
+      rpy: [0, 'pi/2', 0]
   logical_camera_3:
     type: logical_camera
     pose:
-      xyz: [0.6, -3.1, 2.7]
+      xyz: [-0.46, 1.0, 1.45]
       rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_4:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, 0.235, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_5:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, -0.53, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_6:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, -1.32, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_7:
+    type: logical_camera
+    pose:
+      xyz: [1.21, 2.7, 1.65]
+      rpy: [0, 'pi/2', 0]
+  # logical_camera_8:
+  #   type: logical_camera
+  #   pose:
+  #     xyz: [1.21, 1.79, 1.65]
+  #     rpy: [0, 'pi/2', 0]
+  laser_profiler_1:
+    type: laser_profiler
+    pose:
+      xyz: [1.21, 4.5, 1.59]
+      rpy: ['-pi', 'pi/2', 'pi/2']
+  laser_profiler_2:
+    type: laser_profiler
+    pose:
+      xyz: [1.21, 3.5, 1.59]
+      rpy: ['-pi', 'pi/2', 'pi/2']

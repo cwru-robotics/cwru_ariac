@@ -1,26 +1,53 @@
 arm:
   type: ur10
-  initial_joint_states:
-    linear_arm_actuator_joint: 0
 sensors:
   logical_camera_1:
     type: logical_camera
     pose:
-      xyz: [0, 0.5, 5]
+      xyz: [0.31, 3.18, 1.49]
       rpy: [0, 'pi/2', 0]
-      
-  break_beam_1:
-    type: break_beam
+  logical_camera_2:
+    type: logical_camera
     pose:
-      xyz: [1.6, 2.25, 0.95]
-      rpy: [0, 0, 'pi']
-  proximity_sensor_1:
-    type: proximity_sensor
+      xyz: [0.31, -3.18, 1.49]
+      rpy: [0, 'pi/2', 0]
+  logical_camera_3:
+    type: logical_camera
     pose:
-      xyz: [0.8, 4.4, 1]
-      rpy: [0, 0, 0]
+      xyz: [-0.46, 1.0, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_4:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, 0.235, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_5:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, -0.53, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  logical_camera_6:
+    type: logical_camera
+    pose:
+      xyz: [-0.46, -1.32, 1.45]
+      rpy: ['pi/2', 'pi/2', 'pi']
+  # logical_camera_7:
+  #   type: logical_camera
+  #   pose:
+  #     xyz: [1.21, 2.7, 1.65]
+  #     rpy: [0, 'pi/2', 0]
+  # logical_camera_8:
+  #   type: logical_camera
+  #   pose:
+  #     xyz: [1.21, 1.79, 1.65]
+  #     rpy: [0, 'pi/2', 0]
   laser_profiler_1:
     type: laser_profiler
     pose:
-      xyz: [1.21816, 4, 1.24]
+      xyz: [1.21, 4.5, 1.59]
+      rpy: ['-pi', 'pi/2', 'pi/2']
+  laser_profiler_2:
+    type: laser_profiler
+    pose:
+      xyz: [1.21, 3.5, 1.59]
       rpy: ['-pi', 'pi/2', 'pi/2']
