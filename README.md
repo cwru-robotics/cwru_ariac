@@ -42,11 +42,11 @@ Then run:
 
 For qual3a:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3a.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3a.yaml `rospack find cwru_ariac`/config/qual3.yaml``
 
 OR, for qual3b:
 
-``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/qual3_shrunken.yaml``
+``rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/qual3.yaml``
 
 Then run:
 
@@ -81,9 +81,6 @@ To check your current ARIAC version, run following command:
 To update your ARIAC, run following commands:
 
 ```
-sudo apt-get update 
+sudo apt-get update
 sudo apt-get upgrade ariac
 ```
-
-
-
