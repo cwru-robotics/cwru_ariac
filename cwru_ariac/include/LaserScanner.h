@@ -27,6 +27,8 @@
 #include <ariac_xform_utils/ariac_xform_utils.h>
 #include <Eigen/Eigen>
 
+#include <ctime>
+
 using namespace std;
 using namespace cv;
 
@@ -51,10 +53,12 @@ public:
 	void type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float>& pin_origin, vector<int>& origin_pixel, int part_id);
 
 	// MK1 obsolete
+	// Type B part solution
 	// void type_b_stamped_center(cv::Mat dewarped_mat_c, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& origin_pixel);
 	// void type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float>& pin_origin, vector<int>& origin_pixel, int part_id);
 
-	// MK2 current
+	// MK2 currently deployed
+	// Type B part solution
 	void type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float>& pin_origin, vector<int>& pin_pixel, int part_id);
 
 	void type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& pin_pixel, vector<int>& origin_pixel);
@@ -63,6 +67,170 @@ public:
 	void ForceUpdate();
 
 	void publish_part();
+
+
+	// MK3 part list management
+	int removal_event = 0;
+	bool removal_log_call = false;
+	string rm_log_name;
+	int rm_log_id;
+	template<typename T>
+	void remove_part(T& partlist, int part_id){
+	
+		if (partlist.empty() == 1){
+			ROS_WARN("The part list is empty!");
+		} else {
+			typename T::iterator target_iterator;
+			target_iterator = findPart(partlist, part_id);
+			rm_log_name = target_iterator -> name;
+			rm_log_id = part_id;
+			partlist.erase(target_iterator);
+			cout << "\033[1;34mDesignated part has been romoved!\033[0m" << endl << ">>>Part id: " << part_id << endl;
+			removal_event++;
+			removal_log_call = true;
+		}
+	
+	}
+
+	int belt_partlist_size;
+	int status_update_count = 0;
+	template<typename T>
+	void conveyor_list_status(T& partlist){
+		status_update_count++;
+		if (status_update_count > 20){
+			status_update_count = 0;
+			// int size;
+			belt_partlist_size = partlist.size();
+			cout << "\n\033[1;34mconveyor Belt Partlist Status Report:\033[0m" << endl
+			<< "Current quantity of parts on belt: " << belt_partlist_size << endl;
+
+			report_log_call = true;
+		}
+	}
+
+	// A log function
+	bool new_file = true;
+	char log_name[30];
+	time_t log_number;
+	time_t event_time;
+	int event_count = 0;
+	template<typename T>
+	void conveyor_list_blackbox(T& partlist){
+		if (new_file == true) {
+			new_file = false;
+			log_number = time(0);   
+			sprintf(log_name,"RN_Belt_Event_Recorder_%ld.log", log_number);
+			ofstream ofstream_1(log_name);	
+			ofstream_1 << "Belt Event Recorder \n" << "Activating Laser Scanner " << log_number << "]\n";
+			ofstream_1.close();
+		} else {
+			ofstream log;
+			log.open(log_name, ofstream::app);
+
+			if (exp_log_call == true) {
+				event_count++;				
+				event_time = time(0);
+				exp_log_call = false;
+				log << "\n";
+				log << "event number: " << event_count << "\n";
+				log << "[Part Expiration Event " << event_time << "_" << exp_event << "]\n";
+				log << "Expired part type: " << exp_log_name << "\n";
+				log << "Part ID: " << exp_log_id << "\n";			
+
+			}
+
+			if (removal_log_call == true) {
+				event_count++;
+				event_time = time(0);
+				removal_log_call = false;
+				log << "\n";
+				log << "event number: " << event_count << "\n";
+				log << "[Part Removal Event " << event_time << "_" << removal_event << "]\n";
+				log << "Removed part type: " << rm_log_name << "\n";
+				log << "Part ID: " << rm_log_id << "\n";	
+				
+				
+			}
+
+			if (add_part_log_call == true) {
+				event_count++;
+				event_time = time(0);
+				add_part_log_call = false;
+				log << "\n";
+				log << "event number: " << event_count << "\n";
+				log << "[Part Addition Event " << event_time << "_" << add_event << "]\n";
+				log << "Added part type: " << add_log_name << "\n";
+				log << "Part ID: " << add_log_id << "\n";	
+				
+				
+			}
+
+			if (report_log_call == true) {
+				event_time = time(0);
+				report_log_call = false;
+				log << "\n";
+				log << "[Current part count " << event_time << "]: " << belt_partlist_size << "\n";
+				
+				
+			}
+
+			log.close();
+			// log << 
+			
+		}
+	
+	}
+
+	// some other log variables used in the function
+	int add_event = 0; // for recording whatever item that has been added on the list
+	bool add_part_log_call = false;
+	int add_log_id;
+	string add_log_name;
+	bool report_log_call = false;
+	
+
+
+	template<typename T>
+	void conveyor_list_clean(T& partlist){
+		partlist.clear();
+	}
+
+
+	int exp_event = 0;
+	bool exp_log_call = false;
+	string exp_log_name;
+	int exp_log_id;
+	template<typename T>
+	void check_exp(T& partlist){
+
+		if (partlist.empty() == 1){
+			// ROS_WARN("The part list is empty REMOVE AFTER DEBUG");
+		} else {
+			auto oldest_part = partlist.front();
+			auto oldest_part_iterator =  partlist.begin();
+
+			int oldest_part_id = oldest_part.id;
+			float t_0 = oldest_part.pose.header.stamp.toSec();
+			float t_1 = ros::Time::now().toSec();
+			float v = abs(oldest_part.linear.y);
+			float dist = (t_1 - t_0)*v;
+
+			if (dist > conveyor_cut_off){
+			 	cout << "\033[1;31mA conveyor part has expired!\033[0m" << endl << ">>>Part id: " << oldest_part_id << endl;
+
+				exp_log_name = oldest_part.name;
+				exp_log_id = oldest_part.id;
+				remove_part(partlist, oldest_part_id);
+				exp_event++;
+				exp_log_call = true;
+				
+			}
+
+		}
+
+	}
+
+
 
 protected:
 	ros::NodeHandle nh;
@@ -150,6 +318,10 @@ protected:
 	// std::vector<int> width_delta;
 	// vector<float> debug;
 	// int temp_b_c;
+
+	// MK3 Conveyor belt management
+	// conveyor belt cut-off
+	int conveyor_cut_off = 2;
 
 
 };
