@@ -13,9 +13,22 @@ int main(int argc, char **argv) {
 
     ROS_INFO("laser_scanner_test..");
 
+    // LaserScannerTest.status_update_count = 0;
+
+    // clean the list first
+    LaserScannerTest.conveyor_list_clean(LaserScannerTest.conveyor_partlist);
+
     while(ros::ok()){
+	
+
+
 	LaserScannerTest.ForceUpdate();
-	// LaserScannerTest.publish_part();
+	
+	LaserScannerTest.check_exp(LaserScannerTest.conveyor_partlist);
+
+	LaserScannerTest.conveyor_list_status(LaserScannerTest.conveyor_partlist);
+
+	LaserScannerTest.conveyor_list_blackbox(LaserScannerTest.conveyor_partlist);
     
     }
     return 0; 

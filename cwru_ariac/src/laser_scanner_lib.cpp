@@ -256,23 +256,32 @@ void LaserScanner::integrate_info(const int& part_id, const vector<float>& origi
 	latest_part = part;
 
 
-	cout << "part.id: " << part.id << endl
-	     << "part.name: " << part.name << endl
-	     << "part.traceable: " << part.traceable << endl
-	     << "part.location: " << part.location << endl
-	     << "part.linear.x: " << part.linear.x << endl
-	     << "part.linear.y: " << part.linear.y << endl
-	     << "part.linear.z: " << part.linear.z << endl
-	     << "part.pose.header.stamp: " << part.pose.header.stamp << endl
-	     << "part.pose.pose: " << part.pose.pose << endl;
+//	cout << "part.id: " << part.id << endl
+//	     << "part.name: " << part.name << endl
+//	     << "part.traceable: " << part.traceable << endl
+//	     << "part.location: " << part.location << endl
+//	     << "part.linear.x: " << part.linear.x << endl
+//	     << "part.linear.y: " << part.linear.y << endl
+//	     << "part.linear.z: " << part.linear.z << endl
+//	     << "part.pose.header.stamp: " << part.pose.header.stamp << endl
+//	     << "part.pose.pose: " << part.pose.pose << endl;
 
-	ROS_INFO("Publishing to /ariac/latest_conveyor_part");
+	ROS_INFO("Publishing its part msg to /ariac/latest_conveyor_part");
 
 	vec_x.clear();
 	vec_y.clear();
 	vec_z.clear();
 
+	// MK3
+	// Belt partlist management
+	add_event++;
+	add_part_log_call = true;
+	add_log_id = part.id;
+	add_log_name = part.name;
+
 }
+
+
 
 
 void LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, float& t_0, float& t_1, float& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<float>& origin, vector<int>& origin_pixel, int& part_id) {
@@ -317,7 +326,8 @@ void LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, float& t_0, flo
 
 	x = laser_profiler_2_origin[0] + scan_width_*(j_avg - mat_wd/2)/mat_wd ;
 	y = laser_profiler_2_origin[1] - 0.06; // i: scan img height along world x axis
-	z = laser_profiler_2_origin[2] - belt_depth_ + ht_part;
+	// z = laser_profiler_2_origin[2] - belt_depth_ + ht_part;
+	z = laser_profiler_2_origin[2] - belt_depth_; // A MK3 modification: the origin is always at bottom surface, not relevant to the thickness of the part.
 	origin.push_back(x);
 	origin.push_back(y);
 	origin.push_back(z);
@@ -652,7 +662,8 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_heig
 	// y = laser_profiler_2_origin[1] + scan_height*(winner_i - mat_ht/2)/mat_ht ; // i: scan img height along world x axis
 	y = laser_profiler_2_origin[1] - 0.06;
 	// z = laser_profiler_2_origin[2] - belt_depth_ + (ht_avg * part_z_max)/255;
-	z = laser_profiler_2_origin[2] - belt_depth_ + 0.0075;
+	// z = laser_profiler_2_origin[2] - belt_depth_ + 0.0075;
+	z = laser_profiler_2_origin[2] - belt_depth_; // A MK3 modification: the origin is always at bottom surface, not relevant to the thickness of the part.
 	origin.push_back(x);
 	origin.push_back(y);
 	origin.push_back(z);
