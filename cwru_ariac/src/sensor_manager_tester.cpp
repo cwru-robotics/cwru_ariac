@@ -3,6 +3,7 @@
 //
 
 #include <SensorManager.h>
+#include <OrderManager.h>
 
 int main(int argc, char **argv) {
 //    double speed_acc = 0;
@@ -18,6 +19,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "sensor_manager_tester");
     ros::NodeHandle nh;
     SensorManager sensorManager(nh);
+    OrderManager orderManager(nh);
     sensorManager.addCamera("/ariac/logical_camera_1");
     sensorManager.addCamera("/ariac/logical_camera_2");
     sensorManager.addCamera("/ariac/logical_camera_3");
@@ -25,6 +27,7 @@ int main(int argc, char **argv) {
     sensorManager.addCamera("/ariac/logical_camera_5");
     sensorManager.addCamera("/ariac/logical_camera_6");
 //    sensorManager.addCamera("/ariac/logical_camera_7");
+    orderManager.startCompetition();
 //    auto start = chrono::steady_clock::now();
     while (ros::ok()) {
 //        sensorManager.forceUpdate();

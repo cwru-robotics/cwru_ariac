@@ -140,7 +140,7 @@ void laser_1_Callback(const sensor_msgs::LaserScan& laser_scan) {
 				// ROS_INFO("The object is passing Scanner 1..");
 				row_count_l1++;
 				// This mechanism allows us to know the speed before the part has completely passed the scanner.
-				if (row_count_l1 > 12) {
+            if (row_count_l1 > 6) {
 			
 			    			item_count_l1 = item_count_l1 + 1;
 						t0_stack[item_count_l1] = t_temp_l1[0];
@@ -228,7 +228,7 @@ void laser_2_Callback(const sensor_msgs::LaserScan& laser_scan) {
 				// ROS_INFO("The object is passing Scanner 1..");
 				row_count_l2++;
 
-				if (row_count_l2 > 12) { //used to be 15 but when belt set to .2m/s gear part will not be recogised.
+            if (row_count_l2 > 6) { //used to be 15 but when belt set to .2m/s gear part will not be recogised.
 			
 			    			item_count_l2 = item_count_l2 + 1;
 						t1_stack[item_count_l2] = t_temp_l2[0];
