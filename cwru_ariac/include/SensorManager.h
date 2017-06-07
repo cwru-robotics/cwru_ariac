@@ -7,6 +7,7 @@
 
 #include <AriacBase.h>
 #include <CameraEstimator.h>
+#include <LaserScanner.h>
 
 class SensorManager : public AriacBase {
 public:
@@ -15,16 +16,20 @@ public:
     PartSet inView;
     PartList onGround;
     PartList onConveyor;
+    PartList laserScannerConveyor;
     vector<PartList> onAGV;
     vector<PartList> onBin;
 
     void addCamera(string topic);
-    void addLaserScanner(string topic);
     void forceUpdate();
     PartList combineLocations(int locationCode);
     PartList combineLocations(int locationCode, PartList extras);
     void startUpdate();
     void stopUpdate();
+
+    void partFetched(int partID) {
+        laserScanner.remove_part(laserScanner.conveyor_partlist, partID);
+    }
 
     // location code
     enum {
@@ -50,8 +55,10 @@ protected:
     ros::NodeHandle nh;
     vector<unique_ptr<CameraEstimator>> cameras;
     vector<int> updateCounts;
+    int laserScannerUpdateCount;
     ros::AsyncSpinner spinner;
     ros::Timer updateTimer;
+    LaserScanner laserScanner;
     bool inUpdate;
     bool updateLock;
     void updateCallback(const ros::TimerEvent &event);

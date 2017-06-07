@@ -24,12 +24,12 @@ int main(int argc, char **argv) {
     sensorManager.addCamera("/ariac/logical_camera_4");
     sensorManager.addCamera("/ariac/logical_camera_5");
     sensorManager.addCamera("/ariac/logical_camera_6");
-    sensorManager.addCamera("/ariac/logical_camera_7");
+//    sensorManager.addCamera("/ariac/logical_camera_7");
 //    auto start = chrono::steady_clock::now();
     while (ros::ok()) {
 //        sensorManager.forceUpdate();
         auto part_list = sensorManager.combineLocations(
-                SensorManager::CONVEYOR + SensorManager::AGVS + SensorManager::BINS + SensorManager::GROUND);
+                SensorManager::BINS | SensorManager::GROUND | SensorManager::AGVS | SensorManager::CONVEYOR);
         auto part = findPart(part_list, index);
         if (part != part_list.end()) {
             cout << "Id: " << part->id << endl
@@ -45,10 +45,11 @@ int main(int argc, char **argv) {
         } else {
             cout << "Id: " << atoi(argv[1]) << " is out of view" << endl;
         }
-        cout << "inView size: " << sensorManager.inView.size() << ", onConveyor size: "
-             << sensorManager.onConveyor.size() << endl;
+        cout << "inView size: " << sensorManager.inView.size() << endl;
+        cout << "onConveyor size: " << sensorManager.onConveyor.size() << ", laser scanner conveyor size: "
+             << sensorManager.laserScannerConveyor.size() << endl;
         for (int i = 0; i < sensorManager.onBin.size(); ++i) {
-            cout << "onBin " << i + 1 << ": " << sensorManager.onBin[i].size() << endl;
+//            cout << "onBin " << i + 1 << ": " << sensorManager.onBin[i].size() << endl;
         }
         for (int i = 0; i < sensorManager.onAGV.size(); ++i) {
             cout << "onAGV " << i + 1 << ": " << sensorManager.onAGV[i].size() << endl;

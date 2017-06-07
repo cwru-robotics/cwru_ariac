@@ -37,14 +37,14 @@ LaserScanner::LaserScanner(ros::NodeHandle &nodeHandle):nh(nodeHandle){
 
 	ROS_INFO("subscribers ready..");
 
-		cout << "\n\033[0;31mDo you wish to output images and related .csv files? Press 1 if you do, otherwise press 0: \033[0m";
-		cin >> output_flag;
+	// cout << "\n\033[0;31mDo you wish to output images and related .csv files? Press 1 if you do, otherwise press 0: \033[0m";
+//		cin >> output_flag;
 
 	ROS_INFO("Laser Scanner activated..");
 }
 
 
-void LaserScanner::ForceUpdate() {
+void LaserScanner::forceUpdate() {
 
 	int spin_count = 0;
 	while (ros::ok() && spin_count <100){
@@ -85,7 +85,7 @@ void LaserScanner::part_identification(cv::Mat dewarped_mat, int& type_id){
 				part_pt_count++;
 				ht_total = ht_total + dewarped_mat.at<double>(i, j);
 			} else if (dewarped_mat.at<double>(i, j) > 255) {
-				ROS_WARN("DEPTH GREATER THAN 255! at (i = %d, j = %d) = %f.", i, j, dewarped_mat.at<double>(i, j));
+//				ROS_WARN("DEPTH GREATER THAN 255! at (i = %d, j = %d) = %f.", i, j, dewarped_mat.at<double>(i, j));
 				}
 		}
 	}
@@ -251,8 +251,11 @@ void LaserScanner::integrate_info(const int& part_id, const vector<float>& origi
 	part.linear.y = -belt_speed; // belt direction is opposite to the world frame y direction.
 	part.pose.pose = pose_temp;
 	part.pose.header.stamp = ros_t_stamp;
+	part.pose.header.frame_id = "world";
 
+	std::lock_guard<std::mutex> guard(updateLock);
 	conveyor_partlist.push_back(part);
+
 	latest_part = part;
 
 

@@ -7,22 +7,21 @@
 SensorManager::SensorManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle),
                                                             spinner(0),
                                                             onAGV(totalAGVs),
-                                                            onBin(totalBins) {
+                                                            onBin(totalBins),
+                                                            laserScanner(nh) {
     updateTimer = nh.createTimer(ros::Duration(0.02), &SensorManager::updateCallback, this);
     inUpdate = false;
     updateLock = false;
     spinner.start();
+    laserScanner.conveyor_partlist.clear();
 }
 
 void SensorManager::addCamera(string topic) {
     stopUpdate();
     cameras.emplace_back(new CameraEstimator(nh, topic));
     updateCounts.resize(cameras.size());
+    *updateCounts.end() = 0;
     startUpdate();
-}
-
-void SensorManager::addLaserScanner(string topic) {
-    ROS_WARN("No laser scanner support!");
 }
 
 void SensorManager::updateCallback(const ros::TimerEvent &event) {
@@ -90,6 +89,16 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
         }
         cameras[i]->startUpdate();
     }
+    laserScanner.check_exp();
+    laserScanner.checkLog();
+    if (laserScannerUpdateCount != laserScanner.event_count) {
+        laserScannerUpdateCount = laserScanner.event_count;
+        laserScannerConveyor.clear();
+        std::lock_guard<std::mutex> guard(laserScanner.updateLock);
+        for (auto p: laserScanner.conveyor_partlist) {
+            laserScannerConveyor.push_back(p);
+        }
+    }
     // TODO: merge redundant parts
     inUpdate = false;
 }
@@ -108,6 +117,7 @@ void SensorManager::forceUpdate() {
     for (int i = 0; i < cameras.size(); ++i) {
         cameras[i]->forceUpdate();
     }
+    laserScanner.forceUpdate();
     while(inUpdate);
 }
 
@@ -121,6 +131,9 @@ PartList SensorManager::combineLocations(int locationCode) {
     }
     if (locationCode & CONVEYOR) {
         for (auto p : onConveyor) {
+            parts.push_back(p);
+        }
+        for (auto p: laserScannerConveyor) {
             parts.push_back(p);
         }
     }

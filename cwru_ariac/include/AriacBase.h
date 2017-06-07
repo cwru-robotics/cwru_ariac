@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <chrono>
+#include <mutex>
 
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Dense>
