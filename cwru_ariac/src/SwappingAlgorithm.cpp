@@ -1,114 +1,88 @@
+//
+// Created by Ammar Nahari on 5/5/2017.
+//
+
 
 #include <SwappingAlgorithm.h>
 
-SwappingAlgorithm::SwappingAlgorithm(ros::NodeHandle nodeHandle, RobotMove robotMove, BinManager binManager) : nh(
-        nodeHandle)
+SwappingAlgorithm::SwappingAlgorithm(ros::NodeHandle& nodeHandle, RobotMove& robotMove, BinManager& binManager) : nh(nodeHandle)
 {
-    robotMovePtr.allocate_shared(robotMove);
-    binManagerPtr.allocate_shared(binManager);
+    robotMovePtr = &robotMove; // create global RobotMove pointer
+    binManagerPtr = &binManager; // create global BinManager pointer
 
-	//Part part_1,part_2,storage;
-	//RobotMove robotMove(nh);
-
-
-	parts_location(part_1,part_2);
-	storage_onAGV(storage);
-
-
-
-	//save the location of part_1 and part_2
-    //geometry_msgs::PoseStamped temp_location1,temp_location2;
-
-    temp_location1.pose.position.x=part_1.pose.position.x;
-    temp_location1.pose.position.y=part_1.pose.position.y;
-    temp_location1.pose.position.z=part_1.pose.position.z;
-    temp_location1.pose.orientation.x=part_1.pose.orientation.x;
-    temp_location1.pose.orientation.y=part_1.pose.orientation.y;
-    temp_location1.pose.orientation.z=part_1.pose.orientation.z;
-    temp_location1.pose.orientation.w=part_1.pose.orientation.w;
-
-    temp_location2.pose.position.x=part_2.pose.position.x;
-    temp_location2.pose.position.y=part_2.pose.position.y;
-    temp_location2.pose.position.z=part_2.pose.position.z;
-    temp_location2.pose.orientation.x=part_2.pose.orientation.x;
-    temp_location2.pose.orientation.y=part_2.pose.orientation.y;
-    temp_location2.pose.orientation.z=part_2.pose.orientation.z;
-    temp_location2.pose.orientation.w=part_2.pose.orientation.w;
-
-
-    //populate a goal message for manipulation
-    robotMove.enableAsync();
-    robotMove.move(part_1, storage);
-
-
-	while (!robotMove.actionFinished())
-    {  
-        ROS_INFO("waiting for result");
-        ros::Duration(1).sleep();
-    }
-    
-    robotMove.enableAsync();
-    robotMove.move(part_2, temp_location1);
-
-	while (!robotMove.actionFinished())
-    {  
-        ROS_INFO("waiting for result");
-        ros::Duration(1).sleep();
-    }
-
-    robotMove.enableAsync();
-    robotMove.move(storage, temp_location2);
-
-	while (!robotMove.actionFinished())
-    {  
-        ROS_INFO("waiting for result");
-        ros::Duration(1).sleep();
-    }
-
-	return 0;
+    //finished with main go to spin
+    ros::spin(); 
 }
 
 bool SwappingAlgorithm::swapParts(vector<pair<Part, Part>> action) {
 
+    bool found_storage = true; //triggers false when no storage available on tray
+    int correction_counter= action.size()-1; // counts the movements done 
+
+    //look for storage location on AGV
+    //Since we don't have AGV manager yet we are using Bim Manager instead
+    //save the storage location in variable temp_part 
+    found_storage = binManagerPtr->advisedLocationForPut(temp_part.name, temp_part);
+
+    if(!found_storage){
+        // if there is no storage space on tray return false
+        ROS_WARN("Coudln't find a storage location on tray");
+        //TODO: we could call kevins service and embty the tray here
+        return false;
+    }
+    else{
+        //if storage exist :move first part in the parts vector to storage
+        robotMovePtr->enableAsync();
+        robotMovePtr->move(action[0].first, temp_part);
+
+        ROS_INFO("Moving first part to temp. storage");
+
+        while (!robotMovePtr->actionFinished()){  
+            ros::Duration(0.3).sleep();
+        }
+
+        while(correction_counter<0){
+            //stay in the loop until all parts are in the right location
+
+            for(int i=1; i<action.size() ; i++){
+
+                //iterate between all the parts and do any possible correction movement
+                for(int j=1; j<action.size(); j++){
+
+                    if((action[i].second.pose.pose.position.x!= action[j].first.pose.pose.position.x)&&(action[i].second.pose.pose.position.y!= action[j].first.pose.pose.position.y)&&(i!=j)){
+                        // if the condition is true: it means the ith element can be moved to the target position
+                        //command the movement
+                        robotMovePtr->enableAsync();
+                        robotMovePtr->move(action[i].first, action[i].second);
+
+                        ROS_INFO("Moving part %d", i);
+
+                        while (!robotMovePtr->actionFinished()){  
+                            ros::Duration(0.3).sleep();
+                        }
+                        correction_counter--;// decrease the corrected parts counter by one
+                    }   
+                }     
+            }
+        }
+
+        //when out of the while loop: it means we succeed in moving all the parts to their location exept for the first part
+        //move the first part from the temporary location to its target location
+        robotMovePtr->enableAsync();
+        robotMovePtr->move(temp_part, action[0].second);
+
+        ROS_INFO("Moving first part from  temp. storage to target location");
+
+        while (!robotMovePtr->actionFinished()){  
+            ros::Duration(0.3).sleep();
+        }        
+       
+    }
+
+    ROS_INFO("Done swapping all the pairs");
+
+    ROS_INFO("exiting");
+
+    return true;  
 }
-
-void SwappingAlgorithm::parts_location(Part &part_1, Part &part_2){
-	geometry_msgs::PoseStamped [part_1,part_2];
-
-	part_1.header.frame_id="agv1_load_point_frame";
-    part_1.pose.orientation.x=0;
-    part_1.pose.orientation.y=0;
-    part_1.pose.orientation.z=0;
-    part_1.pose.orientation.w=1;
-    
-    part_1.pose.position.x = -0.369; //Translation: [-0.369, -0.597, 0.726]
-    part_1.pose.position.y = -0.597;
-    part_1.pose.position.z = 0.726;   
-
-	part_2.header.frame_id="agv1_load_point_frame";
-    part_2.pose.orientation.x=0;
-    part_2.pose.orientation.y=0;
-    part_2.pose.orientation.z=0;
-    part_2.pose.orientation.w=1;
-    
-    part_2.pose.position.x = 0.5; //Translation: [-0.369, -0.597, 0.726]
-    part_2.pose.position.y = 0.2;
-    part_2.pose.position.z = -0.4;
-}
-
-void SwappingAlgorithm::storage_onAGV(Part &storage){
-	//check the type in position p
-	geometry_msgs::PoseStamped storage;
-
-	storage.header.frame_id="agv1_load_point_frame";
-    storage.pose.orientation.x=0;
-    storage.pose.orientation.y=0;
-    storage.pose.orientation.z=0;
-    storage.pose.orientation.w=1;
-    
-    storage.pose.position.x = -0.0; //Translation: [-0.369, -0.597, 0.726]
-    storage.pose.position.y = -0.0;
-    storage.pose.position.z = 0.0;    
-}
-
 

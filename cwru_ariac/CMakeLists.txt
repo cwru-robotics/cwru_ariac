@@ -30,7 +30,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 cs_add_library(AriacLib
         src/OraclePlanner.cpp src/RobotInterface.cpp src/CameraEstimator.cpp src/BinManager.cpp
         src/OrderManager.cpp src/Cheater.cpp src/PlanningUtils.cpp src/RobotMove.cpp src/SensorManager.cpp
-        src/OraclePlanningUtils.cpp src/QualitySensor.cpp src/laser_scanner_lib.cpp)
+        src/OraclePlanningUtils.cpp src/QualitySensor.cpp src/laser_scanner_lib.cpp src/SwappingAlgorithm.cpp)
 
 # Executables: uncomment the following and edit arguments to compile new nodes
 # may add more of these lines for more nodes from the same package
