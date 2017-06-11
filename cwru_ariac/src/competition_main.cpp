@@ -1,12 +1,13 @@
+
 //
-// Created by tianshipei on 5/1/17.
+// Modified version of qualifier3 by Ammar 6/5/2017
 //
 
 
 #include <cwru_ariac.h>
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "ariac_qual3");
+    ros::init(argc, argv, "CompetitionMainN");
     ros::NodeHandle nh;
     SensorManager camera(nh);
     camera.addCamera("/ariac/logical_camera_1");
@@ -15,17 +16,27 @@ int main(int argc, char **argv) {
     camera.addCamera("/ariac/logical_camera_4");
     camera.addCamera("/ariac/logical_camera_5");
     camera.addCamera("/ariac/logical_camera_6");
-    camera.addCamera("/ariac/logical_camera_7");
+//    camera.addCamera("/ariac/logical_camera_7");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
     robotMove.disableAsync();
     robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE);
     PlanningUtils planningUtils(nh, robotMove);
     QualitySensor qualitySensor(nh);
+    //-----------------------------------------------------------------
+    bool priorityOrderFlag = false;//added by Ammar
+    bool priorityOrderDone = false;//added by Ammar
+    bool memoryFlag = false;//added by Ammar
+    osrf_gear::Order orderMemory;
+    int agvMemory;
+    osrf_gear::Kit kitMemoryAssigned; // added by Ammar 
+    osrf_gear::Kit kitMemoryCompleted; // added by Ammar
+    PartList kitMemoryContains; // added by
+
     ROS_INFO("Trying to start the competition");
     while (!orderManager.startCompetition());
     ROS_INFO("Competition started");
-    int useAGV = 1; //0; change to 1 to force using agv2
+    int useAGV = 0; //0; change to 1 to force using agv2
     string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         if (orderManager.orders.empty()) {
@@ -35,25 +46,53 @@ int main(int argc, char **argv) {
         }
         ROS_INFO("Got %d orders", (int) orderManager.orders.size());
         for (auto order : orderManager.orders) {
+
+            if (priorityOrderFlag) {
+                priorityOrderFlag = false;
+                order = orderManager.orders[orderManager.orders.size() - 1];
+                useAGV = 1;
+            } else {
+                if (memoryFlag) {
+                    order = orderMemory;
+                    useAGV = agvMemory;
+                } else {
+                    orderMemory = order; // added by Ammar
+                    useAGV = 0;
+                }
+            }
             ROS_INFO("Working on order id: %s", order.order_id.c_str());
+            //changed by Ammar to assign an AGV to the whole order instead of assigning it to kits
+            while (!orderManager.isAGVReady(useAGV)) {
+                ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
+                //useAGV = (useAGV == 1 ? 0 : 1);
+                agvMemory = useAGV; // added by Ammar
+                agvName = orderManager.AGVs[useAGV].name;
+                ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
+                ros::Duration(0.02).sleep();
+            }
+
+            ROS_INFO("%s is Ready", agvName.c_str());
             for (auto kit : order.kits) {
+                if (priorityOrderFlag) { break; }//added by Ammar
                 PartList extraParts;
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d", (int) kit.objects.size());
-                while (!orderManager.isAGVReady(useAGV)) {
-                    ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
-                    useAGV = (useAGV == 1 ? 0 : 1);
-                    agvName = orderManager.AGVs[useAGV].name;
-                    ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
-                    ros::Duration(0.02).sleep();
+
+                if (memoryFlag && priorityOrderDone) {
+                    orderManager.AGVs[useAGV].kitAssigned = kitMemoryAssigned;
+                    orderManager.AGVs[useAGV].kitCompleted = kitMemoryCompleted;
+                    orderManager.AGVs[useAGV].contains = kitMemoryContains;
+                } else {
+                    orderManager.AGVs[useAGV].kitAssigned = kit;
+                    orderManager.AGVs[useAGV].kitCompleted.kit_type = kit.kit_type;
+                    orderManager.AGVs[useAGV].kitCompleted.objects.clear();
+
                 }
-                ROS_INFO("%s is Ready", agvName.c_str());
-                orderManager.AGVs[useAGV].kitAssigned = kit;
-                orderManager.AGVs[useAGV].kitCompleted.kit_type = kit.kit_type;
-                orderManager.AGVs[useAGV].kitCompleted.objects.clear();
                 while (!orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
+                    if (priorityOrderFlag) { break; }//added by Ammar
                     for (auto object : orderManager.AGVs[useAGV].kitAssigned.objects) {
-                        cout << "=============================================================================" << endl;
+                        cout << "================================================================continue============="
+                             << endl;
                         ROS_INFO("Working on object type: %s", object.type.c_str());
                         ROS_INFO("Remain objects for this kit: %d",
                                  (int) orderManager.AGVs[useAGV].kitAssigned.objects.size());
@@ -61,10 +100,10 @@ int main(int argc, char **argv) {
                         PartList failedParts;
                         while (ros::ok() && !succeed) {
                             camera.forceUpdate();
-                            PartList allParts = camera.combineLocations(SensorManager::CONVEYOR + SensorManager::BINS
-                                                                        + SensorManager::GROUND, extraParts);
-                            ROS_INFO("Got %d parts from camera, try to find such part in all places",
-                                     (int) allParts.size());
+                            PartList allParts = camera.combineLocations(
+                                    SensorManager::CONVEYOR + SensorManager::BINS + SensorManager::GROUND, extraParts);
+                            ROS_INFO("Got %d parts from camera, try to find %s part in all places",
+                                     (int) allParts.size(), object.type.c_str());
                             PartList candidates = findPart(allParts, object.type);
                             for (auto failed: failedParts) {
                                 auto failedIt = findPart(candidates, failed.id);
@@ -120,15 +159,15 @@ int main(int argc, char **argv) {
                                         extraParts.push_back(redundantPart);
                                     }
                                 } else {
-                                    ROS_INFO("all parts in correct pose");
+                                    ROS_INFO("part in correct pose");
                                 }
                                 orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
-                                orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
-                                        orderManager.AGVs[useAGV].kitAssigned.objects.begin(),
-                                        orderManager.AGVs[useAGV].kitAssigned.objects.end(),
-                                        [object](osrf_gear::KitObject obj) {
-                                            return obj.type == object.type && matchPose(obj.pose, object.pose);
-                                        }));
+                                orderManager.AGVs[useAGV].kitAssigned.objects.erase(
+                                        find_if(orderManager.AGVs[useAGV].kitAssigned.objects.begin(),
+                                                orderManager.AGVs[useAGV].kitAssigned.objects.end(),
+                                                [object](osrf_gear::KitObject obj) {
+                                                    return obj.type == object.type && matchPose(obj.pose, object.pose);
+                                                }));
                             } else {
                                 ROS_INFO("Failed to transfer the part, reason: %s",
                                          robotMove.getErrorCodeString().c_str());
@@ -157,13 +196,13 @@ int main(int argc, char **argv) {
                                                     orderManager.AGVs[useAGV].contains.push_back(target);
                                                     succeed = true;
                                                     orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
-                                                    orderManager.AGVs[useAGV].kitAssigned.objects.erase(find_if(
-                                                            orderManager.AGVs[useAGV].kitAssigned.objects.begin(),
-                                                            orderManager.AGVs[useAGV].kitAssigned.objects.end(),
-                                                            [object](osrf_gear::KitObject obj) {
-                                                                return obj.type == object.type &&
-                                                                       matchPose(obj.pose, object.pose);
-                                                            }));
+                                                    orderManager.AGVs[useAGV].kitAssigned.objects.erase(
+                                                            find_if(orderManager.AGVs[useAGV].kitAssigned.objects.begin(),
+                                                                    orderManager.AGVs[useAGV].kitAssigned.objects.end(),
+                                                                    [object](osrf_gear::KitObject obj) {
+                                                                        return obj.type == object.type &&
+                                                                               matchPose(obj.pose, object.pose);
+                                                                    }));
                                                     ROS_INFO("Successfully picked the dropped part");
                                                 }
                                                 if (!succeed) {
@@ -252,26 +291,43 @@ int main(int argc, char **argv) {
                             break;
                         }
                     }
+                    kitMemoryAssigned = orderManager.AGVs[agvMemory].kitAssigned; // added by Ammar
+                    kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
+                    kitMemoryContains = orderManager.AGVs[useAGV].contains; // added by Ammar
+
+                    if (!priorityOrderFlag && priorityOrderDone) {
+                        priorityOrderDone = false;
+                        memoryFlag = false;
+                    }
+                    if (!priorityOrderFlag && memoryFlag) { priorityOrderDone = true; }
+
+                    //TODO: Check for priory orders (Ammar)
+                    if (orderManager.priorityOrderReceived) {
+                        orderManager.priorityOrderReceived = false;
+                        priorityOrderFlag = true;
+                        memoryFlag = true;
+                        ROS_INFO("priority_order received..\n holding current order");
+                        break;
+                    }
                 }
-                ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
-                ROS_INFO("Submitting order...");
-                bool order_result = orderManager.submitOrder(useAGV, kit);
-                ROS_INFO("Submission %s", order_result ? "success" : "failed");
-                ros::spinOnce();
-                orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1
-                ros::Duration(2.0).sleep();
-                ROS_INFO("Current score: %f", orderManager.getCurrentScore());
+                if (!priorityOrderFlag) {
+                    ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
+                    ROS_INFO("Submitting order...");
+                    bool order_result = orderManager.submitOrder(useAGV, kit);
+                    ROS_INFO("Submission %s", order_result ? "success" : "failed");
+                    orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1
+                    ros::Duration(2.0).sleep();
+                    ROS_INFO("Current score: %f", orderManager.getCurrentScore());
+                }
+
                 orderManager.AGVs[useAGV].contains.clear();
-                order.kits.erase(find_if(
-                        order.kits.begin(), order.kits.end(),
-                        [kit](osrf_gear::Kit obj) {
-                            return obj.kit_type == kit.kit_type;
-                        }));
+                order.kits.erase(find_if(order.kits.begin(), order.kits.end(), [kit](osrf_gear::Kit obj) {
+                    return obj.kit_type == kit.kit_type;
+                }));
             }
             ROS_INFO("completed one order: %s", order.order_id.c_str());
-            orderManager.orders.erase(find_if(
-                    orderManager.orders.begin(), orderManager.orders.end(),
-                    [order](osrf_gear::Order obj) {
+            orderManager.orders.erase(
+                    find_if(orderManager.orders.begin(), orderManager.orders.end(), [order](osrf_gear::Order obj) {
                         return obj.order_id == order.order_id;
                     }));
         }

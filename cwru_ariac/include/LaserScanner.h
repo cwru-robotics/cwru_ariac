@@ -365,7 +365,7 @@ protected:
 
     // MK3 Conveyor belt management
     // conveyor belt cut-off
-    int conveyor_cut_off = 2;
+    int conveyor_cut_off = 3;
 
 
 };

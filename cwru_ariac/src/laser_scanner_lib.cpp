@@ -238,10 +238,10 @@ void LaserScanner::integrate_info(const int& part_id, const vector<float>& origi
 	XformUtils XformUtils_;
 	pose_temp = XformUtils_.transformEigenAffine3dToPose(affine_temp);
 
-	if (part_id == 1) {part.name = "Disk Part";}
-	else if (part_id == 2) {part.name = "Gasket Part";}
-	else if (part_id == 3) {part.name = "Gear Part";}
-	else if (part_id == 4) {part.name = "Piston Rod Part";}
+	if (part_id == 1) { part.name = "disk_part"; }
+	else if (part_id == 2) { part.name = "gasket_part"; }
+	else if (part_id == 3) { part.name = "gear_part"; }
+	else if (part_id == 4) { part.name = "piston_rod_part"; }
 
 	part.id = 20000 + item_count;
 	part.traceable = true;
@@ -869,7 +869,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 		vec_part_on_belt[2] = part_on_belt_; //vec[2] store the current state
 
 		if (vec_part_on_belt[0] == false && vec_part_on_belt[1] == true && vec_part_on_belt[2] == true) { // unlock the triple lock
-	   		ROS_INFO("saving the first row");
+//	   		ROS_INFO("saving the first row");
 	    		image_z.push_back(row_z_prev_0);
 	    		image_z.push_back(row_z_prev_1);
 	    		image_z.push_back(row_z_prev_2);
@@ -884,7 +884,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 
 			} else if (vec_part_on_belt[0] == true && vec_part_on_belt[1]== false && vec_part_on_belt[2]== false){
 
-	   			ROS_INFO("saving the last row");
+//	   			ROS_INFO("saving the last row");
 
 				// saving the last time stamp and last row
 

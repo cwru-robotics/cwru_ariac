@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
                     ROS_INFO("Found %d parts from bins", (int)candidates.size());
                     while (!candidates.empty()) {
                         Part best = planningUtils.getEuclideanBestPart(candidates);
-                        Part target = orderManager.toAGVPart(agvName, object);
+                        Part target = orderManager.toAGVPart(0, object);
                         candidates.erase(findPart(candidates, best.id));
                         ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());
                         ROS_INFO_STREAM(best);
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
                 }
                 ROS_INFO("complete one kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
                 ROS_INFO("Submitting order...");
-                bool order_result = orderManager.submitOrder(agvName, kit);
+                bool order_result = orderManager.submitOrder(0, kit);
                 ROS_INFO("Submission %s", order_result? "success":"failed");
                 ros::Duration(2.0).sleep();
                 ROS_INFO("Current score: %f", orderManager.getCurrentScore());

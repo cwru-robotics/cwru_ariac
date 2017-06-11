@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
     while (!orderManager.startCompetition());
     ROS_INFO("Competition started");
     int useAGV = 1; //0; change to 1 to force using agv2
-    string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         if (orderManager.orders.empty()) {
             ROS_INFO_THROTTLE(0.5, "Got no order, waiting...");
@@ -40,13 +39,12 @@ int main(int argc, char **argv) {
                 ROS_INFO("Working on kit type: %s", kit.kit_type.c_str());
                 ROS_INFO("size of kit: %d", (int) kit.objects.size());
                 while (!orderManager.isAGVReady(useAGV)) {
-                    ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
+                    ROS_WARN_THROTTLE(1.0, "waiting on %s", orderManager.AGVs[useAGV].name.c_str());
                     useAGV = (useAGV == 1 ? 0 : 1);
-                    agvName = orderManager.AGVs[useAGV].name;
                     ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
                     ros::Duration(0.02).sleep();
                 }
-                ROS_INFO("%s is Ready", agvName.c_str());
+                ROS_INFO("%s is Ready", orderManager.AGVs[useAGV].name.c_str());
                 orderManager.AGVs[useAGV].kitAssigned = kit;
                 orderManager.AGVs[useAGV].kitCompleted.kit_type = kit.kit_type;
                 orderManager.AGVs[useAGV].kitCompleted.objects.clear();
@@ -77,14 +75,15 @@ int main(int argc, char **argv) {
                                 ROS_WARN("back to this object later");
                                 break;
                             }
-                            Part target = orderManager.toAGVPart(agvName, object);
+                            Part target = orderManager.toAGVPart(useAGV, object);
                             Part best = planningUtils.getTargetDistanceBestPart(candidates, target);
                             ROS_INFO("got candidate part from total %d candidates:", (int) candidates.size());
                             ROS_INFO_STREAM(best);
                             ROS_INFO("moving part to target:");
                             ROS_INFO_STREAM(target);
                             if (robotMove.move(best, target)) {
-                                ROS_INFO("Successfully moved part to %s, error code is %s", agvName.c_str(),
+                                ROS_INFO("Successfully moved part to %s, error code is %s",
+                                         orderManager.AGVs[useAGV].name.c_str(),
                                          robotMove.getErrorCodeString().c_str());
                                 orderManager.AGVs[useAGV].contains.push_back(target);
                                 succeed = true;
@@ -112,7 +111,7 @@ int main(int argc, char **argv) {
                                         ROS_INFO("add lost parts to kit list for future processing");
                                         ROS_INFO_STREAM(lostPart);
                                         orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
-                                                orderManager.toKitObject(agvName, lostPart));
+                                                orderManager.toKitObject(useAGV, lostPart));
                                     }
                                     for (auto redundantPart: redundant) {
                                         ROS_INFO("add redundant parts to future list");
@@ -147,7 +146,7 @@ int main(int argc, char **argv) {
                                             for (auto lostPart: lost) {
                                                 ROS_INFO("add lost parts to kit object list");
                                                 orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
-                                                        orderManager.toKitObject(agvName, lostPart));
+                                                        orderManager.toKitObject(useAGV, lostPart));
                                             }
                                             for (auto redundantPart: redundant) {
                                                 ROS_INFO("try to pick the dropped part");
@@ -213,7 +212,7 @@ int main(int argc, char **argv) {
                                             if (robotMove.release()) {
                                                 ROS_INFO("Successfully removed bad part from tray");
                                                 ROS_INFO("add bad parts to kit list to fill them");
-                                                auto kitObject = orderManager.toKitObject(agvName, badPart);
+                                                auto kitObject = orderManager.toKitObject(useAGV, badPart);
                                                 orderManager.AGVs[useAGV].kitAssigned.objects.push_back(kitObject);
                                                 orderManager.AGVs[useAGV].kitCompleted.objects.erase(
                                                         find_if(orderManager.AGVs[useAGV].kitCompleted.objects.begin(),
@@ -254,7 +253,7 @@ int main(int argc, char **argv) {
                 }
                 ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
                 ROS_INFO("Submitting order...");
-                bool order_result = orderManager.submitOrder(agvName, kit);
+                bool order_result = orderManager.submitOrder(useAGV, kit);
                 ROS_INFO("Submission %s", order_result ? "success" : "failed");
                 ros::spinOnce();
                 orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1

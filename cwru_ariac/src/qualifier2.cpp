@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
     ROS_INFO("Trying to start the competition");
     while(!orderManager.startCompetition()) ;
     ROS_INFO("Competition started");
-    string agvName = orderManager.AGVs[useAGV].name;
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         agv1Camera.forceUpdate();
         if (orderManager.orders.empty()) {
@@ -82,7 +81,7 @@ int main(int argc, char** argv) {
                             }
                             ROS_INFO("Found %d parts from all places", (int)candidates.size());
 //                        Part best = planningUtils.getEuclideanBestPart(candidates);
-                            Part target = orderManager.toAGVPart(agvName, object);
+                            Part target = orderManager.toAGVPart(useAGV, object);
                             Part best = planningUtils.getTargetDistanceBestPart(candidates, target);
                             ROS_INFO("got candidate part from total %d candidates:", (int)candidates.size());
                             ROS_INFO_STREAM(best);
@@ -90,7 +89,8 @@ int main(int argc, char** argv) {
                             ROS_INFO_STREAM(target);
                             candidates.erase(findPart(candidates, best.id));
                             if (robotMove.move(best, target)) {
-                                ROS_INFO("Successfully moved part to %s, error code is %s", agvName.c_str(),
+                                ROS_INFO("Successfully moved part to %s, error code is %s",
+                                         orderManager.AGVs[useAGV].name.c_str(),
                                          robotMove.getErrorCodeString().c_str());
                                 orderManager.AGVs[useAGV].contains.push_back(target);
                                 succeed = true;
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
                 }
                 ROS_INFO("complete objects in kit: %s in order %s", kit.kit_type.c_str(), order.order_id.c_str());
                 ROS_INFO("Submitting order...");
-                bool order_result = orderManager.submitOrder(agvName, kit);
+                bool order_result = orderManager.submitOrder(useAGV, kit);
                 ROS_INFO("Submission %s", order_result ? "success" : "failed");
                 ros::spinOnce();
                 orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1

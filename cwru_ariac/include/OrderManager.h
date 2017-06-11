@@ -16,12 +16,13 @@ public:
 
     bool priorityOrderReceived;
 
-    Part toAGVPart(string agvName, osrf_gear::KitObject object);
+    Part toAGVPart(int agvNumber, osrf_gear::KitObject object);
 
-    osrf_gear::KitObject toKitObject(string agvName, Part part);
+    osrf_gear::KitObject toKitObject(int agvNumber, Part part);
 
     bool startCompetition();
-    bool submitOrder(string agvName, osrf_gear::Kit kit);
+
+    bool submitOrder(int agvNumber, osrf_gear::Kit kit);
 
     bool isCompetitionEnd() {
         ros::spinOnce();

@@ -132,29 +132,29 @@ bool OrderManager::startCompetition() {
     return !srv.response.success;
 }
 
-bool OrderManager::submitOrder(string agvName, osrf_gear::Kit kit) {
+bool OrderManager::submitOrder(int agvNumber, osrf_gear::Kit kit) {
     osrf_gear::AGVControl srv;
     srv.request.kit_type = kit.kit_type;
-    if (agvName == AGVs[0].name) {
+    if (agvNumber == 0) {
         bool result = AGV1Client.call(srv);  // Call the start Service.
         return result && srv.response.success;
     }
-    if (agvName == AGVs[1].name) {
+    if (agvNumber == 1) {
         bool result = AGV2Client.call(srv);  // Call the start Service.
         return result && srv.response.success;
     }
     return false;
 }
-Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
+
+Part OrderManager::toAGVPart(int agvNumber, osrf_gear::KitObject object) {
     Part part;
     geometry_msgs::PoseStamped inPose, outPose;
     bool tferr = true;
     inPose.pose = object.pose;
-    if (agvName == AGVs[0].name) {
+    if (agvNumber == 0) {
         part.location = Part::AGV1;
         inPose.header.frame_id = AGVs[0].frameName;
-    }
-    else if(agvName == AGVs[1].name) {
+    } else if (agvNumber == 1) {
         part.location = Part::AGV2;
         inPose.header.frame_id = AGVs[1].frameName;
     }
@@ -184,7 +184,7 @@ Part OrderManager::toAGVPart(string agvName, osrf_gear::KitObject object) {
     return part;
 }
 
-osrf_gear::KitObject OrderManager::toKitObject(string agvName, Part part) {
+osrf_gear::KitObject OrderManager::toKitObject(int agvNumber, Part part) {
     osrf_gear::KitObject kit;
     kit.type = part.name;
     geometry_msgs::PoseStamped inPose, outPose;
@@ -196,7 +196,7 @@ osrf_gear::KitObject OrderManager::toKitObject(string agvName, Part part) {
         tferr = false;
         try {
             inPose.header.stamp = ros::Time(0);
-            if (agvName == AGVs[0].name) {
+            if (agvNumber == 0) {
                 tf_listener.transformPose(AGVs[0].frameName, inPose, outPose);
             } else {
                 tf_listener.transformPose(AGVs[1].frameName, inPose, outPose);
