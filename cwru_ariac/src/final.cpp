@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
     camera.addCamera("/ariac/logical_camera_4");
     camera.addCamera("/ariac/logical_camera_5");
     camera.addCamera("/ariac/logical_camera_6");
+//    camera.addCamera("/ariac/logical_camera_7");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
     robotMove.disableAsync();
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
     ROS_INFO("Trying to start the competition");
     while (!orderManager.startCompetition());
     ROS_INFO("Competition started");
-    int useAGV = 1; //0; change to 1 to force using agv2
+    int useAGV = 0; //0; change to 1 to force using agv2
     while (ros::ok() && !orderManager.isCompetitionEnd()) {
         if (orderManager.orders.empty()) {
             ROS_INFO_THROTTLE(0.5, "Got no order, waiting...");

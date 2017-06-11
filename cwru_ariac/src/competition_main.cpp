@@ -307,6 +307,7 @@ int main(int argc, char **argv) {
                         priorityOrderFlag = true;
                         memoryFlag = true;
                         ROS_INFO("priority_order received..\n holding current order");
+                        robotMove.toPredefinedPose(RobotMoveGoal::BIN6_CRUISE_POSE);
                         break;
                     }
                 }

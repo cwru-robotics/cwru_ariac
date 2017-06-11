@@ -65,7 +65,6 @@ void LaserScanner::belt_speed_cb(const std_msgs::Float64& msg) {
 	if (speed_temp_1 != speed_temp_0){
 		belt_speed = msg.data;
 	}
-
 }
 
 
@@ -675,6 +674,7 @@ void LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_heig
 
 	// Calculate Time Stamp
 	t_stamp = t_0 + (t_1 - t_0)*winner_i/mat_ht;
+	// t_stamp = t_0 + (t_1 - t_0)*(1 - winner_i/mat_ht);
 	ROS_INFO("Origin time stamp: %f",t_stamp);
 
 

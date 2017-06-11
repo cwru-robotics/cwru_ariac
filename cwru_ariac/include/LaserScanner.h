@@ -215,37 +215,6 @@ public:
     string exp_log_name;
     int exp_log_id;
 
-    template<typename T>
-    void check_exp(T &partlist) {
-
-        if (partlist.empty() == 1) {
-            // ROS_WARN("The part list is empty REMOVE AFTER DEBUG");
-        } else {
-            auto oldest_part = partlist.front();
-            auto oldest_part_iterator = partlist.begin();
-
-            int oldest_part_id = oldest_part.id;
-            float t_0 = oldest_part.pose.header.stamp.toSec();
-            float t_1 = ros::Time::now().toSec();
-            float v = abs(oldest_part.linear.y);
-            float dist = (t_1 - t_0) * v;
-
-            if (dist > conveyor_cut_off) {
-                cout << "\033[1;31mA conveyor part has expired!\033[0m" << endl << ">>>Part id: " << oldest_part_id
-                     << endl;
-
-                exp_log_name = oldest_part.name;
-                exp_log_id = oldest_part.id;
-                remove_part(partlist, oldest_part_id);
-                exp_event++;
-                exp_log_call = true;
-
-            }
-
-        }
-
-    }
-
     void check_exp() {
         if (conveyor_partlist.empty() == 1) {
             // ROS_WARN("The part list is empty REMOVE AFTER DEBUG");
@@ -254,12 +223,8 @@ public:
             auto oldest_part_iterator = conveyor_partlist.begin();
 
             int oldest_part_id = oldest_part.id;
-            float t_0 = oldest_part.pose.header.stamp.toSec();
-            float t_1 = ros::Time::now().toSec();
-            float v = abs(oldest_part.linear.y);
-            float dist = (t_1 - t_0) * v;
 
-            if (dist > conveyor_cut_off) {
+            if (oldest_part.pose.pose.position.y < (laser_profiler_2_origin[1] - 0.06 - conveyor_cut_off)) {
                 cout << "\033[1;31mA conveyor part has expired!\033[0m" << endl << ">>>Part id: " << oldest_part_id
                      << endl;
 
@@ -268,11 +233,8 @@ public:
                 remove_part(conveyor_partlist, oldest_part_id);
                 exp_event++;
                 exp_log_call = true;
-
             }
-
         }
-
     }
 
 

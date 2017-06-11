@@ -27,6 +27,7 @@ protected:
     ros::NodeHandle nh;
     RobotMove *robot_;
     double upsideDownPenalty;
+    double conveyorBonus;
 };
 
 

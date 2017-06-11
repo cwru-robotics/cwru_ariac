@@ -89,15 +89,21 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
         }
         cameras[i]->startUpdate();
     }
+    std::lock_guard<std::mutex> guard(laserScanner.updateLock);
+    for (auto &part: laserScanner.conveyor_partlist) {
+        auto last_stamp = part.pose.header.stamp;
+        auto current_stamp = ros::Time::now();
+        double dt = (current_stamp - last_stamp).toSec();
+        part.pose.pose.position.x += part.linear.x * dt;
+        part.pose.pose.position.y += part.linear.y * dt;
+        part.pose.pose.position.z += part.linear.z * dt;
+        part.pose.header.stamp = current_stamp;
+    }
     laserScanner.check_exp();
     laserScanner.checkLog();
-    if (laserScannerUpdateCount != laserScanner.event_count) {
-        laserScannerUpdateCount = laserScanner.event_count;
-        laserScannerConveyor.clear();
-        std::lock_guard<std::mutex> guard(laserScanner.updateLock);
-        for (auto p: laserScanner.conveyor_partlist) {
-            laserScannerConveyor.push_back(p);
-        }
+    laserScannerConveyor.clear();
+    for (auto p: laserScanner.conveyor_partlist) {
+        laserScannerConveyor.push_back(p);
     }
     // TODO: merge redundant parts
     inUpdate = false;

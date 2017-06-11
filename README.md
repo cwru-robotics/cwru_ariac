@@ -25,7 +25,7 @@ Core code for complete ARIAC competition
 - Run the competition code:
 
 `rosrun cwru_ariac final`
-`rosrun cwru_ariac CompetitionMainNode`
+`rosrun cwru_ariac competition_main`
 
 - (Alternative) start by launch file:
 

@@ -21,8 +21,8 @@ int main(int argc, char **argv) {
 
 
         LaserScannerTest.forceUpdate();
-	
-	LaserScannerTest.check_exp(LaserScannerTest.conveyor_partlist);
+
+        LaserScannerTest.check_exp();
 
 	LaserScannerTest.conveyor_list_status(LaserScannerTest.conveyor_partlist);
 

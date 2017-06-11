@@ -7,6 +7,7 @@
 PlanningUtils::PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot) :
         nh(nodeHandle), robot_(&robot) {
     upsideDownPenalty = 20.0;
+    conveyorBonus = 5.0;
 }
 
 Part PlanningUtils::getEuclideanBestPart(PartList searchRange) {
@@ -33,11 +34,11 @@ Part PlanningUtils::getTargetDistanceBestPart(PartList searchRange, Part target)
         double distance_a = euclideanDistance((target.pose.pose.position), (a.pose.pose.position))
                             + (evalUpDown(target.pose.pose.orientation)
                                == evalUpDown(a.pose.pose.orientation) ? 0 : upsideDownPenalty)
-                            - (a.location == Part::CONVEYOR ? 3.0 : 0);
+                            - (a.location == Part::CONVEYOR ? conveyorBonus : 0);
         double distance_b = euclideanDistance((target.pose.pose.position), (b.pose.pose.position))
                             + (evalUpDown(target.pose.pose.orientation)
                                == evalUpDown(b.pose.pose.orientation) ? 0 : upsideDownPenalty)
-                            - (b.location == Part::CONVEYOR ? 3.0 : 0);
+                            - (b.location == Part::CONVEYOR ? conveyorBonus : 0);
         return distance_a < distance_b;
     });
 }

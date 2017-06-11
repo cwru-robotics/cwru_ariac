@@ -24,15 +24,18 @@ void CameraEstimator::cameraCallback(const osrf_gear::LogicalCameraImage::ConstP
     }
     inUpdate = true;
     PartSet updateView;
+    PartSet estimatedView;
     ros::Time currentTime = ros::Time::now();
     double dt = currentTime.toSec() - lastTime.toSec();
     // update all exist objects
     for (auto part: inView) {
-        part.pose.pose.position.x += part.linear.x * dt;
-        part.pose.pose.position.y += part.linear.y * dt;
-        part.pose.pose.position.z += part.linear.z * dt;
-        part.pose.header.stamp = ros::Time::now();
+        Part temp = part;
+        temp.pose.pose.position.x += temp.linear.x * dt;
+        temp.pose.pose.position.y += temp.linear.y * dt;
+        temp.pose.pose.position.z += temp.linear.z * dt;
+        estimatedView.insert(temp);
     }
+    inView.swap(estimatedView);
     lastTime.fromSec(currentTime.toSec());
     updateCount++;
     auto models = image_msg->models;
