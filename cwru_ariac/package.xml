@@ -1,43 +1,35 @@
 <?xml version="1.0"?>
 <package>
   <name>cwru_ariac</name>
-  <version>0.0.0</version>
-  <description>The cwru_ariac package</description>
+  <version>1.0.0</version>
+  <description>Package for NIST ARIAC competition by TeamCase</description>
   
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="shipei@todo.todo">shipei</maintainer>
+  <maintainer email="sxt437@case.edu">Shipei Tian</maintainer>
+  <maintainer email="wsn@case.edu">Wyatt Newman</maintainer>
+  <maintainer email="sxh759@case.edu">Siqi Huang</maintainer>
+  <maintainer email="axn337@case.edu">Ammar Nahari</maintainer>
+  <maintainer email="xxz491@case.edu">Xuanyi Zhang</maintainer>
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
-
+  <license>BSD</license>
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://ros.org/wiki/jacobian_publisher</url> -->
-
+  <url type="website">https://github.com/cwru-robotics/cwru_ariac</url>
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
   <!-- Authors do not have to be maintianers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
+  <author email="sxt437@case.edu">Shipei Tian</author>
+  <author email="wsn@case.edu">Wyatt Newman</author>
+  <author email="sxh759@case.edu">Siqi Huang</author>
+  <author email="axn337@case.edu">Ammar Nahari</author>
+  <author email="xxz491@case.edu">Xuanyi Zhang</author>
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
-  <!-- Examples: -->
-  <!-- Use build_depend for packages you need at compile time: -->
-  <!--   <build_depend>message_generation</build_depend> -->
-  <!-- Use buildtool_depend for build tool packages: -->
-  <!--   <buildtool_depend>catkin</buildtool_depend> -->
-  <!-- Use run_depend for packages you need at runtime: -->
-  <!--   <run_depend>message_runtime</run_depend> -->
-  <!-- Use test_depend for packages you need only for testing: -->
-  <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
   <build_depend>roscpp</build_depend>
@@ -45,10 +37,6 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>simple_action_client</build_depend>
   <build_depend>tf</build_depend>
-  <build_depend>moveit_msgs</build_depend>
-  <build_depend>moveit_ros_planning_interface</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_move_group</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_srvs</build_depend>
@@ -61,10 +49,6 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>simple_action_client</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>std_srvs</run_depend>
@@ -80,4 +64,3 @@
     <!-- Other tools can request additional information be placed here -->
   </export>
 </package>
-    
