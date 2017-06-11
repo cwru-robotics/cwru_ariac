@@ -12,6 +12,8 @@ Core code for complete ARIAC competition
 
 - Start ariac environment with any command from the following qualifiers or from setup
 
+`rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual3b.yaml `rospack find cwru_ariac`/config/final.yaml`
+
 - Start robot move action server:
 
 `rosrun robot_move_as robot_move_as`
@@ -23,6 +25,7 @@ Core code for complete ARIAC competition
 - Run the competition code:
 
 `rosrun cwru_ariac final`
+`rosrun cwru_ariac CompetitionMainNode`
 
 - (Alternative) start by launch file:
 

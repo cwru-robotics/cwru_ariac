@@ -55,6 +55,8 @@ OrderManager::OrderManager(ros::NodeHandle &nodeHandle) : nh(nodeHandle) {
     AGVs[0].frameName = "kit_tray_1_frame";
     AGVs[1].frameName = "kit_tray_2_frame";
     AGVFrameBroadcastTimer = nh.createTimer(ros::Duration(0.02), &OrderManager::broadcastTimerCallback, this);
+    priorityOrderReceived = false;
+    orderCnt = 0;
 }
 
 void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
@@ -64,6 +66,10 @@ void OrderManager::orderCallback(const osrf_gear::Order::ConstPtr &orderMsg) {
     if (it == orders.end()) {
         orders.push_back(*orderMsg);
         ROS_INFO_STREAM("Received order:\n" << *orderMsg);
+    }
+    orderCnt++;
+    if (orderCnt > 1) {
+        priorityOrderReceived = true;
     }
 }
 

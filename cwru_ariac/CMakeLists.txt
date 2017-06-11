@@ -50,6 +50,8 @@ cs_add_executable(robot_move_as_part_flip_tester src/robot_move_as_part_flip_tes
 cs_add_executable(laser_speedometer_bae src/laser_speedometer_bae.cpp)
 cs_add_executable(laser_scanner_test src/laser_scanner_test.cpp)
 cs_add_executable(final src/final.cpp)
+cs_add_executable(CompetitionMainNode src/CompetitionMainNode.cpp)
+
 # the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
 target_link_libraries(pose_tuner AriacLib)
@@ -67,5 +69,7 @@ target_link_libraries(robot_move_as_pick_part_tester AriacLib)
 target_link_libraries(laser_scanner_test  AriacLib)
 target_link_libraries(laser_speedometer_bae AriacLib)
 target_link_libraries(final AriacLib)
+target_link_libraries(CompetitionMainNode AriacLib)
+
 cs_install()
 cs_export()
