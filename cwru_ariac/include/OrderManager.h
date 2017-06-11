@@ -14,6 +14,8 @@ public:
     vector<AGV> AGVs;
     vector<osrf_gear::Order> orders;
 
+    bool priorityOrderReceived;
+
     Part toAGVPart(string agvName, osrf_gear::KitObject object);
 
     osrf_gear::KitObject toKitObject(string agvName, Part part);
@@ -56,6 +58,7 @@ protected:
     string worldFrame;
     tf::TransformListener tf_listener;
     ros::Timer AGVFrameBroadcastTimer;
+    int orderCnt;
 };
 
 
