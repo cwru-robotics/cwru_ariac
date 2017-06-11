@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="robot_move_as" pkg="robot_move_as" type="robot_move_as" output="screen"/>
+	<node name="laser_speedometer_bae" pkg="cwru_ariac" type="laser_speedometer_bae" output="screen"/>
+	<node name="ariac_final" pkg="cwru_ariac" type="final" output="screen"/>
+	<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cwru_ariac)/rviz/rviz_ariac.rviz"/> -->
+</launch>

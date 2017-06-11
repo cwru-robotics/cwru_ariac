@@ -2,9 +2,31 @@
 
 ARIAC (Agile Robotics for Industrial Automation Competition) is a competition hosted by the National Institute of Standards and Technology (NIST).
 
-## cwru_ariac
+**TeamCase**
 
-TO RUN THE QUALIFIER CODE:
+## the cwru_ariac package
+
+Core code for complete ARIAC competition
+
+### Final competition:
+
+- Start ariac environment with any command from the following qualifiers or from setup
+
+- Start robot move action server:
+
+`rosrun robot_move_as robot_move_as`
+
+- Start the laser speedometer:
+
+`rosrun cwru_ariac laser_speedometer_bae`
+
+- Run the competition code:
+
+`rosrun cwru_ariac final`
+
+- (Alternative) start by launch file:
+
+`roslaunch cwru_ariac run_comp.launch`
 
 ### Qualifier 1:
 
@@ -71,7 +93,7 @@ See: [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
 ## Update ARIAC
 
-The lastest ARIAC version as of 5/18/17 is 1.1.2
+The lastest ARIAC version as of 6/11/17 is 1.1.4
 We will always keep using the lastest ARIAC version.
 
 To check your current ARIAC version, run following command:
