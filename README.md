@@ -4,11 +4,11 @@ ARIAC (Agile Robotics for Industrial Automation Competition) is a competition ho
 
 **TeamCase**
 
-## the cwru_ariac package
+## The cwru_ariac Package
 
-Core code for complete ARIAC competition
+Core code for complete ARIAC competition see [cwru_ariac Readme](https://github.com/cwru-robotics/cwru_ariac/blob/master/cwru_ariac/README.md)
 
-### Final competition:
+### For Final Competition:
 
 - Start ariac environment with any command from the following qualifiers or from setup
 
@@ -79,18 +79,7 @@ Then run:
 
 `rosrun cwru_ariac qualifier3`
 
-
-## osrf_gear
-
-Official ARIAC repository
-
-Modified from [OSRF GEAR](https://bitbucket.org/osrf/ariac/overview).
-
-## gear_example
-
-Official exmaple from OSRF
-
-## How to start up simulation:
+## How to start up the simulation:
 
 See: [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
