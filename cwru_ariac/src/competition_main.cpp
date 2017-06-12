@@ -291,7 +291,7 @@ int main(int argc, char **argv) {
                             break;
                         }
                     }
-                    if(!memoryFlag){
+                    if(!memoryFlag&&priorityOrderDone){
                         kitMemoryAssigned = orderManager.AGVs[agvMemory].kitAssigned; // added by Ammar
                         kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
                         kitMemoryContains = orderManager.AGVs[useAGV].contains; // added by Ammar
