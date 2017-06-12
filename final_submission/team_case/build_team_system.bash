@@ -15,7 +15,7 @@ mkdir -p ~/ariac_ws/src
 cd ~/ariac_ws/src
 
 # Fetch the source code for our team's code
-git clone https://github_name:password@github.com/cwru-robotics/cwru_ariac.git
+git clone https://github.com/cwru-robotics/cwru_ariac.git
 git clone https://github.com/catkin/catkin_simple.git
 
 cd ~/ariac_ws
