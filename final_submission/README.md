@@ -8,13 +8,6 @@ Please read the following pages first:
 
 ## Test code with this config
 
-### Before you start:
-
-In **line 18** of **build_team_system.bash**:
- `git clone https://github_name:password@github.com/cwru-robotics/cwru_ariac.git`
-
-Change `github_name` and `password` to your own github name and password.
-
 ### Getting ariac docker
 
 Clone ariac docker from github:
@@ -43,7 +36,7 @@ Continue to the [post-install instructions](https://docs.docker.com/engine/insta
 To prepare the ARIAC competition system (but not run it), call:
 
 ```
-cd ~/ariac_ws
+cd ~/ariac_ws/ariac-docker
 ./pull_dockerhub_images.bash
 ```
 
