@@ -303,6 +303,7 @@ int main(int argc, char **argv) {
                     if (!priorityOrderFlag && memoryFlag) { 
                         priorityOrderDone = true;
                         ROS_INFO("priority_order done.. presuming first order");
+                        orderManager.orders.push_back(orderMemory);
                     }
 
                     if (orderManager.priorityOrderReceived) {
