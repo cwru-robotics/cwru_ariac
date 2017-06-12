@@ -291,10 +291,11 @@ int main(int argc, char **argv) {
                             break;
                         }
                     }
-                    kitMemoryAssigned = orderManager.AGVs[agvMemory].kitAssigned; // added by Ammar
-                    kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
-                    kitMemoryContains = orderManager.AGVs[useAGV].contains; // added by Ammar
-
+                    if(!memoryFlag){
+                        kitMemoryAssigned = orderManager.AGVs[agvMemory].kitAssigned; // added by Ammar
+                        kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
+                        kitMemoryContains = orderManager.AGVs[useAGV].contains; // added by Ammar
+                    }
                     if (!priorityOrderFlag && priorityOrderDone) {
                         priorityOrderDone = false;
                         memoryFlag = false;
