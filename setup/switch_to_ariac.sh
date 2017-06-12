@@ -31,9 +31,4 @@ sudo apt-get --yes --force-yes install ros-indigo-moveit ros-indigo-moveit-core 
 sudo apt-get --yes --force-yes install ros-indigo-object-recognition-*
 sudo apt-get --yes --force-yes install ariac
 
-echo -e "\e[1m \e[34m >>> Copy gazebo model \e[21m \e[39m"
-
-mkdir ~/.gazebo/models
-cp -r models/* ~/.gazebo/models/
-
 echo -e "\e[34m Setup complete! \e[39m"
