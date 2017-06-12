@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
             } else {
                 if (memoryFlag) {
                     order = orderMemory;
-                    useAGV = agvMemory;
+                    useAGV = 0;//agvMemory;
                 } else {
                     orderMemory = order; // added by Ammar
                     useAGV = 0;
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
             while (!orderManager.isAGVReady(useAGV)) {
                 ROS_WARN_THROTTLE(1.0, "waiting on %s", agvName.c_str());
                 //useAGV = (useAGV == 1 ? 0 : 1);
-                agvMemory = useAGV; // added by Ammar
+                //agvMemory = useAGV; // added by Ammar
                 agvName = orderManager.AGVs[useAGV].name;
                 ROS_WARN_THROTTLE(0.5, "Try AGV%d", useAGV + 1);
                 ros::Duration(0.02).sleep();
@@ -299,14 +299,16 @@ int main(int argc, char **argv) {
                         priorityOrderDone = false;
                         memoryFlag = false;
                     }
-                    if (!priorityOrderFlag && memoryFlag) { priorityOrderDone = true; }
+                    if (!priorityOrderFlag && memoryFlag) { 
+                        priorityOrderDone = true;
+                        ROS_INFO("priority_order done.. presuming first order");
+                    }
 
-                    //TODO: Check for priory orders (Ammar)
                     if (orderManager.priorityOrderReceived) {
                         orderManager.priorityOrderReceived = false;
                         priorityOrderFlag = true;
                         memoryFlag = true;
-                        ROS_INFO("priority_order received..\n holding current order");
+                        ROS_INFO("priority_order received.. holding current order");
                         robotMove.toPredefinedPose(RobotMoveGoal::BIN6_CRUISE_POSE);
                         break;
                     }
