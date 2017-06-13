@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
 //    camera.addCamera("/ariac/logical_camera_7");
     OrderManager orderManager(nh);
     RobotMove robotMove(nh);
+    RobotInterface robotInterface(nh);
     robotMove.disableAsync();
     robotMove.toPredefinedPose(RobotMoveGoal::BIN6_HOVER_POSE);
     PlanningUtils planningUtils(nh, robotMove);
@@ -151,8 +152,8 @@ int main(int argc, char **argv) {
                                     for (auto lostPart: lost) {
                                         ROS_INFO("add lost parts to kit list for future processing");
                                         ROS_INFO_STREAM(lostPart);
-                                        orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
-                                                orderManager.toKitObject(useAGV, lostPart));
+//                                        orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+//                                                orderManager.toKitObject(useAGV, lostPart));
                                     }
                                     for (auto redundantPart: redundant) {
                                         ROS_INFO("add redundant parts to future list");
@@ -186,8 +187,8 @@ int main(int argc, char **argv) {
                                             ROS_INFO("Found parts not in correct position");
                                             for (auto lostPart: lost) {
                                                 ROS_INFO("add lost parts to kit object list");
-                                                orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
-                                                        orderManager.toKitObject(useAGV, lostPart));
+//                                                orderManager.AGVs[useAGV].kitAssigned.objects.push_back(
+//                                                        orderManager.toKitObject(useAGV, lostPart));
                                             }
                                             for (auto redundantPart: redundant) {
                                                 ROS_INFO("try to pick the dropped part");
@@ -291,27 +292,36 @@ int main(int argc, char **argv) {
                             break;
                         }
                     }
-                    if(!memoryFlag&&priorityOrderDone){
+                    if ((!memoryFlag) && (!priorityOrderDone)) {
                         kitMemoryAssigned = orderManager.AGVs[agvMemory].kitAssigned; // added by Ammar
                         kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
-                        kitMemoryContains = orderManager.AGVs[useAGV].contains; // added by Ammar
+                        kitMemoryContains = orderManager.AGVs[agvMemory].contains; // added by Ammar
                     }
-                    if (!priorityOrderFlag && priorityOrderDone) {
-                        priorityOrderDone = false;
-                        memoryFlag = false;
-                    }
-                    if (!priorityOrderFlag && memoryFlag) { 
+                    if ((!priorityOrderFlag) && memoryFlag) {
                         priorityOrderDone = true;
                         ROS_INFO("priority_order done.. presuming first order");
                         orderManager.orders.push_back(orderMemory);
                     }
+                    if ((!priorityOrderFlag) && priorityOrderDone) {
+                        priorityOrderDone = false;
+                        memoryFlag = false;
+                    }
+
 
                     if (orderManager.priorityOrderReceived) {
                         orderManager.priorityOrderReceived = false;
                         priorityOrderFlag = true;
                         memoryFlag = true;
-                        ROS_INFO("priority_order received.. holding current order");
-                        robotMove.toPredefinedPose(RobotMoveGoal::BIN6_CRUISE_POSE);
+                        ROS_WARN("priority_order received.. holding current order");
+                        // avoid collision when switching the order, by rotate to hard coded pose
+                        auto jointSate = robotInterface.getJointsState();
+                        if (jointSate[3] > M_PI / 4) {
+                            jointSate[3] = -M_PI / 4;
+                        } else if (jointSate[3] < -M_PI / 4) {
+                            jointSate[3] = M_PI / 4;
+                        }
+                        robotInterface.sendJointsValue(jointSate);
+                        ros::Duration(2).sleep();
                         break;
                     }
                 }
@@ -323,9 +333,8 @@ int main(int argc, char **argv) {
                     orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1
                     ros::Duration(2.0).sleep();
                     ROS_INFO("Current score: %f", orderManager.getCurrentScore());
+                    orderManager.AGVs[useAGV].contains.clear();
                 }
-
-                orderManager.AGVs[useAGV].contains.clear();
                 order.kits.erase(find_if(order.kits.begin(), order.kits.end(), [kit](osrf_gear::Kit obj) {
                     return obj.kit_type == kit.kit_type;
                 }));

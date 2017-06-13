@@ -7,7 +7,7 @@
 PlanningUtils::PlanningUtils(ros::NodeHandle &nodeHandle, RobotMove &robot) :
         nh(nodeHandle), robot_(&robot) {
     upsideDownPenalty = 20.0;
-    conveyorBonus = 5.0;
+    conveyorBonus = 20.0;
 }
 
 Part PlanningUtils::getEuclideanBestPart(PartList searchRange) {
