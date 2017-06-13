@@ -30,6 +30,10 @@ RobotInterface::RobotInterface(ros::NodeHandle &nodeHandle): nh( nodeHandle ){
 void RobotInterface::jointStateCallback(const sensor_msgs::JointState::ConstPtr &jointStateMsg)
 {
     current_joint_states = *jointStateMsg;
+    current_joint_states.name.pop_back();
+    current_joint_states.effort.pop_back();
+    current_joint_states.position.pop_back();
+    current_joint_states.velocity.pop_back();
     called = true;
 }
 
@@ -84,11 +88,7 @@ vector<double> RobotInterface::getJointsState() {
         ros::spinOnce();
         ros::Duration(0.02).sleep();
     }
-    vector<double> joints;
-    joints.resize(current_joint_states.name.size(), 0.0);
-    for (int i = 0; i < joints.size(); ++i) {
-        joints = current_joint_states.position;
-    }
+    vector<double> joints = current_joint_states.position;
     return joints;
 }
 

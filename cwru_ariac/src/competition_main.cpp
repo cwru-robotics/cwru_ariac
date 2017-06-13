@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
                 ROS_INFO("size of kit: %d", (int) kit.objects.size());
 
                 if (memoryFlag && priorityOrderDone) {
+                    ROS_WARN("Resuming order");
                     orderManager.AGVs[useAGV].kitAssigned = kitMemoryAssigned;
                     orderManager.AGVs[useAGV].kitCompleted = kitMemoryCompleted;
                     orderManager.AGVs[useAGV].contains = kitMemoryContains;
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
                     orderManager.AGVs[useAGV].kitAssigned = kit;
                     orderManager.AGVs[useAGV].kitCompleted.kit_type = kit.kit_type;
                     orderManager.AGVs[useAGV].kitCompleted.objects.clear();
-
+                    orderManager.AGVs[useAGV].contains.clear();
                 }
                 while (!orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
                     if (priorityOrderFlag) { break; }//added by Ammar
@@ -297,32 +298,30 @@ int main(int argc, char **argv) {
                         kitMemoryCompleted = orderManager.AGVs[agvMemory].kitCompleted; // added by Ammar
                         kitMemoryContains = orderManager.AGVs[agvMemory].contains; // added by Ammar
                     }
-                    if ((!priorityOrderFlag) && memoryFlag) {
-                        priorityOrderDone = true;
-                        ROS_INFO("priority_order done.. presuming first order");
-                        orderManager.orders.push_back(orderMemory);
-                    }
                     if ((!priorityOrderFlag) && priorityOrderDone) {
+                        ROS_WARN("Reset state");
                         priorityOrderDone = false;
                         memoryFlag = false;
                     }
-
-
                     if (orderManager.priorityOrderReceived) {
                         orderManager.priorityOrderReceived = false;
                         priorityOrderFlag = true;
                         memoryFlag = true;
                         ROS_WARN("priority_order received.. holding current order");
                         // avoid collision when switching the order, by rotate to hard coded pose
-                        auto jointSate = robotInterface.getJointsState();
-                        if (jointSate[3] > M_PI / 4) {
-                            jointSate[3] = -M_PI / 4;
-                        } else if (jointSate[3] < -M_PI / 4) {
-                            jointSate[3] = M_PI / 4;
+                        auto jointsState = robotInterface.getJointsState();
+                        if (jointsState[3] > M_PI / 4) {
+                            jointsState[3] = -M_PI / 4;
+                        } else if (jointsState[3] < -M_PI / 4) {
+                            jointsState[3] = M_PI / 4;
                         }
-                        robotInterface.sendJointsValue(jointSate);
-                        ros::Duration(2).sleep();
+                        robotInterface.sendJointsValue(jointsState);
                         break;
+                    }
+                    if ((!priorityOrderFlag) && memoryFlag && orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
+                        priorityOrderDone = true;
+                        ROS_WARN("priority_order done.. presuming first order");
+                        orderManager.orders.push_back(orderMemory);
                     }
                 }
                 if (!priorityOrderFlag) {
@@ -333,7 +332,6 @@ int main(int argc, char **argv) {
                     orderManager.AGVs[useAGV].state = AGV::DELIVERING; // need to wait on AGV1
                     ros::Duration(2.0).sleep();
                     ROS_INFO("Current score: %f", orderManager.getCurrentScore());
-                    orderManager.AGVs[useAGV].contains.clear();
                 }
                 order.kits.erase(find_if(order.kits.begin(), order.kits.end(), [kit](osrf_gear::Kit obj) {
                     return obj.kit_type == kit.kit_type;
