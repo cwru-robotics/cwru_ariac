@@ -7,7 +7,7 @@ unsigned short int RobotMoveActionServer::fetch_from_conveyor(const cwru_ariac::
     ROS_INFO("part info: ");
     ROS_INFO_STREAM(part);
     //HACK FOR QUAL2b:  xxxxxxxxxxxxxxxxxxxxxxxxx
-    //part.linear.y =QUAL2_CONVEYOR_SPEED; 
+    //part.linear.y =QUAL2_CONVEYOR_SPEED;
     double start_time = ros::Time::now().toSec();
     double part_header_time = part.pose.header.stamp.toSec();
     double dt = start_time - part_header_time;
@@ -131,11 +131,11 @@ unsigned short int RobotMoveActionServer::fetch_from_conveyor(const cwru_ariac::
     ros::Duration(2.0).sleep(); //TUNE ME!!
 
     trajectory_msgs::JointTrajectory traj;
-    int njnts = robotState.jointNames.size();
+    int njnts = robotInterface.getJointsNames().size();
     ROS_INFO("njnts = %d", njnts);
     traj.header.stamp = ros::Time::now();
     // Copy the joint names from the msg off the '/ariac/joint_states' topic.
-    traj.joint_names = robotState.jointNames;
+    traj.joint_names = robotInterface.getJointsNames();
     // Create one point in the trajectory.
     traj.points.resize(npts); //arbitrary
 
@@ -144,21 +144,23 @@ unsigned short int RobotMoveActionServer::fetch_from_conveyor(const cwru_ariac::
     ROS_INFO("populating tracking trajectory");
     for (int i = 0; i < 2; i++) {
         //ROS_INFO("i= %d",i);
-        traj.points[i].positions.resize(njnts + 1);
-        for (int j = 0; j < njnts; ++j) {
+        traj.points[i].positions.resize(njnts);
+        for (int j = 0; j < njnts - 1; ++j) {
             traj.points[i].positions[j] = approach_pickup_jspace_pose_[j];
         }
         traj.points[i].positions[1] = q_rail_vals[i];
+        traj.points[i].positions[njnts - 1] = 0;
         traj.points[i].time_from_start = ros::Duration(arrival_times[i]);
     }
 
     for (int i = 2; i < npts; i++) {
         //ROS_INFO("i= %d",i);
         traj.points[i].positions.resize(njnts);
-        for (int j = 0; j < njnts; ++j) {
+        for (int j = 0; j < njnts - 1; ++j) {
             traj.points[i].positions[j] = pickup_jspace_pose_[j];
         }
         traj.points[i].positions[1] = q_rail_vals[i];
+        traj.points[i].positions[njnts - 1] = 0;
         traj.points[i].time_from_start = ros::Duration(arrival_times[i]);
     }
     //have traj queued up, but wait to launch it.  Compute when part is expected to arrive at y=0;

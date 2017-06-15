@@ -68,7 +68,7 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     q_bin6_hover_pose_.resize(7);
     q_bin7_hover_pose_.resize(7);
     q_bin8_hover_pose_.resize(7);
-    
+
     q_bin_pulley_flip_.resize(7);
 
     q_des_7dof_.resize(7);
@@ -104,7 +104,7 @@ RobotMoveActionServer::RobotMoveActionServer(ros::NodeHandle nodeHandle, string 
     //q_bin8_cruise_pose_.resize(7);
     //q_bin8_cruise_pose_<<1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50;//1.85,  0.4, -2.0, 1.57, 3.33, -1.57, 0.50
     //Eigen::VectorXd q_bin8_cruise_pose_,q_bin8_hover_pose_,q_bin8_retract_pose_;
-    
+
     q_bin_pulley_flip_ << 1.77, 1.13, -0.68, 3.2, 4.9, -3, 0;
 
     approach_dist_ = 0.05; //arbitrarily set the approach offset value, e.g. 5cm
@@ -361,7 +361,7 @@ bool RobotMoveActionServer::get_grasp_transform(Part part, Eigen::Affine3d &gras
     y_inv<<0,-1,0;
     z_inv<<0,0,-1;
     R_inverted.col(1) = y_inv;
-    R_inverted.col(2) = z_inv;   
+    R_inverted.col(2) = z_inv;
     Eigen::Vector3d O_part_wrt_gripper;
     O_part_wrt_gripper << 0, 0, 0; //= Eigen::MatrixXd::Zero(3, 1);
     grasp_transform.linear() = R;
@@ -569,10 +569,10 @@ bool RobotMoveActionServer::agv_cruise_jspace_pose(int8_t agv, Eigen::VectorXd &
 trajectory_msgs::JointTrajectory RobotMoveActionServer::jspace_pose_to_traj(Eigen::VectorXd joints, double dtime) {
     // Create a message to send.
     trajectory_msgs::JointTrajectory msg;
-    int njnts = robotState.jointNames.size();
     msg.header.stamp = ros::Time::now();
     // Copy the joint names from the msg off the '/ariac/joint_states' topic.
-    msg.joint_names = robotState.jointNames;
+    msg.joint_names = robotInterface.getJointsNames();
+    int njnts = msg.joint_names.size();
     // Create one point in the trajectory.
     msg.points.resize(1);
     // Resize the vector to the same length as the joint names.
@@ -674,7 +674,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
 
     //what is the height of the surface on which we want to place the part?
     Oe[2] = get_surface_height(part); //assumes part frame should be flush with target surface
-    bool part_is_up = eval_up_down(part.pose);    
+    bool part_is_up = eval_up_down(part.pose);
         //HACK ADJUSTMENT FOR INVERTED PULLEY:
     // to place an inverted pulley on a surface, its origin should be PULLEY_PART_THICKNESS above the surface;
     string part_name(part.name); //a C++ string
@@ -686,7 +686,7 @@ Eigen::Affine3d RobotMoveActionServer::affine_vacuum_dropoff_pose_wrt_base_link(
     }
 
 
-    
+
     affine_part_wrt_world.translation() = Oe;
     ROS_WARN("I will instead use  part dropoff pose w/rt world of: ");
     xformUtils_.printAffine(affine_part_wrt_world);
@@ -862,8 +862,8 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO_STREAM(goal->targetPart);
             //ROS_INFO_STREAM(goal->targetPart.pose);
             ROS_INFO("Time limit is %f", timeout);
-            source_is_up = eval_up_down(goal->sourcePart.pose);       
-            target_is_up = eval_up_down(goal->targetPart.pose); 
+            source_is_up = eval_up_down(goal->sourcePart.pose);
+            target_is_up = eval_up_down(goal->targetPart.pose);
             flip_part=false;
             if (source_is_up && !target_is_up) flip_part = true;
             if (!source_is_up && target_is_up) flip_part = true;
@@ -904,12 +904,12 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     result_.robotState = robotState;
                     as.setAborted(result_);
                     return;
-                } 
+                }
             }
 
             // if here, do pick and place
             //anticipate failure, unless proven otherwise;
-            
+
             result_.success = false;
             result_.errorCode = RobotMoveResult::WRONG_PARAMETER;  //UNREACHABLE
             //goal->sourcePart
@@ -1014,21 +1014,21 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             //now move to bin pickup pose:
             ROS_INFO("enabling gripper");
             grab(); //do this early, so grasp at first contact
-            
+
             //now move to bin pickup pose:
             ROS_INFO_STREAM("moving to pickup_jspace_pose_ "<<pickup_jspace_pose_.transpose());
             move_to_jspace_pose(pickup_jspace_pose_,2.0); // try to pick up part
             ros::Duration(2.0).sleep(); //TUNE ME!!
 
-            
+
             while (!is_attached && (t_wait<1.0)) {
                 is_attached = robotInterface.isGripperAttached();
                 ros::Duration(0.5).sleep();
                 t_wait+=0.4;
                 ROS_INFO("waiting for gripper attachment");
             }
-  
-            if (!is_attached) { 
+
+            if (!is_attached) {
                ROS_WARN("did not attach; trying lower");
                pickup_jspace_pose_[2]+= 0.05; // lower via shoulder-lift joint
                move_to_jspace_pose(pickup_jspace_pose_,t_wait_timeout);
@@ -1041,20 +1041,20 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                }
             }
             if(!is_attached) {
-                ROS_WARN("could not grasp part; giving up");             
+                ROS_WARN("could not grasp part; giving up");
                 result_.errorCode = RobotMoveResult::GRIPPER_FAULT;
-                
+
                 result_.success = false;
                 result_.robotState = robotState;
                 as.setAborted(result_);
                 return;
             }
-            ROS_INFO("part is attached to gripper");            
-            
+            ROS_INFO("part is attached to gripper");
+
             ROS_INFO("departing to approach_pickup_jspace_pose_ ");
             move_to_jspace_pose(approach_pickup_jspace_pose_,1.0); //lift part
             ros::Duration(1.0).sleep(); //TUNE ME!!
-            
+
             ROS_INFO("moving to bin hover pose");
             move_to_jspace_pose(bin_hover_jspace_pose_,1.0); //hover pose
             ros::Duration(1.0).sleep(); //TUNE ME!!
@@ -1099,7 +1099,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             ROS_INFO("moving to agv_hover_pose_");
             move_to_jspace_pose(agv_hover_pose_,1.0); //move to agv hover pose
             ros::Duration(1.0).sleep(); //TUNE ME!!
-            
+
             ROS_INFO("moving to approach_dropoff_jspace_pose_");
             move_to_jspace_pose(approach_dropoff_jspace_pose_,1.0); //move to agv hover pose
             ros::Duration(1.0).sleep(); //TUNE ME!!
@@ -1131,7 +1131,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
 
             ROS_INFO("releasing gripper");
             //release gripper
-           errorCode = release_fnc(5.0); 
+           errorCode = release_fnc(5.0);
             if (errorCode != RobotMoveResult::NO_ERROR) {
                    ROS_WARN("grasp unsuccessful; timed out");
                     result_.success = false;
@@ -1139,7 +1139,7 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     result_.robotState = robotState;
                     as.setAborted(result_);
                     return;
-                } 
+                }
             //ros::Duration(2.0).sleep(); //TUNE ME!!
             //ROS_INFO("I %s dropped the part", robotInterface.isGripperAttached()? "did not": "successfully");
 
@@ -1190,15 +1190,15 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     result_.robotState = robotState;
                     as.setAborted(result_);
                     return;
-                } 
+                }
              //if here, all is well:
                 ROS_INFO("Completed PICK action");
                 result_.success = true;
                 result_.errorCode = RobotMoveResult::NO_ERROR;
                 result_.robotState = robotState;
-                as.setSucceeded(result_);               
+                as.setSucceeded(result_);
             break;
-            
+
         case RobotMoveGoal::PLACE:
             ROS_INFO("PLACE");
             ROS_INFO("The part is %s, should be place to %s, with pose:", goal->targetPart.name.c_str(),
@@ -1236,15 +1236,15 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                 case RobotMoveGoal::AGV1_CRUISE_POSE:
                     ROS_INFO("moving to agv1 cruise pose");
                     traj_ = jspace_pose_to_traj(q_agv1_cruise_pose_);
-                    break;                    
+                    break;
                  case RobotMoveGoal::AGV2_HOVER_POSE:
                     traj_ = jspace_pose_to_traj(q_agv2_hover_pose_);
                     break;
                 case RobotMoveGoal::AGV2_CRUISE_POSE:
                     ROS_INFO("moving to agv2 cruise pose");
                     traj_ = jspace_pose_to_traj(q_agv2_cruise_pose_);
-                    break;  
-                    
+                    break;
+
                 case RobotMoveGoal::BIN8_CRUISE_POSE:
                     traj_ = jspace_pose_to_traj(q_bin8_cruise_pose_);
                     break;
@@ -1364,10 +1364,10 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
             result_.robotState = robotState;
             as.setSucceeded(result_);
             break;
-            
+
         case RobotMoveGoal::GRASP:
             ROS_INFO("GRASP");
-            errorCode = grasp_fnc(); 
+            errorCode = grasp_fnc();
             if (errorCode != RobotMoveResult::NO_ERROR) {
                    ROS_WARN("grasp unsuccessful");
                     result_.success = false;
@@ -1375,17 +1375,17 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     result_.robotState = robotState;
                     as.setAborted(result_);
                     return;
-                } 
+                }
              //if here, all is well:
                 ROS_INFO("part is grasped");
                 result_.success = true;
                 result_.errorCode = RobotMoveResult::NO_ERROR;
                 result_.robotState = robotState;
-                as.setSucceeded(result_);               
-            break;           
+                as.setSucceeded(result_);
+            break;
 
         case RobotMoveGoal::RELEASE:
-            errorCode = release_fnc(); 
+            errorCode = release_fnc();
             if (errorCode != RobotMoveResult::NO_ERROR) {
                    ROS_WARN("grasp unsuccessful; timed out");
                     result_.success = false;
@@ -1393,12 +1393,12 @@ void RobotMoveActionServer::executeCB(const cwru_ariac::RobotMoveGoalConstPtr &g
                     result_.robotState = robotState;
                     as.setAborted(result_);
                     return;
-                } 
+                }
                 result_.success = true;
                 result_.errorCode = RobotMoveResult::NO_ERROR;
                 result_.robotState = robotState;
-                as.setSucceeded(result_);               
-            break;        
+                as.setSucceeded(result_);
+            break;
 
         case RobotMoveGoal::IS_ATTACHED:
             ROS_INFO("IS_ATTACHED");
