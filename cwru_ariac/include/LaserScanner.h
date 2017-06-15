@@ -80,6 +80,9 @@ public:
         } else {
             typename T::iterator target_iterator;
             target_iterator = findPart(partlist, part_id);
+            if (target_iterator == partlist.end()) {
+                return;
+            }
             rm_log_name = target_iterator->name;
             rm_log_id = part_id;
             partlist.erase(target_iterator);

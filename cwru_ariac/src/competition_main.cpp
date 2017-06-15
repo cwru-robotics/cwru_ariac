@@ -7,7 +7,7 @@
 #include <cwru_ariac.h>
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "CompetitionMainN");
+    ros::init(argc, argv, "CompetitionMain");
     ros::NodeHandle nh;
     SensorManager camera(nh);
     camera.addCamera("/ariac/logical_camera_1");
@@ -93,8 +93,6 @@ int main(int argc, char **argv) {
                 while (!orderManager.AGVs[useAGV].kitAssigned.objects.empty()) {
                     if (priorityOrderFlag) { break; }//added by Ammar
                     for (auto object : orderManager.AGVs[useAGV].kitAssigned.objects) {
-                        cout << "================================================================continue============="
-                             << endl;
                         ROS_INFO("Working on object type: %s", object.type.c_str());
                         ROS_INFO("Remain objects for this kit: %d",
                                  (int) orderManager.AGVs[useAGV].kitAssigned.objects.size());
@@ -125,6 +123,7 @@ int main(int argc, char **argv) {
                             ROS_INFO_STREAM(best);
                             ROS_INFO("moving part to target:");
                             ROS_INFO_STREAM(target);
+                            camera.partFetched(best.id);
                             if (robotMove.move(best, target)) {
                                 ROS_INFO("Successfully moved part to %s, error code is %s", agvName.c_str(),
                                          robotMove.getErrorCodeString().c_str());

@@ -20,7 +20,7 @@ void SensorManager::addCamera(string topic) {
     stopUpdate();
     cameras.emplace_back(new CameraEstimator(nh, topic));
     updateCounts.resize(cameras.size());
-    *updateCounts.end() = 0;
+    updateCounts[updateCounts.size() - 1] = 0;
     startUpdate();
 }
 
@@ -90,6 +90,8 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
         cameras[i]->startUpdate();
     }
     std::lock_guard<std::mutex> guard(laserScanner.updateLock);
+    laserScanner.check_exp();
+    laserScanner.checkLog();
     for (auto &part: laserScanner.conveyor_partlist) {
         auto last_stamp = part.pose.header.stamp;
         auto current_stamp = ros::Time::now();
@@ -99,8 +101,6 @@ void SensorManager::updateCallback(const ros::TimerEvent &event) {
         part.pose.pose.position.z += part.linear.z * dt;
         part.pose.header.stamp = current_stamp;
     }
-    laserScanner.check_exp();
-    laserScanner.checkLog();
     laserScannerConveyor.clear();
     for (auto p: laserScanner.conveyor_partlist) {
         laserScannerConveyor.push_back(p);
