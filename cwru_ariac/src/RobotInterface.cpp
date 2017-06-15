@@ -101,7 +101,6 @@ vector<string> RobotInterface::getJointsNames() {
         }
     }
     vector<string> names = current_joint_states.name;
-    names.pop_back();
     return names;
 }
 
