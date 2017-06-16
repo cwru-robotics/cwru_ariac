@@ -68,8 +68,8 @@ void LaserScanner::belt_speed_cb(const std_msgs::Float64 &msg) {
 
 void LaserScanner::part_identification(cv::Mat dewarped_mat, int &type_id) {
     int part_pt_count = 0;
-    float ht_total = 0;
-    float ht_avg;
+    double ht_total = 0;
+    double ht_avg;
     cv::Size mat_size = dewarped_mat.size();
     int mat_ht = mat_size.height;
     int mat_wd = mat_size.width;
@@ -122,17 +122,17 @@ void LaserScanner::part_identification(cv::Mat dewarped_mat, int &type_id) {
 }
 
 
-vector<float> LaserScanner::uni_vec(const vector<float> &vec_0, const vector<float> &vec_1) {
+vector<double> LaserScanner::uni_vec(const vector<double> &vec_0, const vector<double> &vec_1) {
     // ONLY deal with our very speical case in which part z axis always points up
-    float delta_x = vec_1[0] - vec_0[0];
-    float delta_y = vec_1[1] - vec_0[1];
-    float delta_z = 0;
-    float norm = sqrt(delta_x * delta_x + delta_y * delta_y);
-    vector<float> uni_vec_;
+    double delta_x = vec_1[0] - vec_0[0];
+    double delta_y = vec_1[1] - vec_0[1];
+    double delta_z = 0;
+    double norm = sqrt(delta_x * delta_x + delta_y * delta_y);
+    vector<double> uni_vec_;
     uni_vec_.clear();
-    float x = delta_x / norm;
-    float y = delta_y / norm;
-    float z = delta_z / norm;
+    double x = delta_x / norm;
+    double y = delta_y / norm;
+    double z = delta_z / norm;
     uni_vec_.push_back(x);
     uni_vec_.push_back(y);
     uni_vec_.push_back(z);
@@ -143,19 +143,19 @@ vector<float> LaserScanner::uni_vec(const vector<float> &vec_0, const vector<flo
 
 // RN Feedback 17/5/17
 // Actually Eigen Lib has the cross() function.
-vector<float> LaserScanner::cross_product(const vector<float> &vec_1, const vector<float> &vec_2) {
-    float u1 = vec_1[0];
-    float u2 = vec_1[1];
-    float u3 = vec_1[2];
-    float v1 = vec_2[0];
-    float v2 = vec_2[1];
-    float v3 = vec_2[2];
+vector<double> LaserScanner::cross_product(const vector<double> &vec_1, const vector<double> &vec_2) {
+    double u1 = vec_1[0];
+    double u2 = vec_1[1];
+    double u3 = vec_1[2];
+    double v1 = vec_2[0];
+    double v2 = vec_2[1];
+    double v3 = vec_2[2];
 
-    float x = u2 * v3 - u3 * v2;
-    float y = u3 * v1 - u1 * v3;
-    float z = u1 * v2 - u2 * v1;
+    double x = u2 * v3 - u3 * v2;
+    double y = u3 * v1 - u1 * v3;
+    double z = u1 * v2 - u2 * v1;
 
-    vector<float> crossed;
+    vector<double> crossed;
     crossed.clear();
     crossed.push_back(x);
     crossed.push_back(y);
@@ -173,8 +173,8 @@ void LaserScanner::publish_part() {
 }
 
 
-void LaserScanner::integrate_info(const int &part_id, const vector<float> &origin, const vector<float> &pin_origin,
-                                  const ros::Time &ros_t_stamp, const float &belt_speed) {
+void LaserScanner::integrate_info(const int &part_id, const vector<double> &origin, const vector<double> &pin_origin,
+                                  const ros::Time &ros_t_stamp, const double &belt_speed) {
 
     Part part;
     Eigen::Affine3d affine_temp;
@@ -185,9 +185,9 @@ void LaserScanner::integrate_info(const int &part_id, const vector<float> &origi
     origin_temp[1] = (origin[1]);
     origin_temp[2] = (origin[2]);
 
-    vector<float> vec_x;
-    vector<float> vec_y;
-    vector<float> vec_z(3, 0);
+    vector<double> vec_x;
+    vector<double> vec_y;
+    vector<double> vec_z(3, 0);
     // vec_y = uni_vec(pin_origin, origin);
     vec_y = uni_vec(origin, pin_origin);
     vec_z[2] = 1;
@@ -284,22 +284,23 @@ void LaserScanner::integrate_info(const int &part_id, const vector<float> &origi
 
 
 void
-LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, float &t_0, float &t_1, float &t_stamp, ros::Time &ros_t_0,
-                                    ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<float> &origin,
+LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, double &t_0, double &t_1, double &t_stamp,
+                                    ros::Time &ros_t_0,
+                                    ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<double> &origin,
                                     vector<int> &origin_pixel, int &part_id) {
     origin.clear();
     origin_pixel.clear();
     cv::Size mat_size = dewarped_mat_c.size();
-    float ht_total = 0;
-    float ht_avg;
+    double ht_total = 0;
+    double ht_avg;
     int part_pt_count = 0;
     int mat_ht = mat_size.height;
     int mat_wd = mat_size.width; // bit redundant but will be improved in the future
     int i_total = 0;
     int j_total = 0;
-    float i_avg, j_avg;
-    float x, y, z;
-    float ht_part;
+    double i_avg, j_avg;
+    double x, y, z;
+    double ht_part;
     for (int i = 0; i < mat_ht; i++) {
 
         for (int j = 0; j < mat_wd; j++) {
@@ -354,28 +355,24 @@ LaserScanner::type_a_stamped_center(cv::Mat dewarped_mat_c, float &t_0, float &t
     int shift = 0;
     cv::circle(dewarped_mat_c, pt, r, cv::Scalar(255, 255, 255, 255), thickness, lineType, shift);
 
-
-    char imgName_center_a[20];
-    sprintf(imgName_center_a, "RN_%d_dewarped_centre.jpg", item_count);
-
 }
 
 
-void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float> &pin_origin,
+void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin,
                                      vector<int> &origin_pixel, int part_id) {
     pin_origin.clear();
 
     cv::Size mat_size = dewarped_mat_a.size();
-    float ht_total = 0;
-    float ht_avg = 0;
+    double ht_total = 0;
+    double ht_avg = 0;
     int part_pt_count = 0;
     int mat_ht = mat_size.height;
     int mat_wd = mat_size.width;
     int i_tallest = 0;
     int j_tallest = 0;
     int z_tallest = 0;
-    float i_avg, j_avg;
-    float x, y, z;
+    double i_avg, j_avg;
+    double x, y, z;
 
     z_tallest = 0;
 
@@ -384,7 +381,7 @@ void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
     int window_lt = 0;
     int window_rt = 0;
     int z_cap = 255; // restrict the depth of the pt must be under this value
-    float ht_part; // use this as the asymmetric pin's z value instead of the real pin height
+    double ht_part; // use this as the asymmetric pin's z value instead of the real pin height
     if (part_id == 1) {
         ROS_INFO("part_id == 1");
         z_cap = 245;
@@ -503,9 +500,6 @@ void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
             int shift = 0;
             cv::circle(dewarped_mat_a, pt, r, cv::Scalar(0, 255, 0, 255), thickness, lineType, shift);
 
-            char imgName_pin_a[40];
-            sprintf(imgName_pin_a, "RN_%d_dewarped_asymmetric.jpg", item_count);
-
         } else { ROS_WARN("Failed to find the asymmetric part of this object!"); }
     }
 
@@ -513,24 +507,25 @@ void LaserScanner::type_a_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
 
 
 void
-LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, float &t_0, float &t_1, float &t_stamp,
+LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, double scan_height, double &t_0, double &t_1,
+                                    double &t_stamp,
                                     ros::Time &ros_t_0, ros::Time &ros_t_1, ros::Time &ros_t_stamp,
-                                    vector<float> &origin, vector<int> &pin_pixel, vector<int> &origin_pixel) {
+                                    vector<double> &origin, vector<int> &pin_pixel, vector<int> &origin_pixel) {
 
     origin.clear();
     origin_pixel.clear();
     cv::Size mat_size = dewarped_mat_c.size();
 
-    float ht_total = 0;
-    float ht_avg;
+    double ht_total = 0;
+    double ht_avg;
     int part_pt_count = 0;
     int mat_ht = mat_size.height;
     int mat_wd = mat_size.width; // bit redundant but will be improved in the future
     int h_total, w_total;
-    float h_avg, w_avg;
-    float x, y, z;
+    double h_avg, w_avg;
+    double x, y, z;
     int window_r;
-    float window_r_float;
+    double window_r_float;
     int winner_win_count = 0;
     int winner_penalty_score = 10000;
     int current_penalty = 0;
@@ -538,13 +533,13 @@ LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, f
     int pin_centre_dist;
     int winner_i = 0;
     int winner_j = 0;
-    std::vector<float> theta;
+    std::vector<double> theta;
     std::vector<int> width_delta;
     //std::vector<int> width_end;
     int temp;
     theta.clear();
     width_delta.clear();
-    // vector<float> debug;
+    // vector<double> debug;
 
     // Target area match
     int target_match;
@@ -693,27 +688,24 @@ LaserScanner::type_b_stamped_center(cv::Mat dewarped_mat_c, float scan_height, f
     int shift = 0;
     cv::circle(dewarped_mat_c, pt, r, cv::Scalar(255, 255, 255, 255), thickness, lineType, shift);
 
-    char imgName_center_a[40];
-    sprintf(imgName_center_a, "RN_%d_dewarped_centre.jpg", item_count);
-
 }
 
 
-void LaserScanner::type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, vector<float> &pin_origin,
+void LaserScanner::type_b_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin,
                                      vector<int> &pin_pixel, int part_id) {
     pin_pixel.clear();
 
     cv::Size mat_size = dewarped_mat_a.size();
-    float ht_total = 0;
-    float ht_avg;
+    double ht_total = 0;
+    double ht_avg;
     int part_pt_count = 0;
     int mat_ht = mat_size.height;
     int mat_wd = mat_size.width; // bit redundant but will be improved in the future
     int i_tallest, j_tallest, z_tallest;
     int i_total = 0;
     int j_total = 0;
-    float i_avg, j_avg;
-    float x, y, z;
+    double i_avg, j_avg;
+    double x, y, z;
 
     for (int i = 5; i < (mat_ht - 5); i++) {
 
@@ -756,9 +748,6 @@ void LaserScanner::type_b_asymmetric(cv::Mat dewarped_mat_a, float scan_height, 
     int lineType = 8;
     int shift = 0;
     cv::circle(dewarped_mat_a, pt, r, cv::Scalar(0, 255, 0, 255), thickness, lineType, shift);
-
-    char imgName_pin_a[40];
-    sprintf(imgName_pin_a, "RN_%d_dewarped_asymmetric.jpg", item_count);
 }
 
 
@@ -767,10 +756,10 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan &laser_scan) {
 
     int part_id;
 
-    vector<float> origin;
-    vector<float> pin_origin;
+    vector<double> origin;
+    vector<double> pin_origin;
     vector<int> pin_pixel;
-    float t_stamp;
+    double t_stamp;
     ros::Time ros_t_stamp;
     vector<int> origin_pixel;
 
@@ -787,7 +776,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan &laser_scan) {
         ping_index_min_ = 0;    //set starting index
         // ping_index_max_ =   (angle_max_ - angle_min_)/angle_increment_;	//set maximum index //THIS WILL CREATE CHAOS
         ping_index_max_ = 399;
-        float belt_depth_temp = 0;
+        double belt_depth_temp = 0;
         int n2 = 1;
         for (int n = center_index_ - 5; n < center_index_ + 5; n++) {
 
@@ -810,12 +799,12 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan &laser_scan) {
         cout << "angle_min_: " << angle_min_ << endl;
         cout << "angle_max_: " << angle_max_ << endl;
         cout << "angle_increment_: " << angle_increment_ << endl;
-        float ping_index_max_float;
+        double ping_index_max_float;
         ping_index_max_float = (angle_max_ - angle_min_) / angle_increment_;
         cout << "ping_index_max_float: " << ping_index_max_float << endl;
 
         // initialise vectors
-        std::vector<float> init_row(ping_index_max_, 0);
+        std::vector<double> init_row(ping_index_max_, 0);
         row_z_prev_0 = init_row;
         row_z_prev_1 = init_row;
         row_z_prev_2 = init_row;
@@ -903,17 +892,11 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan &laser_scan) {
             cv::Mat image(image_x_size, image_y_size, CV_64FC1);
             cv::Mat image_resized(image_x_size, image_y_size, CV_64FC1);
 
-            char imgName[20];
-            char imgName_dewarped[30];
-            char fileName[20];
-            char fileName_2[20];
-            char fileName_3[20];
-            sprintf(imgName, "RN_%d.jpg", item_count);
-            sprintf(imgName_dewarped, "RN_%d_dewarped.jpg", item_count);
-            sprintf(fileName, "RN_%d_height_info.txt", item_count);
-            sprintf(fileName_2, "RN_%d_dewarped_depth_info.csv", item_count);
-            sprintf(fileName_3, "RN_%d_id.txt", item_count);
-
+            string imgName = "RN_" + to_string(item_count) + ".jpg";
+            string imgName_dewarped = "RN_" + to_string(item_count) + "_dewarped.jpg";
+            string fileName = "RN_" + to_string(item_count) + "_height_info.txt";
+            string fileName_2 = "RN_" + to_string(item_count) + "_dewarped_depth_info.csv";
+            string fileName_3 = "RN_" + to_string(item_count) + "_id.txt";
 
             // calculate a depth image
             for (int i = 0; i < image_x_size; i++) {
@@ -927,7 +910,7 @@ void LaserScanner::laserCallback(const sensor_msgs::LaserScan &laser_scan) {
 
             // dewarp the image
             int y_pixel_number;
-            float scan_height_; // scan image height not part height
+            double scan_height_; // scan image height not part height
 
             // y_pixel_number = 101*(time_1 - time_0)*belt_speed/scan_width_;
             y_pixel_number = 400 * (time_1 - time_0) * belt_speed / scan_width_;
