@@ -184,7 +184,7 @@ inline bool evalUpDown(geometry_msgs::Quaternion orientation) {
 
 inline double unifyAngle(double input) {
     input = fmod(input, M_PI * 2);
-    return (input > M_PI )? input-2*M_PI : input; //assumes fmod always returns non-negative value
+    return (input > M_PI) ? input - 2 * M_PI : input; //assumes fmod always returns non-negative value
 }
 
 inline double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
@@ -196,26 +196,14 @@ inline double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
 
 inline bool matchPose(geometry_msgs::Pose A,geometry_msgs::Pose B) {
     // set tolerances of part placements on tray (per scoring)
-//    vector<double> rotA = quatToEuler(A.orientation);
-//    vector<double> rotB = quatToEuler(B.orientation);
-    bool distance = fabs(euclideanDistance2D(A.position, B.position)) < 0.025;  // 0.03 (old)
-    
-    // IGNORE Z COMPONENT!!! wsn, 5/13
-//    bool z = true; //fabs(A.position.z - B.position.z) < 0.05;
-//    bool roll = true; //unifyAngle(fabs(rotA[0] - rotB[0])) < 0.1;   // 0.05 (old)
-//    bool pitch = true; //unifyAngle(fabs(rotA[1] - rotB[1])) < 0.1;
-    bool yaw = unifyAngle(fabs(convertPlanarQuat2Phi(A.orientation) - convertPlanarQuat2Phi(A.orientation))) < 0.08;
+    // only check position and yaw and part flip as the scorer only care about these
+    bool distance = fabs(euclideanDistance2D(A.position, B.position)) < 0.027;  // 0.03 (old)
+    bool yaw = unifyAngle(fabs(convertPlanarQuat2Phi(A.orientation) - convertPlanarQuat2Phi(B.orientation))) < 0.09;
     bool upDown = (evalUpDown(A.orientation) == evalUpDown(B.orientation));
-//    bool quat_x = true; //fabs(A.orientation.x - A.orientation.x) < 0.1;
-//    bool quat_y = true; //fabs(A.orientation.y - A.orientation.y) < 0.1;
-//    bool quat_z = fabs(A.orientation.z - A.orientation.z) < 0.1;
-//    bool quat_w = fabs(A.orientation.w - A.orientation.w) < 0.1;
-//    if (!(distance & upDown & yaw)) {
-//        ROS_WARN("match pose failed, upDown eval: %s, A: %s, B: %s", upDown? "true":"false", evalUpDown(A.orientation)? "up":"down", evalUpDown(B.orientation)? "up":"down");
-//        ROS_WARN_STREAM("Pose A:" << A);
-//        ROS_WARN_STREAM("Pose B:" << B);
-//        ROS_WARN("A yaw:%f, B yaw:%f", convertPlanarQuat2Phi(A.orientation), convertPlanarQuat2Phi(A.orientation));
-//    }
+//    ROS_WARN("match pose, upDown eval: %s, A: %s, B: %s", upDown? "true":"false", evalUpDown(A.orientation)? "up":"down", evalUpDown(B.orientation)? "up":"down");
+//    ROS_WARN_STREAM("Pose A:" << A);
+//    ROS_WARN_STREAM("Pose B:" << B);
+//    ROS_WARN("A yaw:%f, B yaw:%f", convertPlanarQuat2Phi(A.orientation), convertPlanarQuat2Phi(B.orientation));
     return distance & upDown & yaw;// roll & pitch & yaw;
 }
 
