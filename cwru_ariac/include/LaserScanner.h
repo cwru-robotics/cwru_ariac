@@ -29,39 +29,6 @@ public:
     Part latest_part;
     mutex updateLock;
 
-    void part_identification(cv::Mat dewarped_mat, int &type_id);
-
-    vector<double> uni_vec(const vector<double> &vec_0, const vector<double> &vec_1);
-
-    vector<double> cross_product(const vector<double> &vec_1, const vector<double> &vec_2);
-
-    void integrate_info(const int &part_id, const vector<double> &origin, const vector<double> &pin_origin,
-                        const ros::Time &ros_t_stamp, const double &belt_speed);
-
-    void type_a_stamped_center(cv::Mat dewarped_mat_c, double &t_0, double &t_1, double &t_stamp, ros::Time &ros_t_0,
-                               ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<double> &origin,
-                               vector<int> &origin_pixel, int &part_id);
-
-    void
-    type_a_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin, vector<int> &origin_pixel,
-                      int part_id);
-
-    // MK1 obsolete
-    // Type B part solution
-    // void type_b_stamped_center(cv::Mat dewarped_mat_c, double& t_0, double& t_1, double& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<double>& origin, vector<int>& origin_pixel);
-    // void type_b_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double>& pin_origin, vector<int>& origin_pixel, int part_id);
-
-    // MK2 currently deployed
-    // Type B part solution
-    void
-    type_b_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin, vector<int> &pin_pixel,
-                      int part_id);
-
-    void type_b_stamped_center(cv::Mat dewarped_mat_c, double scan_height, double &t_0, double &t_1, double &t_stamp,
-                               ros::Time &ros_t_0, ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<double> &origin,
-                               vector<int> &pin_pixel, vector<int> &origin_pixel);
-
-
     void forceUpdate();
 
     void publish_part();
@@ -105,17 +72,24 @@ public:
     void conveyor_list_blackbox(T &partlist) {
         if (new_file == true) {
             new_file = false;
-            ROS_DEBUG_STREAM("Belt Event Recorder \n" << "Activating Laser Scanner " << log_number << "]\n");
+            log_number = time(0);
+            log_name = "RN_Belt_Event_Recorder_" + to_string(log_number) + ".log";
+            ofstream ofstream_1(log_name);
+            ofstream_1 << "Belt Event Recorder \n" << "Activating Laser Scanner " << log_number << "]\n";
+            ofstream_1.close();
         } else {
+            ofstream log;
+            log.open(log_name, ofstream::app);
+
             if (exp_log_call == true) {
                 event_count++;
                 event_time = time(0);
                 exp_log_call = false;
-                cout << "\n";
-                cout << "event number: " << event_count << "\n";
-                cout << "[Part Expiration Event " << event_time << "_" << exp_event << "]\n";
-                cout << "Expired part type: " << exp_log_name << "\n";
-                cout << "Part ID: " << exp_log_id << "\n";
+                log << "\n";
+                log << "event number: " << event_count << "\n";
+                log << "[Part Expiration Event " << event_time << "_" << exp_event << "]\n";
+                log << "Expired part type: " << exp_log_name << "\n";
+                log << "Part ID: " << exp_log_id << "\n";
 
             }
 
@@ -123,11 +97,11 @@ public:
                 event_count++;
                 event_time = time(0);
                 removal_log_call = false;
-                cout << "\n";
-                cout << "event number: " << event_count << "\n";
-                cout << "[Part Removal Event " << event_time << "_" << removal_event << "]\n";
-                cout << "Removed part type: " << rm_log_name << "\n";
-                cout << "Part ID: " << rm_log_id << "\n";
+                log << "\n";
+                log << "event number: " << event_count << "\n";
+                log << "[Part Removal Event " << event_time << "_" << removal_event << "]\n";
+                log << "Removed part type: " << rm_log_name << "\n";
+                log << "Part ID: " << rm_log_id << "\n";
 
 
             }
@@ -136,11 +110,11 @@ public:
                 event_count++;
                 event_time = time(0);
                 add_part_log_call = false;
-                cout << "\n";
-                cout << "event number: " << event_count << "\n";
-                cout << "[Part Addition Event " << event_time << "_" << add_event << "]\n";
-                cout << "Added part type: " << add_log_name << "\n";
-                cout << "Part ID: " << add_log_id << "\n";
+                log << "\n";
+                log << "event number: " << event_count << "\n";
+                log << "[Part Addition Event " << event_time << "_" << add_event << "]\n";
+                log << "Added part type: " << add_log_name << "\n";
+                log << "Part ID: " << add_log_id << "\n";
 
 
             }
@@ -148,12 +122,13 @@ public:
             if (report_log_call == true) {
                 event_time = time(0);
                 report_log_call = false;
-                cout << "\n";
-                cout << "[Current part count " << event_time << "]: " << belt_partlist_size << "\n";
+                log << "\n";
+                log << "[Current part count " << event_time << "]: " << belt_partlist_size << "\n";
 
 
             }
-
+            log.close();
+            // log <<
         }
 
     }
@@ -288,20 +263,18 @@ protected:
     string add_log_name;
     bool report_log_call = false;
 
-
     // A log function
     bool new_file = true;
+    string log_name;
     time_t log_number;
     time_t event_time;
     int event_count = 0;
-
 
     // MK3 part list management
     int removal_event = 0;
     bool removal_log_call = false;
     string rm_log_name;
     int rm_log_id;
-
 
     int exp_event = 0;
     bool exp_log_call = false;
@@ -311,6 +284,38 @@ protected:
 
     int belt_partlist_size;
     int status_update_count = 0;
+
+    void part_identification(cv::Mat dewarped_mat, int &type_id);
+
+    vector<double> uni_vec(const vector<double> &vec_0, const vector<double> &vec_1);
+
+    vector<double> cross_product(const vector<double> &vec_1, const vector<double> &vec_2);
+
+    void integrate_info(const int &part_id, const vector<double> &origin, const vector<double> &pin_origin,
+                        const ros::Time &ros_t_stamp, const double &belt_speed);
+
+    void type_a_stamped_center(cv::Mat dewarped_mat_c, double &t_0, double &t_1, double &t_stamp, ros::Time &ros_t_0,
+                               ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<double> &origin,
+                               vector<int> &origin_pixel, int &part_id);
+
+    void
+    type_a_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin, vector<int> &origin_pixel,
+                      int part_id);
+
+    // MK1 obsolete
+    // Type B part solution
+    // void type_b_stamped_center(cv::Mat dewarped_mat_c, double& t_0, double& t_1, double& t_stamp, ros::Time& ros_t_0, ros::Time& ros_t_1, ros::Time& ros_t_stamp, vector<double>& origin, vector<int>& origin_pixel);
+    // void type_b_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double>& pin_origin, vector<int>& origin_pixel, int part_id);
+
+    // MK2 currently deployed
+    // Type B part solution
+    void
+    type_b_asymmetric(cv::Mat dewarped_mat_a, double scan_height, vector<double> &pin_origin, vector<int> &pin_pixel,
+                      int part_id);
+
+    void type_b_stamped_center(cv::Mat dewarped_mat_c, double scan_height, double &t_0, double &t_1, double &t_stamp,
+                               ros::Time &ros_t_0, ros::Time &ros_t_1, ros::Time &ros_t_stamp, vector<double> &origin,
+                               vector<int> &pin_pixel, vector<int> &origin_pixel);
 };
 
 #endif //CWRU_ARIAC_LASERSCANNER_H
