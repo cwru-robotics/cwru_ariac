@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
                         while (ros::ok() && !succeed) {
                             camera.forceUpdate();
                             PartList allParts = camera.combineLocations(
-                                    SensorManager::CONVEYOR + SensorManager::BINS + SensorManager::GROUND, extraParts);
+                                    SensorManager::CONVEYOR + SensorManager::BINS, extraParts);
                             ROS_INFO("Got %d parts from camera, try to find %s part in all places",
                                      (int) allParts.size(), object.type.c_str());
                             PartList candidates = findPart(allParts, object.type);
@@ -314,6 +314,7 @@ int main(int argc, char **argv) {
                         } else if (jointsState[3] < -M_PI / 4) {
                             jointsState[3] = M_PI / 4;
                         }
+                        ROS_WARN("move the robot to avoid collision, J4 to %f", jointsState[1]);
                         robotInterface.sendJointsValue(jointsState);
                         break;
                     }

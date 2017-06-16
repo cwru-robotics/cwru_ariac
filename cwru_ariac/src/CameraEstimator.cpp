@@ -170,6 +170,7 @@ void CameraEstimator::splitLocation() {
         }
         if (jump)
             continue;
+        part.location = Part::GROUND;
         onGround.push_back(part);
     }
 }
