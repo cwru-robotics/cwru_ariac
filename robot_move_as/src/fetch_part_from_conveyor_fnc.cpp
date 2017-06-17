@@ -26,7 +26,7 @@ unsigned short int RobotMoveActionServer::fetch_from_conveyor(const cwru_ariac::
     // will be approx 2.5sec in the future, and send robot there to wait
 
     //where will the part be in 2.5 sec?
-    double fudge_wait_time = 5.0; //4 sec
+    double fudge_wait_time = 6.0; //4 sec
     double part_dock_y = part_y_start + vy * fudge_wait_time;
     ROS_INFO("part_y_start = %f", part_y_start);
     ROS_INFO("earliest part_dock_y = %f", part_dock_y);
