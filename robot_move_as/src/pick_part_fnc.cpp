@@ -143,7 +143,7 @@ unsigned short int RobotMoveActionServer::pick_part_fnc(const cwru_ariac::RobotM
     ROS_INFO_STREAM("moving to pickup_jspace_pose_ " << std::endl << pickup_jspace_pose_.transpose());
     move_to_jspace_pose(pickup_jspace_pose_, 2.0); // try to pick up part; slow approach
 
-    errorCode = grasp_fnc(1.0); //use the grasp fnc; timeout set for 3 sec
+    errorCode = grasp_fnc(3.0); //use the grasp fnc; timeout set for 3 sec
     //ROS_INFO("got grasp error code %d",(int) errorCode);
 
     if (errorCode != RobotMoveResult::NO_ERROR) { //if not successful, try moving to attach
