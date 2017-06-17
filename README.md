@@ -24,7 +24,6 @@ Core code for complete ARIAC competition see [cwru_ariac Readme](https://github.
 
 - Run the competition code:
 
-`rosrun cwru_ariac final`
 `rosrun cwru_ariac competition_main`
 
 - (Alternative) start by launch file:

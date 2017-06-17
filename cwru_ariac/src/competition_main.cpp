@@ -143,10 +143,14 @@ int main(int argc, char **argv) {
                                         ROS_INFO_STREAM(currentTarget.first);
                                         ROS_INFO("to");
                                         ROS_INFO_STREAM(currentTarget.second);
-                                        if (robotMove.move(currentTarget.first, currentTarget.second)) {
-                                            ROS_INFO("move part succeed");
+                                        if (currentTarget.first.name != "pulley_part") {
+                                            if (robotMove.move(currentTarget.first, currentTarget.second)) {
+                                                ROS_INFO("adjust part pose succeed");
+                                            } else {
+                                                ROS_WARN("move part failed, continue...");
+                                            }
                                         } else {
-                                            ROS_INFO("move part failed");
+                                            ROS_WARN("Ignore adjusting this part as it is a pulley part");
                                         }
                                     }
                                     for (auto lostPart: lost) {
@@ -156,11 +160,11 @@ int main(int argc, char **argv) {
 //                                                orderManager.toKitObject(useAGV, lostPart));
                                     }
                                     for (auto redundantPart: redundant) {
-                                        ROS_INFO("add redundant parts to future list");
+                                        ROS_INFO("add redundant parts as candidates for future request");
                                         extraParts.push_back(redundantPart);
                                     }
                                 } else {
-                                    ROS_INFO("part in correct pose");
+                                    ROS_INFO("all parts in correct pose");
                                 }
                                 orderManager.AGVs[useAGV].kitCompleted.objects.push_back(object);
                                 orderManager.AGVs[useAGV].kitAssigned.objects.erase(
