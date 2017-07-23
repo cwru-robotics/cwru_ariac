@@ -13,7 +13,7 @@ Overall structure see here:
                   OrderManager
 ```
 
-Sensor is configurable in *config/ariac_conf.yaml*.
+Sensors are configurable in *config/final.yaml*. For instructions, see: https://bitbucket.org/osrf/ariac/wiki/configuration_spec
 
 ## Modules
 
@@ -21,7 +21,7 @@ Sensor is configurable in *config/ariac_conf.yaml*.
 
 **CameraEstimator**: watching camera updates keep tracking parts, multi-instance of camera is allowed (Tested)
 
-**SensorManager**: Provides interface for both camera and laser scanner, and combine information from different sources (Done, Not tested)
+**SensorManager**: Provides interface for both camera and laser scanner, and combine information from different sources (Tested)
 
 **BinManager**: Maintain each bin cells and provide temporary location for parts, can hold its camera and use camera information for the update.
 
@@ -33,13 +33,13 @@ Sensor is configurable in *config/ariac_conf.yaml*.
 
 **RobotInterface**: low level robot interface for UR10 + extra linear tray (7DOF) (Tested)
 
-**PlanningUtils**: Provides some planning algorithms (Done, Not tested)
+**PlanningUtils**: Provides some planning algorithms (Tested)
 
-**Cheater**: extra interface for competition control, won't available in real competition (Done, Not tested)
+**Cheater**: extra interface for competition control, won't available in real competition (Done)
 
 ## Running tests/demos
 
-###Before run: 
+### Before run: 
 
 Run setup script from [Setup](https://github.com/cwru-robotics/cwru_ariac/tree/master/setup)
 
@@ -58,7 +58,7 @@ Optional args:
 
 `-o /tmp` -- this generates temporary launch files in /tmp directory
 
-###Executables:
+### xecutables:
 
 `rosrun cwru_ariac pose_tunner`: a tool for change joints values arbitrary, with joint value feedback. 
 
