@@ -29,11 +29,7 @@ this will create a folder called **ros_ws** under your home folder, and it will 
 Clone this repository in your catkin workspace under *src* folder and do
 
 ```
-cd [directory to your catkin workspace]
-
-catkin_make
-
-catkin_make install
+ckm # An alias I made for catkin_make
 ```
 
 ### Start the simulation
