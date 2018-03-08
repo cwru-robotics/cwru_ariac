@@ -1,43 +1,5 @@
 # System Setup
 
-ARIAC Runs on both ROS Indigo and Kinetic, you can pick either of this two version and our code runs on both version. However, using ROS Indigo is recommended, since most code are developed under ROS Indigo.
-
-ARIAC requires Gazebo7, which by default ROS Indigo is using Gazebo2. With this installation, there can be compatibility problem with ROS Indigo + Gazebo7. Currently knowing baxter simulator does not work with Gazebo7
-
-ROS Kinetic comes with Gazebo7, but there are less package resources.
-
-## Ubuntu 14.04 + ROS Indigo
-
-### Fresh installation
-
-If you have not install ROS yet:
-
-```
-cd [directory where this file locates]
-
-./install_ros_ariac.sh
-```
-
-Enter your password and wait...
-
-Further, if you want to setup your workspace, run:
-
-`./setup_workspace.sh`
-
-this will create a folder called **ros_ws** under your home folder, and it will becomes your ROS workspace.
-
-### Already installed ROS Indigo
-
-You have to uninstall gazebo2 and install gazebo7, run:
-
-```
-cd [directory where this file locates]
-
-./switch_to_ariac.sh
-```
-
-Notice: you will get compile error if you have baxter code inside your workspace
-
 ## ROS Kinetic
 
 ### Fresh installation
