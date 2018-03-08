@@ -1,13 +1,13 @@
 # System Setup
 
-## ROS Kinetic
+## Install ROS Kinetic
 
 ### Fresh installation
 
 If you have not install ROS yet:
 
 ```
-cd [directory where this file locates]
+cd [directory of this file]
 
 ./install_ros_kinetic.sh
 ```

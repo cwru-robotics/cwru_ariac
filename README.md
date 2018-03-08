@@ -97,3 +97,30 @@ To update your ARIAC, run following commands:
 sudo apt-get update
 sudo apt-get upgrade ariac
 ```
+
+## ARIAC LASER SCANNER NOTES
+
+Version MK1
+
+  Will
+
+  16/5/17
+
+
+1. Start the laser speedometer:
+
+   `rosrun cwru_ariac laser_speedometer_bae`
+
+2. Start a laser scanner untility test node:
+
+   `rosrun cwru_ariac laser_scanner_test`
+
+   (If you choose to output the images and .csv files, they will be stored under the directory where you run the node.)
+
+3. To control the conveyor belt:
+
+   `rosservice call /ariac/conveyor/control "state: {power: 0}"`
+
+   (Set the power value yourself.)
+
+4. The topic `/ariac/latest_conveyor_part` is used to publish whatever is the last part that has passed laser_profiler_2.
