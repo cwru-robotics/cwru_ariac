@@ -33,26 +33,25 @@ echo -e "\e[1m \e[34m >>> Installing dependencies \e[21m \e[39m"
 
 sudo apt-get --yes install python-rosinstall
 sudo apt-get --yes install ros-kinetic-gazebo-*
-sudo apt-get --yes install ros-kinetic-joy ros-kinetic-costmap* ros-kinetic-nav-core ros-kinetic-sound-play ros-kinetic-amcl ros-kinetic-move-base
-sudo apt-get --yes install ros-kinetic-joint-state-controller ros-kinetic-effort-controllers ros-kinetic-stdr-simulator
+#sudo apt-get --yes install ros-kinetic-joy ros-kinetic-costmap* ros-kinetic-nav-core ros-kinetic-sound-play ros-kinetic-amcl ros-kinetic-move-base ros-kinetic-stdr-simulator
+sudo apt-get --yes install ros-kinetic-joint-state-controller ros-kinetic-effort-controllers
 sudo apt-get --yes install ros-kinetic-control* ros-kinetic-robot-controllers* ros-kinetic-robot-state-publisher
 sudo apt-get --yes install ros-kinetic-ros-cont* ros-kinetic-joint-*
 sudo apt-get --yes install ros-kinetic-rqt*
 sudo apt-get --yes install ros-kinetic-moveit* ros-kinetic-trac-ik-kinematics-plugin
-sudo apt-get --yes install ros-kinetic-object-recognition-*
+#sudo apt-get --yes install ros-kinetic-object-recognition-*
 sudo apt-get --yes install ariac
 
 echo -e "\e[1m \e[34m >>> Installing support software \e[21m \e[39m"
 sudo apt-get --yes install git build-essential
 sudo apt-get --yes install python-pip python-dev build-essential
 sudo pip install --upgrade pip
-sudo pip install --upgrade virtualenv
-sudo pip install numpy scipy
 sudo pip install virtualenv virtualenvwrapper
+sudo pip install numpy scipy
 
 sudo add-apt-repository -y ppa:webupd8team/sublime-text-3
 sudo apt-get update
-sudo apt-get --yes install sublime-text-installer atom
+sudo apt-get --yes install sublime-text-installer
 sudo apt-get --yes install kazam vlc
 sudo apt-get --yes install gitk git-gui
 
